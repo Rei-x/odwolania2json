@@ -16,7 +16,8 @@ examples: {pdf: pelnomocnictwo.pdf, json: pelnomocnictwo.json}   # pliki w każd
 instructions: |
   - Mocodawców może być kilku (np. konsorcjum udzielające pełnomocnictwa wspólnie) — każdy osobno.
   - Dla osoby prawnej imie_nazwisko = null; dla przedsiębiorcy będącego osobą fizyczną (np. "DUDEK-TECH Jarosław Dudek")
-    typ = "osoba_fizyczna", imie_nazwisko = imię i nazwisko, nazwa = pełna nazwa firmy.
+    typ = "osoba_fizyczna", imie_nazwisko = imię i nazwisko, nazwa = pełna nazwa firmy
+    (bez dopisków typu "prowadzący działalność gospodarczą pod firmą").
   - podpisujacy: osoby podpisane w imieniu danego mocodawcy (pod "Mocodawca:" / "W imieniu ..."), bez stanowisk.
   - pelnomocnicy: imię i nazwisko w mianowniku, bez tytułów (adw., r.pr.); PESEL tylko jeśli podany.
   - Nie wymyślaj danych — brak = null.

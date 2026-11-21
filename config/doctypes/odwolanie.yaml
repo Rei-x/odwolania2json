@@ -23,6 +23,8 @@ instructions: |
   - "data" i "miejscowosc" pochodzą z nagłówka pierwszej strony (np. "Koszalin, 16 czerwca 2026 roku").
   - Odwołujący/Zamawiający: dane identyfikacyjne (KRS/NIP/REGON) bierz tylko z bloku danego podmiotu.
   - Konsorcjum odwołujących: podaj Lidera konsorcjum.
+  - Przedsiębiorca będący osobą fizyczną: nazwa = sama nazwa firmy (np. "MERIDIAN KONSULTING Patryk Mazur"),
+    bez dopisków typu "prowadzący działalność gospodarczą pod firmą"; KRS zwykle brak (null).
   - Pełnomocnik: osoba wskazana jako "reprezentowany przez" / pełnomocnik; imię i nazwisko bez tytułów (adw., r.pr.).
     Gdy wskazano kilku pełnomocników — podaj tylko PIERWSZEGO.
   - Numery BZP/TED/postępowania przepisz z dokumentu; nie myl numeru TED z BZP.
