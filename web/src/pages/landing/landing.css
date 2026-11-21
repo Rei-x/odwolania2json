@@ -93,10 +93,6 @@
   .hcopy h1 .l3 { color: var(--acc-l); padding-bottom: .08em }
   .hcopy .lede { color: rgb(255 255 255 / .7); max-width: 38ch; margin-top: 16px }
   .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px }
-  .trust { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; font: 500 12.5px/1 var(--font-mono); color: rgb(255 255 255 / .55); letter-spacing: .02em }
-  .trust span { display: inline-flex; align-items: center; gap: 8px; padding: 7px 11px; border-radius: 99px; background: rgb(255 255 255 / .07); color: rgb(255 255 255 / .8) }
-  .trust span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--teal-l) }
-  .trust span:first-child::before { background: var(--acc-l) }
   .hscene { position: relative; min-height: 520px; overflow: hidden }
   .hscene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
   @media (max-width: 900px) {

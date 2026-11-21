@@ -50,9 +50,6 @@ export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
         </h1>
         <p className="lede">Akta KIO → JSON zgodny ze schematem UZP, każda wartość ze stroną i cytatem.</p>
         <DropZone />
-        <div className="trust">
-          <span>F1 0,985 na ślepym zbiorze</span><span>modele 3–8B w UE</span><span>bez GPU</span>
-        </div>
       </div>
       <div className="hscene">
         <Flock />
