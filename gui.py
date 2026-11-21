@@ -217,17 +217,31 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
 
 STATIC = ROOT / "o2j" / "static"
 SAMPLES = ROOT / "samples"
+DIST = STATIC / "dist"  # React SPA built from web/ (npm run build); committed, so no Node is needed to run
 app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+if DIST.is_dir():
+    app.mount("/dist", StaticFiles(directory=str(DIST)), name="dist")
+
+
+def _page(legacy: str) -> str:
+    """SPA shell when the React build exists, otherwise the legacy static page."""
+    spa = DIST / "index.html"
+    return (spa if spa.exists() else STATIC / legacy).read_text(encoding="utf-8")
 
 
 @app.get("/", response_class=HTMLResponse)
 def landing():
-    return (STATIC / "landing.html").read_text(encoding="utf-8")
+    return _page("landing.html")
 
 
 @app.get("/app", response_class=HTMLResponse)
 def index():
-    return (STATIC / "index.html").read_text(encoding="utf-8")
+    return _page("index.html")
+
+
+@app.get("/nowy-typ", response_class=HTMLResponse)
+def wizard_page():
+    return _page("index.html")
 
 
 @app.get("/api/samples")
@@ -568,7 +582,7 @@ def doctype_delete(name: str):
 # ---------------------------------------------------------------- benchmarki
 @app.get("/benchmarks", response_class=HTMLResponse)
 def benchmarks_page():
-    return (STATIC / "benchmarks.html").read_text(encoding="utf-8")
+    return _page("benchmarks.html")
 
 
 @app.get("/api/benchmarks")
