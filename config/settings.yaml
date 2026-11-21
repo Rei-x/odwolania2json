@@ -4,15 +4,18 @@ llm:
   api_key: ${O2J_LLM_API_KEY}
   model: ${O2J_LLM_MODEL}
   temperature: 0
-  max_tokens: 4000
+  max_tokens: 32000                  # modele reasoningowe zużywają część limitu na myślenie
   structured_output: json_schema     # json_schema | json_object
   timeout: 180
   retries: 2
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
   min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
-  engine: vlm                        # vlm (model wizyjny po API) | none
-  model: ${O2J_OCR_MODEL}
+  engine: vlm                        # vlm (model wizyjny po API) | paddle (PaddleOCR-VL-1.6 lokalnie, CPU) | none
+  model: ${O2J_OCR_MODEL}            # puste => model z sekcji llm
+  reasoning: off                     # OCR nie potrzebuje myślenia (off | low | medium | high)
+  max_tokens: 16000
+  attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
   max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
 verify:

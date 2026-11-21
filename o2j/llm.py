@@ -31,7 +31,8 @@ class LLM:
                 time.sleep(2 * (attempt + 1))
         raise last
 
-    def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction") -> tuple[dict, dict]:
+    def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction",
+                     images: list[bytes] | None = None) -> tuple[dict, dict]:
         kw = dict(temperature=self.cfg.get("temperature", 0), max_tokens=int(self.cfg.get("max_tokens", 4000)))
         mode = self.cfg.get("structured_output", "json_schema")
         if schema is not None and mode == "json_schema":
@@ -39,7 +40,11 @@ class LLM:
                                      "json_schema": {"name": name, "schema": schema, "strict": True}}
         elif mode in ("json_schema", "json_object"):
             kw["response_format"] = {"type": "json_object"}
-        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        content = user
+        if images:
+            content = [{"type": "text", "text": user}] + [
+                {"type": "image_url", "image_url": {"url": png_data_url(png)}} for png in images]
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
         try:
             resp = self._chat(messages, **kw)
         except Exception:  # provider may not support json_schema -> fall back

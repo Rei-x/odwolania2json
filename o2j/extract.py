@@ -15,7 +15,7 @@ from .spec import DocSpec
 SYSTEM = """Jesteś precyzyjnym systemem ekstrakcji danych z polskich dokumentów prawnych (zamówienia publiczne, Krajowa Izba Odwoławcza).
 Zasady:
 - Zwracasz WYŁĄCZNIE obiekt JSON o podanej strukturze (te same klucze, ta sama kolejność).
-- Wartości przepisujesz z dokumentu wiernie (pisownia, wielkie litery); nie dopisujesz niczego, czego nie ma w dokumencie.
+- Wartości przepisujesz z dokumentu wiernie, litera po literze (pisownia, wielkie litery, obecność lub brak polskich znaków) — nawet jeśli zapis wygląda na literówkę, NIE poprawiaj go; nie dopisujesz niczego, czego nie ma w dokumencie.
 - Gdy informacji nie ma w dokumencie, wpisz null (listy mogą być puste). Nigdy nie zgaduj.
 - Daty w formacie YYYY-MM-DD. Numery identyfikacyjne (KRS, NIP, REGON, rachunki) bez spacji i myślników.
 - Listy zawierają tylko faktycznie występujące podmioty/osoby — nie dopełniaj ich.

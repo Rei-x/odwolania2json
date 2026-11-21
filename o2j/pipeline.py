@@ -23,9 +23,8 @@ class Pipeline:
         self.specs = load_specs(self.s["paths"]["doctypes"])
         self.llm = LLM(self.s["llm"])
         ocr_cfg = self.s.get("ocr", {})
-        self._ocr = None
-        if ocr_cfg.get("engine") == "vlm":
-            self._ocr = lambda png: self.llm.ocr(png, model=ocr_cfg.get("model") or None)
+        from .ocr import make_engine
+        self._ocr = make_engine(ocr_cfg, self.s["llm"])
 
     def process(self, pdf_path: Path, exclude_cases: set[str] = frozenset()) -> tuple[str, dict, dict]:
         t0 = time.time()
@@ -44,12 +43,19 @@ class Pipeline:
         text = doc.text(spec.pages)
         examples = E.few_shot_examples(spec, self.s["paths"].get("train"), text, set(exclude_cases), spec.few_shot)
         system, user = E.build_prompt(spec, text, examples)
-        raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype)
+        images = None
+        if ocr_cfg.get("attach_images", True):
+            images = [p.image for p in doc.pages[: spec.pages or len(doc.pages)] if p.source == "ocr" and p.image]
+            if images:
+                user += ("\n\nUWAGA: tekst dokumentu pochodzi z OCR skanu i może zawierać błędy odczytu. "
+                         "Dołączono obrazy stron — w razie wątpliwości (cyfry, nazwiska, polskie znaki) rozstrzygaj na podstawie obrazu.")
+        trace["images_attached"] = len(images or [])
+        raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
         result = E.postprocess(spec, raw)
         retries = 0
         while E.fill_ratio(result) < 0.25 and len(text) > 300 and retries < 2:  # suspiciously empty -> retry
             retries += 1
-            raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype)
+            raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
             cand = E.postprocess(spec, raw)
             if E.fill_ratio(cand) > E.fill_ratio(result):
                 result = cand

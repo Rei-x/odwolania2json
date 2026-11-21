@@ -18,6 +18,7 @@ class Page:
     number: int  # 1-based
     text: str
     source: str  # "text" | "ocr"
+    image: bytes | None = None  # rendered page (kept for scanned pages)
 
 
 @dataclass
@@ -67,7 +68,7 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
             ocr_text = dict(zip(todo, ex.map(lambda i: ocr(raw[i][1]), todo)))
     for i, (text, _) in enumerate(raw):
         source = "ocr" if i in ocr_text else "text"
-        doc.pages.append(Page(i + 1, (ocr_text.get(i, text) or "").strip(), source))
+        doc.pages.append(Page(i + 1, (ocr_text.get(i, text) or "").strip(), source, raw[i][1]))
     return doc
 
 
