@@ -62,8 +62,12 @@ class LLM:
         raise last
 
     def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction",
-                     images: list[bytes] | None = None) -> tuple[dict, dict]:
-        kw = dict(temperature=self.cfg.get("temperature", 0), max_tokens=int(self.cfg.get("max_tokens", 4000)))
+                     images: list[bytes] | None = None, model: str | None = None,
+                     temperature: float | None = None) -> tuple[dict, dict]:
+        kw = dict(temperature=self.cfg.get("temperature", 0) if temperature is None else temperature,
+                  max_tokens=int(self.cfg.get("max_tokens", 4000)))
+        if model:
+            kw["model"] = model
         mode = self.cfg.get("structured_output", "json_schema")
         if schema is not None and mode == "json_schema":
             kw["response_format"] = {"type": "json_schema",

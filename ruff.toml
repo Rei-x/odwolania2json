@@ -1,0 +1,8 @@
+# Minimal blocking ruleset for CI: syntax errors and undefined names only.
+# The wider default ruleset is run non-blocking in CI (see .github/workflows/ci.yml).
+target-version = "py313"
+line-length = 140
+extend-exclude = ["scratchpad_mac", "runs", "gui_data", "trace", "output", "data"]
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]

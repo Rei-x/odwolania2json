@@ -1,0 +1,55 @@
+# Spójność sprawy: kontrole i uzupełnianie krzyżowe między dokumentami jednej sprawy (folder = sprawa).
+# Dokumenty wskazuje się nazwą klasy (doctype); ścieżki pól jak w JSON, [*] = dowolny element listy.
+# Nowe kontrole dodaje się tutaj — bez zmian w kodzie.
+
+checks:
+  - id: nip_odwolujacy_mocodawca
+    opis: NIP Odwołującego występuje wśród mocodawców pełnomocnictwa
+    type: equal_any
+    a: {doc: odwolanie, path: "Odwolujacy[*].nip"}
+    b: {doc: pelnomocnictwo, path: "mocodawca[*].data.nip"}
+
+  - id: krs_odwolujacy_mocodawca
+    opis: KRS Odwołującego występuje wśród mocodawców pełnomocnictwa
+    type: equal_any
+    a: {doc: odwolanie, path: "Odwolujacy[*].krs"}
+    b: {doc: pelnomocnictwo, path: "mocodawca[*].data.krs"}
+
+  - id: pelnomocnik_umocowany
+    opis: Pełnomocnik wskazany w odwołaniu jest umocowany w pełnomocnictwie
+    type: fuzzy_any
+    threshold: 85
+    a: {doc: odwolanie, path: "Odwolujacy[*].pelnomocnik.imie_nazwisko"}
+    b: {doc: pelnomocnictwo, path: "pelnomocnicy[*].imie_nazwisko"}
+
+  - id: postepowanie_w_tytule_przelewu
+    opis: Tytuł przelewu wskazuje numer postępowania z odwołania
+    type: contains
+    a: {doc: przelew, path: "przelew_bankowy.tytul"}
+    b: {doc: odwolanie, path: "ZamowieniePubliczne.numer_postepowania"}
+
+  - id: przelew_przed_odwolaniem
+    opis: Przelew wykonano nie później niż w dniu sporządzenia odwołania (+3 dni tolerancji)
+    type: date_le
+    tolerance_days: 3
+    a: {doc: przelew, path: "przelew_bankowy.data_operacji"}
+    b: {doc: odwolanie, path: "OdwolanieKIO.data"}
+
+  - id: kwota_wpisu
+    opis: Kwota wpisu od odwołania zgodna z rozporządzeniem (7 500 / 10 000 / 15 000 / 20 000 zł)
+    type: value_in
+    when: {doc: przelew, path: "przelew_bankowy.tytul", matches: "(?i)wpis"}
+    a: {doc: przelew, path: "przelew_bankowy.kwota"}
+    values: [7500, 10000, 15000, 20000]
+
+# Uzupełnianie pustych pól wartością z innego dokumentu sprawy — tylko gdy ta wartość
+# dosłownie występuje w tekście dokumentu docelowego (bez zgadywania).
+cross_fill:
+  - target: {doc: odwolanie, path: "Odwolujacy[0].nip"}
+    source: {doc: pelnomocnictwo, path: "mocodawca[*].data.nip"}
+  - target: {doc: odwolanie, path: "Odwolujacy[0].krs"}
+    source: {doc: pelnomocnictwo, path: "mocodawca[*].data.krs"}
+  - target: {doc: pelnomocnictwo, path: "mocodawca[0].data.nip"}
+    source: {doc: odwolanie, path: "Odwolujacy[*].nip"}
+  - target: {doc: pelnomocnictwo, path: "mocodawca[0].data.krs"}
+    source: {doc: odwolanie, path: "Odwolujacy[*].krs"}

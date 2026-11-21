@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import re
 import io
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -25,6 +26,34 @@ def flat_page(pdf, i: int):
     except Exception:  # noqa: BLE001
         pass
     return page
+
+
+_POL_WORDS = set("i w z na do oraz nr dnia ul sp się nie od że jest przez dla po zł pln data kwota".split())
+_MOJIBAKE = "³œ¹ê¿Ÿæñ¥Œ£¯Æ"
+
+
+def fix_mojibake(text: str) -> str:
+    """Text decoded as cp1252 although it was cp1250 ('P³atnoœci' -> 'Płatności')."""
+    if sum(text.count(c) for c in _MOJIBAKE) < 3:
+        return text
+    try:
+        fixed = text.encode("cp1252", errors="strict").decode("cp1250", errors="strict")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        fixed = "".join(c.encode("cp1252").decode("cp1250") if c in _MOJIBAKE else c for c in text)
+    pol = lambda t: sum(t.count(c) for c in "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")  # noqa: E731
+    return fixed if pol(fixed) > pol(text) else text
+
+
+def text_quality(text: str) -> float:
+    """Share of tokens that look like natural-language words. Real pages: ~0.15-0.9 (tables low);
+    broken font encodings ('35=(/(:=5$&+81' for 'PRZELEW Z RACHUNKU'): ~0.0."""
+    toks = re.findall(r"\S+", text)
+    if len(toks) < 15:
+        return 1.0
+    good = sum(1 for w in toks
+               if re.fullmatch(r"[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż][a-ząćęłńóśźż]+[.,:;)]?", w)
+               or w.lower().strip(".,:;") in _POL_WORDS)
+    return good / len(toks)
 
 
 @dataclass
@@ -77,7 +106,7 @@ def _load_image(path: Path, ocr, ocr_max_pages: int, prep=None) -> Document:
 
 
 def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: int | None = None,
-         ocr_max_pages: int = 4, prep: list[str] | None = None) -> Document:
+         ocr_max_pages: int = 4, prep: list[str] | None = None, garbage_threshold: float = 0.1) -> Document:
     """ocr: callable(png_bytes) -> str, used for pages without a usable text layer."""
     if path.suffix.lower() in IMAGE_EXT:
         return _load_image(path, ocr, ocr_max_pages, prep)
@@ -91,9 +120,10 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
         for i in range(n):
             page = flat_page(pdf, i)
             tp = page.get_textpage()
-            text = tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n")
+            text = fix_mojibake(tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n"))
             tp.close()
-            need = len(text.strip()) < min_chars and ocr is not None and i < ocr_max_pages
+            garbled = len(text.strip()) >= min_chars and text_quality(text) < garbage_threshold
+            need = (len(text.strip()) < min_chars or garbled) and ocr is not None and i < ocr_max_pages
             png = render_png(page, dpi) if need else None
             raw.append((text, png))
             page.close()

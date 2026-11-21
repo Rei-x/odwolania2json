@@ -27,13 +27,15 @@ def main(argv=None):
     ap.add_argument("--output", type=Path, default=ROOT / "output")
     ap.add_argument("--trace", type=Path, default=None)
     ap.add_argument("--model", default=None, help="nadpisuje model z konfiguracji")
+    ap.add_argument("--profile", default=None, help="profil jakość/koszt: deterministyczny | ekonomiczny | standard | maksymalny")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--cases", type=int, default=0, help="eval: liczba spraw (0 = wszystkie)")
     ap.add_argument("--src", type=Path, default=None, help="eval: katalog z PDF-ami (domyślnie data/train); GT zawsze z data/train")
     ap.add_argument("--verbose", "-v", action="store_true")
     a = ap.parse_args(argv)
 
-    s = load_settings()
+    s = load_settings(profile=a.profile)
+    print(f"Profil: {s.get('active_profile', '-')}")
     pipe = Pipeline(s, model=a.model)
 
     if a.command == "run":

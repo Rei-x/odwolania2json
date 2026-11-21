@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: "requirements*.txt"
+
+      - name: Install dependencies
+        run: uv pip install -r requirements-dev.txt
+
+      - name: Ruff (blocking, minimal ruleset from ruff.toml)
+        run: ruff check .
+
+      - name: Ruff (wider ruleset, informational)
+        continue-on-error: true
+        run: ruff check --select E,F,W,I,B --output-format=github .
+
+      - name: Pytest
+        env:
+          # tests are offline; make sure nothing can reach a real LLM endpoint
+          O2J_LLM_BASE_URL: ""
+          O2J_LLM_API_KEY: ""
+          O2J_LLM_MODEL: ""
+        run: pytest

@@ -121,7 +121,17 @@ def cmd_sample(a):
     specs = load_specs(ROOT / "config/doctypes")
     client = anthropic.Anthropic()
     jobs = []
-    for doctype in SCHEMA_FILE:
+    if a.all:
+        # whole corpus: type from Opus gold label when adjudicated, else our classifier; scans included
+        gold = {}
+        gp = ROOT / "runs/kio_cls_gold.jsonl"
+        if gp.exists():
+            gold = {g["file"]: g["gold"] for g in map(json.loads, open(gp)) if g.get("gold")}
+        for r in rows:
+            t = gold.get(r["file"], r["pred"])
+            if t in SCHEMA_FILE:
+                jobs.append((t, KIO / "pobrane" / r["file"]))
+    for doctype in ([] if a.all else SCHEMA_FILE):
         # agreed type (corpus rules == our classifier), text layer; one doc per proceeding for diversity
         cand = [r for r in rows if r["label"] == doctype and r["pred"] == doctype and r["text_mode"] == "tekst"]
         rng.shuffle(cand)
@@ -173,6 +183,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["sample", "compare"])
     ap.add_argument("--per-type", type=int, default=15)
+    ap.add_argument("--all", action="store_true", help="annotate every corpus document of the 3 types")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--verbose", "-v", action="store_true")

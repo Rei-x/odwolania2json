@@ -31,7 +31,8 @@ class Pipeline:
         ocr_cfg = self.s.get("ocr", {})
         try:
             doc = P.load(pdf_path, ocr=self._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)),
-                     dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"))
+                     dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"),
+                         garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1)))
             load_error = None
         except Exception as e:  # noqa: BLE001  corrupted / unreadable file
             doc, load_error = P.Document(path=pdf_path), repr(e)
@@ -66,8 +67,29 @@ class Pipeline:
                 user += ("\n\nDołączono obraz strony dokumentu (np. z graficznym podpisem). Odczytuj z niego tylko to, "
                          "czego brakuje w tekście (np. nazwiska podpisujących); nie zgaduj nieczytelnych podpisów.")
         trace["images_attached"] = len(images or [])
-        raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
-        result = E.postprocess(spec, raw)
+        vcfg = self.s.get("voting") or {}
+        n_votes = int(vcfg.get("n", 1) or 1)
+        if n_votes > 1:  # several independent extractions (models and/or sampled runs), field-level vote
+            from concurrent.futures import ThreadPoolExecutor as _TPE
+
+            from .voting import vote
+            models = vcfg.get("models") or [self.llm.model]
+
+            def _run(i):
+                m = models[i % len(models)]
+                temp = 0 if i < len(models) else float(vcfg.get("temperature", 0.7))
+                r, mt = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images,
+                                              model=m, temperature=temp)
+                return E.postprocess(spec, r), mt
+            with _TPE(max_workers=n_votes) as ex:
+                runs = list(ex.map(_run, range(n_votes)))
+            result, vote_info = vote([r for r, _ in runs], doc)
+            raw, meta = result, runs[0][1]
+            vote_info["models"] = [models[i % len(models)] for i in range(n_votes)]
+            trace["voting"] = vote_info
+        else:
+            raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
+            result = E.postprocess(spec, raw)
         retries = 0
         while E.fill_ratio(result) < 0.25 and len(text) > 300 and retries < 2:  # suspiciously empty -> retry
             retries += 1
@@ -115,7 +137,7 @@ class Pipeline:
                 exclude_self: bool = False, log=print) -> list[dict]:
         pdfs = sorted(p for p in input_dir.rglob("*") if p.is_file() and p.suffix.lower() in P.SUPPORTED_EXT
                       and not p.name.startswith("."))
-        summary = []
+        done: list[dict] = []
 
         def job(p: Path):
             rel = p.relative_to(input_dir).with_suffix(".json")
@@ -126,28 +148,53 @@ class Pipeline:
             except Exception as e:  # noqa: BLE001  never leave a document without output
                 doctype, result = self.fallback(p)
                 trace, err = {"file": str(p), "error": repr(e), "doctype": doctype}, repr(e)
-            out = output_dir / rel
-            matched = doctype in self.specs
-            out.parent.mkdir(parents=True, exist_ok=True)
-            if matched:
-                out.write_text(E.dumps(result), encoding="utf-8")
-            else:  # per UZP: out-of-scope document -> file containing only {}
-                out.write_text("{}", encoding="utf-8")
-                trace["unmatched"] = "Nie udało się dopasować typu dokumentu — zapisano pusty JSON {}."
-            if trace_dir:
-                tr = trace_dir / rel.with_suffix(".trace.json")
-                tr.parent.mkdir(parents=True, exist_ok=True)
-                tr.write_text(E.dumps(trace), encoding="utf-8")
-            return {"file": str(rel), "doctype": doctype if matched else "NIEDOPASOWANY", "error": err,
-                    "elapsed_s": trace.get("elapsed_s")}
+            return {"rel": rel, "doctype": doctype, "result": result, "trace": trace, "error": err,
+                    "matched": doctype in self.specs}
 
         with ThreadPoolExecutor(max_workers=workers) as ex:
             futs = [ex.submit(job, p) for p in pdfs]
             for f in as_completed(futs):
                 r = f.result()
-                summary.append(r)
-                log(f"[{len(summary)}/{len(pdfs)}] {r['file']} -> {r['doctype']}"
-                    + (f"  ERROR {r['error']}" if r["error"] else f"  ({r['elapsed_s']}s)"))
+                done.append(r)
+                log(f"[{len(done)}/{len(pdfs)}] {r['rel']} -> {r['doctype'] if r['matched'] else 'NIEDOPASOWANY'}"
+                    + (f"  ERROR {r['error']}" if r["error"] else f"  ({r['trace'].get('elapsed_s')}s)"))
+
+        # case level: documents in the same folder form one case (cross-checks + safe cross-fill)
+        from .case import analyze_case, load_case_rules
+        rules = load_case_rules(self.s["paths"]["doctypes"].parent / "case.yaml")
+        cases: dict[Path, list[dict]] = {}
+        for r in done:
+            cases.setdefault(r["rel"].parent, []).append(r)
+        for case_rel, docs in cases.items():
+            matched = [d for d in docs if d["matched"]]
+            if rules and len({d["doctype"] for d in matched}) > 1:
+                case_docs = {d["rel"].name: {"doctype": d["doctype"], "result": d["result"],
+                                             "text": "\n".join(p.get("text", "") for p in d["trace"].get("page_texts", []))}
+                             for d in matched}
+                report = analyze_case(case_docs, rules)
+                for ch in report["uzupelnienia_krzyzowe"]:
+                    d = next(x for x in matched if x["rel"].name == ch["dokument"])
+                    d["trace"].setdefault("cross_fill", []).append(ch)
+                if trace_dir:
+                    cp = trace_dir / case_rel / "_sprawa.json"
+                    cp.parent.mkdir(parents=True, exist_ok=True)
+                    cp.write_text(E.dumps(report), encoding="utf-8")
+
+        summary = []
+        for r in done:
+            out = output_dir / r["rel"]
+            out.parent.mkdir(parents=True, exist_ok=True)
+            if r["matched"]:
+                out.write_text(E.dumps(r["result"]), encoding="utf-8")
+            else:  # per UZP: out-of-scope document -> file containing only {}
+                out.write_text("{}", encoding="utf-8")
+                r["trace"]["unmatched"] = "Nie udało się dopasować typu dokumentu — zapisano pusty JSON {}."
+            if trace_dir:
+                tr = trace_dir / r["rel"].with_suffix(".trace.json")
+                tr.parent.mkdir(parents=True, exist_ok=True)
+                tr.write_text(E.dumps(r["trace"]), encoding="utf-8")
+            summary.append({"file": str(r["rel"]), "doctype": r["doctype"] if r["matched"] else "NIEDOPASOWANY",
+                            "error": r["error"], "elapsed_s": r["trace"].get("elapsed_s")})
         return summary
 
 

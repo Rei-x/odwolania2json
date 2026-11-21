@@ -11,6 +11,7 @@ llm:
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
   min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
+  garbage_threshold: 0.1             # jakość tekstu poniżej => zepsute kodowanie fontu => OCR strony
   engine: vlm                        # vlm (model wizyjny po API) | paddle (PaddleOCR-VL-1.6 lokalnie, CPU) | none
   model: ${O2J_OCR_MODEL}            # puste => model z sekcji llm
   reasoning: off                     # OCR nie potrzebuje myślenia (off | low | medium | high)
@@ -19,6 +20,10 @@ ocr:
   attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
   max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
+voting:
+  n: 1                               # >1 => kilka niezależnych ekstrakcji i głosowanie per pole
+  models: []                         # np. [deepseek/deepseek-v4.1-flash, qwen/...]; puste => model z sekcji llm
+  temperature: 0.7                   # dla przebiegów ponad liczbę modeli
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
@@ -28,3 +33,19 @@ paths:
   doctypes: config/doctypes
   train: data/train                  # źródło przykładów few-shot
   trace: trace                       # ślady ekstrakcji (dowody, strony, cytaty)
+
+# Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
+profile: standard
+profiles:
+  deterministyczny:                  # bez LLM: reguły z YAML (najtańszy, w pełni powtarzalny)
+    extraction: {mode: deterministic}
+    classification: {mode: rules}
+    verify: {max_rounds: 0}
+  ekonomiczny:                       # mały model decyzyjny / tani (uzupełniane po benchmarku)
+    llm: {model: deepseek/deepseek-v4.1-flash}
+    verify: {max_rounds: 0}
+  standard:                          # domyślny: szybki model + weryfikacja i naprawa
+    llm: {model: deepseek/deepseek-v4.1-flash}
+  maksymalny:                        # najwyższa jakość: głosowanie kilku modeli
+    llm: {model: deepseek/deepseek-v4.1-flash}
+    voting: {n: 3, models: [deepseek/deepseek-v4.1-flash], temperature: 0.7}
