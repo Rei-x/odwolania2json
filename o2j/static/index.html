@@ -18,6 +18,13 @@ body{margin:0;font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe 
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .mark{font-weight:800;letter-spacing:-.03em}
 .mark i{font-style:normal;color:var(--accent)}
+a.mark{color:inherit;text-decoration:none}
+#expop{position:fixed;top:62px;right:20px;width:360px;max-height:70vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:var(--sh);padding:8px;display:none;z-index:21;font-size:13px}
+#expop.on{display:block}
+#expop button{display:block;width:100%;text-align:left;padding:9px 10px;border-radius:10px}
+#expop button:hover{background:#f6f7f6}
+#expop b{display:block;font-size:13.5px}#expop small{display:block;color:var(--mute);margin-top:2px;line-height:1.35}
+#expop .h{padding:8px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 
 /* ---------- empty state ---------- */
 #empty{position:fixed;inset:0;display:grid;place-items:center;transition:opacity .35s,transform .35s}
@@ -39,6 +46,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 /* ---------- workspace ---------- */
 #app{position:fixed;inset:0;display:grid;grid-template-rows:60px 1fr;opacity:0;transition:opacity .35s}
 #app.on{opacity:1}
+#app:not(.on){pointer-events:none}
 header{display:flex;align-items:center;gap:14px;padding:0 20px;min-width:0}
 header > *{flex:none}
 header .mark{font-size:19px;white-space:nowrap}
@@ -136,7 +144,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 
 <section id="empty">
   <div class="hero">
-    <div class="mark">odwołania <i>→</i> json</div>
+    <a class="mark" href="/">odwołania <i>→</i> json</a>
     <div class="drop" id="drop">
       <div>
         <svg class="ic" viewBox="0 0 76 76" fill="none">
@@ -153,17 +161,19 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
       <span class="pill t-odwolanie"><span class="dot"></span>odwołanie</span>
       <span class="pill t-pelnomocnictwo"><span class="dot"></span>pełnomocnictwo</span>
       <span class="pill t-przelew"><span class="dot"></span>przelew</span>
+      <button class="pill" data-ex title="Wczytaj przykładowy trudny dokument">Przykłady</button>
     </div>
   </div>
 </section>
 
 <section id="app">
   <header>
-    <div class="mark">odwołania <i>→</i> json</div>
+    <a class="mark" href="/">odwołania <i>→</i> json</a>
     <nav id="tabs"></nav>
     <span id="ndocs"></span>
     <div id="qual" title="Dokładność / koszt"><span>koszt</span><input id="qslider" type="range" min="0" max="3" step="1" value="2"><span>jakość</span><b id="qlabel">standard</b></div>
     <button id="mem" title="Pamięć systemu — uczenie w czasie">Pamięć: —</button>
+    <button id="ex" data-ex title="Przykładowe trudne dokumenty" style="font-size:12px;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--ink2)">Przykłady</button>
     <button class="iconbtn" id="add" title="Dodaj PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="iconbtn" id="dl" title="Pobierz JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg></button>
   </header>
@@ -175,6 +185,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 
 <div id="dragcover">Upuść, aby dodać</div>
 <div id="mempop"></div>
+<div id="expop"></div>
 <div id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg><span></span></div>
 
 <script>
@@ -284,7 +295,16 @@ function renderRes(d) {
   if (t.elapsed_s) chips.push(icon('clock') + `${t.elapsed_s}s`);
   if (t.ocr_pages && t.ocr_pages.length) chips.push(icon('scan') + `OCR`);
   if (fixes.length) chips.push(icon('fix') + `${fixes.length} popr.`);
-  if (t.model) chips.push(icon('chip') + esc(t.model.split('/').pop()));
+  const short = m => esc(String(m).split('/').pop());
+  if (t.active_profile) chips.push(icon('fix') + esc(PNAME[t.active_profile] || t.active_profile));
+  if (t.voting && t.voting.models) chips.push(icon('chip') + `głosowanie: ${t.voting.models.map(short).join(' + ')}`);
+  else if (t.model) chips.push(icon('chip') + short(t.model));
+  if (t.router) {
+    if (t.router.escalate) {
+      const steps = ((t.router.vote || {}).steps || []).map(s => s.models.map(short).join('+')).join(' → ');
+      chips.push(icon('scan') + `eskalacja → ${steps}`);
+    } else chips.push(icon('scan') + 'łatwy dokument — bez eskalacji');
+  }
   el.innerHTML = `<div class="rhead">
       <div class="rtitle t-${d.doctype}"><span class="dot" style="width:11px;height:11px"></span><h2>${LABEL[d.doctype] || esc(d.doctype)}</h2>
         <div class="sw"><button class="${view === 'dane' ? 'on' : ''}" onclick="setView('dane')">Dane</button><button class="${view === 'json' ? 'on' : ''}" onclick="setView('json')">JSON</button><button class="${view === 'sprawa' ? 'on' : ''}" onclick="setView('sprawa')">Sprawa</button></div>
@@ -405,6 +425,27 @@ function icon(n) {
     fix: '<path d="m5 12 4.5 4.5L19 7"/>', chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>' };
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
 }
+// ---------- samples (samples/samples.json): fetched as Blobs into the normal upload flow ----------
+let SAMPLES = null;
+const getSamples = () => SAMPLES ? Promise.resolve(SAMPLES) : fetch('/api/samples').then(r => r.json()).then(l => SAMPLES = l);
+function loadSample(s) {
+  $('#expop').classList.remove('on');
+  Promise.all((s.files || [s.name]).map(n => fetch('/samples/' + encodeURIComponent(n)).then(r => r.blob()).then(b => new File([b], n, { type: 'application/pdf' }))))
+    .then(add).catch(e => toast('Nie udało się wczytać przykładu: ' + e.message));
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-ex]'), pop = $('#expop');
+  if (b) { e.stopPropagation(); getSamples().then(l => {
+    pop.innerHTML = '<div class="h">Trudne przykłady</div>' + l.map((s, i) => `<button data-i="${i}"><b>${esc(s.title)}</b><small>${esc(s.opis)}</small></button>`).join('');
+    const r = b.getBoundingClientRect(), up = innerHeight - r.bottom < 340;
+    Object.assign(pop.style, up ? { top: 'auto', bottom: (innerHeight - r.top + 8) + 'px', maxHeight: (r.top - 20) + 'px' } : { bottom: 'auto', top: (r.bottom + 8) + 'px', maxHeight: (innerHeight - r.bottom - 24) + 'px' });
+    pop.style.left = Math.max(12, Math.min(innerWidth - 372, r.left + r.width / 2 - 180)) + 'px'; pop.style.right = 'auto';
+    pop.classList.toggle('on'); }); return; }
+  const it = e.target.closest('#expop button');
+  if (it) loadSample(SAMPLES[+it.dataset.i]); else if (!e.target.closest('#expop')) pop.classList.remove('on');
+});
+const qs = new URLSearchParams(location.search).get('sample');
+if (qs) { history.replaceState(null, '', location.pathname); getSamples().then(l => { const s = l.find(x => x.name === qs); if (s) loadSample(s); }); }
 addEventListener('keydown', e => { if (!docs.length) return; if (e.key === 'ArrowRight') select(Math.min(docs.length - 1, cur + 1)); if (e.key === 'ArrowLeft') select(Math.max(0, cur - 1)); });
 </script>
 </body>

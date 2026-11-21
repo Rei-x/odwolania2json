@@ -1,0 +1,73 @@
+[
+  {
+    "name": "skan-uzp-odwolanie.pdf",
+    "title": "Skan odwołania od UZP",
+    "opis": "5 stron skanu bez warstwy tekstowej, pieczęć wpływu na pierwszej stronie. Całość przechodzi przez OCR modelem wizyjnym.",
+    "kind": "skan",
+    "typ": "odwolanie"
+  },
+  {
+    "name": "skan-obrocony-90-odwolanie.pdf",
+    "title": "Skan obrócony o 90°",
+    "opis": "Strony leżą bokiem. Model orientacji PP-LCNet prostuje je przed OCR.",
+    "kind": "skan",
+    "typ": "odwolanie"
+  },
+  {
+    "name": "skan-silny-szum-przelew.pdf",
+    "title": "Przelew w silnym szumie",
+    "opis": "Ksero z gęstym szumem. Rachunki (26 cyfr) i kwota mimo to muszą wyjść bez błędu.",
+    "kind": "skan",
+    "typ": "przelew"
+  },
+  {
+    "name": "pieczec-na-tekscie-pelnomocnictwo.pdf",
+    "title": "Pieczęć i podpis na tekście",
+    "opis": "Okrągłe pieczęcie i parafy zasłaniają zakres pełnomocnictwa i nazwiska.",
+    "kind": "skan",
+    "typ": "pelnomocnictwo"
+  },
+  {
+    "name": "zdjecie-telefonem-pelnomocnictwo.pdf",
+    "title": "Zdjęcie telefonem",
+    "opis": "Perspektywa, cień i nierówne światło, czyli dokument sfotografowany na biurku.",
+    "kind": "skan",
+    "typ": "pelnomocnictwo"
+  },
+  {
+    "name": "konsorcjum",
+    "title": "Cała sprawa: konsorcjum",
+    "opis": "Trzy dokumenty jednej sprawy: odwołanie konsorcjum, pełnomocnictwo i przelew. Zakładka „Sprawa” pokazuje kontrole krzyżowe.",
+    "kind": "sprawa",
+    "typ": "sprawa",
+    "files": ["konsorcjum-odwolanie.pdf", "konsorcjum-pelnomocnictwo.pdf", "konsorcjum-przelew.pdf"]
+  },
+  {
+    "name": "dwoch-zamawiajacych-odwolanie.pdf",
+    "title": "Dwóch zamawiających",
+    "opis": "Wspólne postępowanie gminy i spółki. Obaj zamawiający muszą trafić do listy.",
+    "kind": "wariant",
+    "typ": "odwolanie"
+  },
+  {
+    "name": "jdg-odmiana-nazwisk-pelnomocnictwo.pdf",
+    "title": "JDG i nazwiska w celowniku",
+    "opis": "„udzielam pełnomocnictwa Elżbiecie Woźniak”. Wynik ma być w mianowniku: Elżbieta Woźniak. Mocodawca to osoba fizyczna.",
+    "kind": "wariant",
+    "typ": "pelnomocnictwo"
+  },
+  {
+    "name": "poza-zakresem-wyrok-kio.pdf",
+    "title": "Wyrok KIO (poza zakresem)",
+    "opis": "Pełno w nim słów z odwołania, ale to orzeczenie. Poprawny wynik to pusty JSON {}.",
+    "kind": "negatyw",
+    "typ": "inny"
+  },
+  {
+    "name": "czysty-przelew.pdf",
+    "title": "Zwykły przelew (dla kontrastu)",
+    "opis": "Czysty PDF z warstwą tekstową. Tryb „Reguły” robi go bez LLM w ułamku sekundy.",
+    "kind": "czysty",
+    "typ": "przelew"
+  }
+]

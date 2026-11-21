@@ -18,12 +18,16 @@ import uvicorn  # noqa: E402
 from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile  # noqa: E402
 from fastapi.concurrency import run_in_threadpool  # noqa: E402
 from fastapi.responses import FileResponse, HTMLResponse, Response  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
 
 from o2j.pdf import _PDFIUM_LOCK, flat_page  # noqa: E402
 from o2j.pipeline import Pipeline  # noqa: E402
 
 DATA = ROOT / "gui_data"
 app = FastAPI(title="Odwołania2JSON")
+from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
+
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
 @app.middleware("http")
@@ -122,9 +126,39 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
         pdf.close()
 
 
+STATIC = ROOT / "o2j" / "static"
+SAMPLES = ROOT / "samples"
+app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+
+
 @app.get("/", response_class=HTMLResponse)
+def landing():
+    return (STATIC / "landing.html").read_text(encoding="utf-8")
+
+
+@app.get("/app", response_class=HTMLResponse)
 def index():
-    return (ROOT / "o2j" / "static" / "index.html").read_text(encoding="utf-8")
+    return (STATIC / "index.html").read_text(encoding="utf-8")
+
+
+@app.get("/api/samples")
+def samples():
+    """Trudne przykładowe dokumenty (samples/samples.json) do wypróbowania w GUI."""
+    try:
+        items = json.loads((SAMPLES / "samples.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [{k: it.get(k) for k in ("name", "title", "opis", "kind", "typ", "files") if it.get(k) is not None} for it in items]
+
+
+@app.get("/samples/{name}")
+def sample_file(name: str):
+    path = (SAMPLES / name).resolve()
+    if path.parent != SAMPLES.resolve() or path.suffix.lower() not in (".pdf", ".webp") or not path.is_file():
+        raise HTTPException(404)
+    if path.suffix.lower() == ".webp":  # miniatura do strony startowej
+        return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "max-age=86400"})
+    return FileResponse(path, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{path.name}"'})
 
 
 @app.get("/api/doctypes")
@@ -179,7 +213,7 @@ def _one(sid: str, path: Path, profile: str | None = None) -> dict:
         "doctype": doctype, "result": result, "file": path.name, "profile": p.s.get("active_profile"),
         "text": "\n".join(pg.get("text", "") for pg in trace.get("page_texts", []))}, ensure_ascii=False), encoding="utf-8")
     keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage",
-            "voting", "learned_examples_available", "active_profile")
+            "voting", "learned_examples_available", "active_profile", "router")
     trace["active_profile"] = p.s.get("active_profile")
     return {"session": sid, "file": path.name, "doctype": doctype, "result": result,
             "trace": {**{k: trace.get(k) for k in keep}, "evidence": evidence}}
