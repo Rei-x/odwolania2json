@@ -314,7 +314,15 @@ def _one(sid: str, path: Path, profile: str | None = None, model: str | None = N
     try:
         doctype, result, trace = p.process(path)
     except Exception as e:  # noqa: BLE001
-        return {"session": sid, "file": path.name, "doctype": "error", "error": str(e), "result": {}, "trace": {}}
+        trace = {"steps": getattr(e, "trace_steps", None), "steps_summary": getattr(e, "trace_steps_summary", None)}
+        trace = {k: v for k, v in trace.items() if v is not None}
+        if trace:  # partial processing trace (steps up to the failure) for the "Przebieg" view
+            try:
+                (path.parent / (path.stem + ".trace.json")).write_text(json.dumps(
+                    {**trace, "doctype": "error", "error": str(e), "file": path.name}, ensure_ascii=False, default=str), encoding="utf-8")
+            except Exception:  # noqa: BLE001
+                pass
+        return {"session": sid, "file": path.name, "doctype": "error", "error": str(e), "result": {}, "trace": trace}
     evidence = trace.get("evidence") or []
     try:
         highlight_rects(path, evidence)
@@ -326,10 +334,16 @@ def _one(sid: str, path: Path, profile: str | None = None, model: str | None = N
         "doctype": doctype, "result": result, "file": path.name, "profile": p.s.get("active_profile"),
         "model_override": p.s.get("model_override"), "text": "\n".join(pg.get("text", "") for pg in trace.get("page_texts", []))}, ensure_ascii=False), encoding="utf-8")
     keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage",
-            "voting", "learned_examples_available", "active_profile", "router", "model_override", "ocr_model")
+            "voting", "learned_examples_available", "active_profile", "router", "model_override", "ocr_model",
+            "steps", "steps_summary")
     trace["active_profile"] = p.s.get("active_profile")
     trace["model_override"] = p.s.get("model_override")
     trace["ocr_model"] = (p.s.get("ocr") or {}).get("model") or p.s["llm"].get("model") if trace.get("ocr_pages") else None
+    try:  # full processing trace (all steps, raw model output, page texts) for /api/trace and the "Przebieg" view
+        (path.parent / (path.stem + ".trace.json")).write_text(
+            json.dumps({**trace, "doctype": doctype, "file": path.name}, ensure_ascii=False, default=str), encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
     return {"session": sid, "file": path.name, "doctype": doctype, "result": result,
             "trace": {**{k: trace.get(k) for k in keep}, "evidence": evidence}}
 
@@ -364,6 +378,17 @@ def feedback(payload: dict = Body(...)):
     corrected = postprocess(p.specs[r["doctype"]], corrected)  # same normalisation as the pipeline
     meta = p.memory.add(pdf, r["doctype"], r["result"], corrected, source="gui")
     return {"saved": True, "corrected_fields": meta["corrected"], "changes": meta["changes"], "stats": p.memory.stats()}
+
+
+@app.get("/api/trace/{sid}/{name}")
+def trace_json(sid: str, name: str):
+    """Full processing trace of one processed document (trace["steps"] + every original trace key)."""
+    pdf = _safe(sid, name)
+    tr = pdf.parent / (pdf.stem + ".trace.json")
+    if not tr.exists():
+        raise HTTPException(404, "Brak zapisanego przebiegu dla tego dokumentu")
+    return Response(tr.read_bytes(), media_type="application/json",
+                    headers={"Content-Disposition": f'inline; filename="{pdf.stem}.trace.json"'})
 
 
 @app.get("/api/stats")

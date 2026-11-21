@@ -19,6 +19,8 @@ COST = {"usd": 0.0, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
 
 def track(resp):
     u = getattr(resp, "usage", None)
+    from .tracing import record_usage
+    record_usage(getattr(resp, "model", None), u)  # per-step attribution for trace["steps"] (observational)
     if not u:
         return
     d = u.model_dump() if hasattr(u, "model_dump") else dict(u)

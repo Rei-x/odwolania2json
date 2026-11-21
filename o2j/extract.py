@@ -38,7 +38,8 @@ def _example_text(pdf_path: str, pages: int | None) -> str:
 
 
 def few_shot_examples(spec: DocSpec, train_dir: Path, query_text: str, exclude: set[str], k: int,
-                      learned: list[tuple[Path, Path]] | None = None, scores_out: list | None = None) -> list[tuple[str, str]]:
+                      learned: list[tuple[Path, Path]] | None = None, scores_out: list | None = None,
+                      names_out: list | None = None) -> list[tuple[str, str]]:
     """Most similar verified examples: organiser training data + documents verified by users (memory)."""
     ex = spec.raw.get("examples") or {}
     if not k:
@@ -67,6 +68,8 @@ def few_shot_examples(spec: DocSpec, train_dir: Path, query_text: str, exclude: 
     scored.sort(key=lambda x: -x[0])
     if scores_out is not None:
         scores_out.extend(round(x[0], 1) for x in scored[:k])
+    if names_out is not None:
+        names_out.extend(x[1] for x in scored[:k])
     return [(t, js.read_text(encoding="utf-8")) for _, _, t, js in scored[:k]]
 
 

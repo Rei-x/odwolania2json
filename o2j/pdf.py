@@ -11,6 +11,8 @@ import threading
 
 import pypdfium2 as pdfium
 
+from .tracing import bind, note
+
 _PDFIUM_LOCK = threading.Lock()  # pdfium is not thread-safe
 
 
@@ -125,10 +127,16 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
             p0.close()
             page = flat_page(pdf, i)
             tp = page.get_textpage()
-            text = fix_mojibake(tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n"))
+            raw_text = tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n")
+            text = fix_mojibake(raw_text)
             tp.close()
-            garbled = len(content.strip()) >= min_chars and text_quality(text) < garbage_threshold
+            quality = text_quality(text) if len(content.strip()) >= min_chars else None
+            garbled = quality is not None and quality < garbage_threshold
             need = (len(content.strip()) < min_chars or garbled) and ocr is not None and i < ocr_max_pages
+            note("page", {"page": i + 1, "text_layer_chars": len(content.strip()), "chars": len(text.strip()),
+                          "quality": None if quality is None else round(quality, 3), "garbled": garbled,
+                          "mojibake_fixed": text != raw_text, "annotation_chars": max(0, len(text.strip()) - len(content.strip())),
+                          "needs_ocr": bool(need), "scan": len(content.strip()) < min_chars})
             png = render_png(page, dpi) if need else None
             # keep annotation-only text (e.g. e-signature stamp) to append after OCR
             extra = text if not content.strip() else ""  # page has no own text (scan) -> text = annotations only
@@ -144,7 +152,7 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
     if todo:
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=len(todo)) as ex:
-            ocr_text = dict(zip(todo, ex.map(lambda i: ocr(raw[i][1]), todo)))
+            ocr_text = dict(zip(todo, ex.map(bind(lambda i: ocr(raw[i][1])), todo)))
     for i, (text, png, extra) in enumerate(raw):
         source = "ocr" if i in ocr_text else "text"
         t = ocr_text.get(i, text) or ""

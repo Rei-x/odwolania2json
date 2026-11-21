@@ -62,6 +62,7 @@ def escalate(pipe, spec, system: str, user: str, images, doc, first: dict, det_r
     Every level's runs join the vote; deterministic rules act as an extra (tie-breaking) voter."""
     from concurrent.futures import ThreadPoolExecutor
 
+    from .tracing import bind
     from .voting import vote
     esc = cfg.get("escalation") or {}
     levels = esc.get("levels") or [esc.get("models") or [pipe.llm.model]]
@@ -76,7 +77,7 @@ def escalate(pipe, spec, system: str, user: str, images, doc, first: dict, det_r
                                          model=m, temperature=0)
             return E.postprocess(spec, r)
         with ThreadPoolExecutor(max_workers=len(models)) as ex:
-            runs = list(ex.map(run, models))
+            runs = list(ex.map(bind(run), models))
         level_view = runs[0] if len(runs) == 1 else vote(runs, doc)[0]
         disagree = [c["field"] for c in changed_fields(consensus, level_view)]
         pool = runs + pool  # newest (stronger) runs first: they win ties

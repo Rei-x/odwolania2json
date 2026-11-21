@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { TraceView } from "./trace-view"
 import {
   api,
   type CaseReport,
@@ -25,7 +26,7 @@ import {
   typeDot,
 } from "./lib"
 
-export type View = "dane" | "json" | "sprawa"
+export type View = "dane" | "json" | "sprawa" | "przebieg"
 
 type Props = {
   doc: Doc
@@ -75,6 +76,9 @@ export function ResultPanel(p: Props) {
               <TabsTrigger value="sprawa" className="px-2.5">
                 Sprawa
               </TabsTrigger>
+              <TabsTrigger value="przebieg" className="px-2.5">
+                Przebieg
+              </TabsTrigger>
             </TabsList>
             {canApprove && (
               <Button
@@ -94,7 +98,9 @@ export function ResultPanel(p: Props) {
         <Chips doc={d} models={p.models} fixes={fixes.length} />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pt-1 pb-4">
-        {d.error ? (
+        {p.view === "przebieg" ? (
+          <TraceView doc={d} />
+        ) : d.error ? (
           <p className="p-4 text-sm break-words text-destructive">{d.error}</p>
         ) : p.view === "sprawa" ? (
           <CaseView caseId={p.caseId} caseKey={p.caseKey} />

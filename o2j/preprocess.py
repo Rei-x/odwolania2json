@@ -15,6 +15,8 @@ import io
 import numpy as np
 from PIL import Image, ImageFilter, ImageOps
 
+from .tracing import note
+
 
 def _to_png(im: Image.Image) -> bytes:
     b = io.BytesIO()
@@ -64,6 +66,7 @@ def deskew(im: Image.Image) -> Image.Image:
             best, best_a = s, a
     if abs(best_a) < 0.2:
         return im
+    note("orientation", {"step": "deskew", "angle": round(float(best_a), 2)})
     fill = 255 if im.mode == "L" else (255, 255, 255)
     return im.rotate(best_a, expand=True, fillcolor=fill, resample=Image.BICUBIC)
 
@@ -106,6 +109,7 @@ def orient(im: Image.Image) -> Image.Image:
         rot = 90 if _upright_score(a90) >= _upright_score(a270) else 270
     if rot == 0:
         return im
+    note("orientation", {"step": "orient", "angle": rot})
     return im.rotate(rot, expand=True)
 
 
@@ -128,7 +132,9 @@ def up(im: Image.Image) -> Image.Image:
 def doc_ori(im: Image.Image) -> Image.Image:
     """SOTA 4-way orientation with PP-LCNet_x1_0_doc_ori (ONNX, CPU)."""
     from .orientation import correct
-    return correct(im)[0]
+    out, angle, prob = correct(im)
+    note("orientation", {"step": "doc_ori", "angle": int(angle), "prob": round(float(prob), 3)})
+    return out
 
 
 STEPS = {"denoise": denoise, "flat": flat, "orient": orient, "doc_ori": doc_ori, "deskew": deskew, "up": up}

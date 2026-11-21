@@ -27,6 +27,13 @@ def rule_scores(text: str, filename: str, specs: dict[str, DocSpec]) -> dict[str
     return scores
 
 
+def rule_matches(text: str, specs: dict[str, DocSpec]) -> dict[str, list[str]]:
+    """Which keyword patterns of each type matched (for the processing trace; same rules as rule_scores)."""
+    text = _despace(text)
+    return {name: [p for p in (spec.classify.get("keywords") or {}) if re.search(p, text, flags=re.M | re.I)]
+            for name, spec in specs.items()}
+
+
 def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_score: float = 3,
              mode: str = "llm_confirm", model: str | None = None, vote_models: list | None = None,
              use_filename: bool = False) -> tuple[str, dict]:
