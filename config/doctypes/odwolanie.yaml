@@ -27,6 +27,8 @@ instructions: |
     bez dopisków typu "prowadzący działalność gospodarczą pod firmą"; KRS zwykle brak (null).
   - Pełnomocnik: osoba wskazana jako "reprezentowany przez" / pełnomocnik; imię i nazwisko bez tytułów (adw., r.pr.).
     Gdy wskazano kilku pełnomocników — podaj tylko PIERWSZEGO.
+  - pelnomocnik.nazwa: podmiot zatrudniający pełnomocnika — zwykle kancelaria; gdy pełnomocnik jest pracownikiem
+    lub członkiem organu odwołującego (albo lidera konsorcjum), wpisz nazwę tego podmiotu.
   - Numery BZP/TED/postępowania przepisz z dokumentu; nie myl numeru TED z BZP.
 fields:
   OdwolanieKIO:

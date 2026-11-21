@@ -19,7 +19,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile  # noqa: E402
 from fastapi.concurrency import run_in_threadpool  # noqa: E402
 from fastapi.responses import FileResponse, HTMLResponse, Response  # noqa: E402
 
-from o2j.pdf import _PDFIUM_LOCK  # noqa: E402
+from o2j.pdf import _PDFIUM_LOCK, flat_page  # noqa: E402
 from o2j.pipeline import Pipeline  # noqa: E402
 
 DATA = ROOT / "gui_data"
@@ -57,7 +57,7 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
             if n >= len(pdf):
                 continue
             if n not in cache:
-                page = pdf[n]
+                page = flat_page(pdf, n)
                 tp = page.get_textpage()
                 w, h = page.get_size()
                 full = tp.get_text_range()

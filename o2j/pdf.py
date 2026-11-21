@@ -13,6 +13,20 @@ import pypdfium2 as pdfium
 _PDFIUM_LOCK = threading.Lock()  # pdfium is not thread-safe
 
 
+def flat_page(pdf, i: int):
+    """Page i with annotations/form widgets flattened into content, so text such as electronic-signature
+    stamps ("Dokument podpisany przez ...") becomes part of the text layer. Call under _PDFIUM_LOCK."""
+    import pypdfium2.raw as pdfium_c
+    page = pdf[i]
+    try:
+        if pdfium_c.FPDFPage_Flatten(page.raw, pdfium_c.FLAT_NORMALDISPLAY) == pdfium_c.FLATTEN_SUCCESS:
+            page.close()
+            page = pdf[i]
+    except Exception:  # noqa: BLE001
+        pass
+    return page
+
+
 @dataclass
 class Page:
     number: int  # 1-based
@@ -75,7 +89,7 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
             pdf = pdfium.PdfDocument(str(path), password="")  # encrypted with empty user password
         n = len(pdf) if max_pages is None else min(len(pdf), max_pages)
         for i in range(n):
-            page = pdf[i]
+            page = flat_page(pdf, i)
             tp = page.get_textpage()
             text = tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n")
             tp.close()

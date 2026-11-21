@@ -19,7 +19,10 @@ instructions: |
     typ = "osoba_fizyczna", imie_nazwisko = imię i nazwisko, nazwa = pełna nazwa firmy
     (bez dopisków typu "prowadzący działalność gospodarczą pod firmą").
   - podpisujacy: osoby podpisane w imieniu danego mocodawcy (pod "Mocodawca:" / "W imieniu ..."), bez stanowisk.
+    Liczą się też pieczęcie podpisu elektronicznego: "Dokument podpisany przez X; Firma", "Signed by / Podpisano przez: X",
+    "Podpisany elektronicznie przez X" — podaj samo imię i nazwisko X (bez nazwy firmy), w pełnym brzmieniu jak w dokumencie.
   - pelnomocnicy: imię i nazwisko w mianowniku, bez tytułów (adw., r.pr.); PESEL tylko jeśli podany.
+    Gdy pełnomocnikiem jest podmiot (np. spółka – lider konsorcjum), wpisz jego nazwę w imie_nazwisko.
   - Nie wymyślaj danych — brak = null.
 fields:
   mocodawca:
