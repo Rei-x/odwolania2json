@@ -13,6 +13,7 @@ import threading
 
 from openai import OpenAI
 
+from .llm import openrouter_extra, track
 from .pdf import png_data_url
 
 OCR_PROMPT = ("Przepisz dokładnie cały tekst z tej strony dokumentu (język polski), od pierwszej do ostatniej linii, "
@@ -51,6 +52,7 @@ class VlmOCR:
                              api_key=cfg.get("api_key") or llm_cfg.get("api_key") or "none",
                              timeout=float(cfg.get("timeout", 300)))
         self.max_tokens = int(cfg.get("max_tokens", 16000))
+        self.base_url = cfg.get("base_url") or llm_cfg["base_url"]
         self.extra = {}
         if cfg.get("reasoning") == "off":
             self.extra["reasoning"] = {"enabled": False}
@@ -63,7 +65,7 @@ class VlmOCR:
             try:
                 r = self.client.chat.completions.create(
                     model=self.model, temperature=0 if attempt == 0 else 0.2, max_tokens=self.max_tokens,
-                    extra_body=self.extra or None,
+                    extra_body=openrouter_extra(self.base_url, self.extra),
                     messages=[{"role": "user", "content": [
                         {"type": "text", "text": prompt},
                         {"type": "image_url", "image_url": {"url": png_data_url(png)}}]}])
@@ -72,6 +74,7 @@ class VlmOCR:
                     raise FatalAPIError(f"OCR API: {e}") from e
                 print(f"[ocr] attempt {attempt + 1} failed: {e!r}", file=sys.stderr)
                 continue
+            track(r)
             c = r.choices[0]
             text = c.message.content or ""
             bad = c.finish_reason == "length" or degenerate(text)

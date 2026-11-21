@@ -65,11 +65,14 @@ def main(argv=None):
     t0 = time.time()
     summary = pipe.run_dir(inp, run / "output", run / "trace", workers=a.workers, exclude_self=True)
     r = score_dirs(run / "output", gt, verbose=a.verbose)
+    from o2j.llm import COST
     r["model"], r["cases"], r["elapsed_s"] = pipe.llm.model, len(cases), round(time.time() - t0, 1)
+    r["cost"] = dict(COST)
     r["misclassified"] = [x for x in summary if x["doctype"] not in Path(x["file"]).stem and
                           not (x["doctype"] == "przelew" and "przelew" in x["file"])]
     (run / "report.json").write_text(json.dumps(r, ensure_ascii=False, indent=2))
-    print(f"\nMODEL {r['model']}  cases={len(cases)}  F1={r['f1']:.4f}  {r['counts']}  time={r['elapsed_s']}s")
+    print(f"\nMODEL {r['model']}  cases={len(cases)}  F1={r['f1']:.4f}  {r['counts']}  time={r['elapsed_s']}s"
+          f"  cost=${COST['usd']:.3f} ({COST['calls']} calls)")
     print("per doc:", r["per_doc"])
     for k, v in sorted(r["per_field"].items(), key=lambda x: x[1]["f1"])[:15]:
         print(f"  {v['f1']:.3f}  {k}  " + " ".join(f"{x}={v[x]}" for x in ("TP", "FP", "FN", "TN") if x in v))

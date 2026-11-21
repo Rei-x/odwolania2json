@@ -11,6 +11,31 @@ from openai import OpenAI
 from .pdf import png_data_url
 
 
+import threading
+
+_COST_LOCK = threading.Lock()
+COST = {"usd": 0.0, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+
+
+def track(resp):
+    u = getattr(resp, "usage", None)
+    if not u:
+        return
+    d = u.model_dump() if hasattr(u, "model_dump") else dict(u)
+    with _COST_LOCK:
+        COST["calls"] += 1
+        COST["usd"] += float(d.get("cost") or 0)
+        COST["prompt_tokens"] += int(d.get("prompt_tokens") or 0)
+        COST["completion_tokens"] += int(d.get("completion_tokens") or 0)
+
+
+def openrouter_extra(base_url: str | None, extra: dict | None) -> dict | None:
+    if base_url and "openrouter.ai" in base_url:
+        extra = dict(extra or {})
+        extra.setdefault("usage", {"include": True})
+    return extra or None
+
+
 class LLM:
     def __init__(self, cfg: dict):
         if not cfg.get("base_url") or not cfg.get("model"):
@@ -24,9 +49,11 @@ class LLM:
         last = None
         for attempt in range(int(self.cfg.get("retries", 2)) + 1):
             try:
-                extra = self.cfg.get("extra_body") or None
-                return self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
+                extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"))
+                resp = self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
                                                            extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
+                track(resp)
+                return resp
             except Exception as e:  # noqa: BLE001  (rate limits, timeouts, 5xx)
                 if getattr(e, "status_code", None) in (401, 402, 403):
                     raise RuntimeError(f"LLM API odrzuciło żądanie (klucz/środki): {e}") from e
@@ -48,14 +75,25 @@ class LLM:
             content = [{"type": "text", "text": user}] + [
                 {"type": "image_url", "image_url": {"url": png_data_url(png)}} for png in images]
         messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
-        try:
-            resp = self._chat(messages, **kw)
-        except Exception:  # provider may not support json_schema -> fall back
-            kw["response_format"] = {"type": "json_object"}
-            resp = self._chat(messages, **kw)
-        content = resp.choices[0].message.content or ""
-        usage = resp.usage.model_dump() if resp.usage else {}
-        return parse_json(content), {"model": resp.model, "usage": usage, "raw": content}
+        last_err = None
+        for attempt in range(3):  # empty / truncated / invalid JSON -> retry
+            try:
+                resp = self._chat(messages, **kw)
+            except RuntimeError:
+                raise  # auth / billing
+            except Exception:  # noqa: BLE001  provider may not support json_schema -> fall back
+                kw["response_format"] = {"type": "json_object"}
+                resp = self._chat(messages, **kw)
+            content = resp.choices[0].message.content or ""
+            usage = resp.usage.model_dump() if resp.usage else {}
+            try:
+                return parse_json(content), {"model": resp.model, "usage": usage, "raw": content, "attempts": attempt + 1}
+            except (ValueError, json.JSONDecodeError) as e:
+                last_err = e
+                if resp.choices[0].finish_reason == "length":
+                    kw["max_tokens"] = int(kw["max_tokens"] * 2)
+                kw["temperature"] = 0.2
+        raise last_err
 
     def ocr(self, png: bytes, model: str | None = None, min_len: int = 40, attempts: int = 3) -> str:
         best = ""
