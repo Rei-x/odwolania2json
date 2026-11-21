@@ -26,6 +26,12 @@ PDF ─► warstwa tekstowa (pypdfium2) ──┐
         ─► grounding: każda wartość lokalizowana w tekście (strona + cytat)
 ```
 
+Szybkość w profilu `auto` (domyślnym):
+- Klasyfikacja bez LLM, gdy reguły wygrywają z przewagą >= 7 (`classification.skip_llm_margin`); dokumenty niejednoznaczne i możliwe spoza puli nadal potwierdza głosowanie 8B + 3B (równolegle). Próg dobrany w `eval/cls_margin.py`.
+- Dokumenty digitalne: Ministral 3B, trudne eskalują do 8B. Skany (OCR): od razu Ministral 8B (`router.scan_model`), bez przebiegu 3B.
+- OCR stron równolegle (maks. 3 strony, 12 zapytań naraz), krótkie limity czasu, a zapytanie bez odpowiedzi po 30-40 s dostaje duplikat i wygrywa szybsza odpowiedź.
+- Pomiar: `python -m eval.speed_bench` (dokumenty po kolei, czas kroków, koszt, F1).
+
 Decyzje projektowe oparte na literaturze:
 - Na dokumentach szablonowych tekst i obraz dają podobną jakość, więc idziemy warstwą tekstową, a obraz służy tylko do OCR skanów.
 - Constrained decoding z ograniczeniami domenowymi w schemacie (enum, typy) pomaga, o ile prompt jest zgodny ze schematem.

@@ -116,7 +116,8 @@ class Pipeline:
                                          ccfg.get("mode", "llm_confirm"),
                                          model=ccfg.get("model"),
                                          vote_models=ccfg.get("vote_models"),
-                                         use_filename=bool(ccfg.get("use_filename", False)))
+                                         use_filename=bool(ccfg.get("use_filename", False)),
+                                         skip_llm_margin=ccfg.get("skip_llm_margin"))
             cd.update(self._cls_detail(full, doctype, cls_info, float(ccfg.get("min_score", 3))))
         trace = {"file": str(pdf_path), "doctype": doctype, "classification": cls_info, "load_error": load_error,
                  "pages": len(doc.pages), "ocr_pages": [p.number for p in doc.pages if p.source == "ocr"]}
@@ -155,6 +156,10 @@ class Pipeline:
                 user += ("\n\nDołączono obraz strony dokumentu (np. z graficznym podpisem). Odczytuj z niego tylko to, "
                          "czego brakuje w tekście (np. nazwiska podpisujących); nie zgaduj nieczytelnych podpisów.")
         trace["images_attached"] = len(images or [])
+        rcfg = self.s.get("router") or {}
+        # router mode: OCR'd documents skip the small first pass and go straight to the scan model
+        xmodel = rcfg.get("scan_model") if rcfg.get("enabled") and trace["ocr_pages"] else None
+        trace["first_pass_model"] = xmodel or self.llm.model
         vcfg = self.s.get("voting") or {}
         n_votes = int(vcfg.get("n", 1) or 1)
         with st.step("extract", "Ekstrakcja") as xd:
@@ -190,13 +195,15 @@ class Pipeline:
                 trace["voting"] = vote_info
                 xd.update(voting=vote_info, raw_outputs=[{"model": mt.get("model"), "raw": mt.get("raw")} for _, mt in runs])
             else:
-                raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
+                raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images,
+                                                  model=xmodel)
                 result = E.postprocess(spec, raw)
             first_raw, first_result = raw, result
             retries = 0
             while E.fill_ratio(result) < 0.25 and len(text) > 300 and retries < 2:  # suspiciously empty -> retry
                 retries += 1
-                raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
+                raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images,
+                                                  model=xmodel)
                 cand = E.postprocess(spec, raw)
                 if E.fill_ratio(cand) > E.fill_ratio(result):
                     result = cand
@@ -233,20 +240,20 @@ class Pipeline:
                 issues = V.verify(spec, result, evidence, ocr_doc=bool(images))
                 if not issues:
                     break
+                before = json.dumps(result, sort_keys=True, ensure_ascii=False)
                 try:
-                    result, changes = V.repair(self.llm, spec, text, result, issues, images=images)
+                    result, changes = V.repair(self.llm, spec, text, result, issues, images=images, model=xmodel)
                 except Exception as e:  # noqa: BLE001
                     rounds.append({"issues": issues, "error": repr(e)})
                     break
                 evidence = E.ground(doc, result, derived)
                 rounds.append({"issues": issues, "changes": changes})
-                if not changes:
-                    break
+                if not changes or json.dumps(result, sort_keys=True, ensure_ascii=False) == before:
+                    break  # nothing (net) changed: another round would see the same input again
             remaining = V.verify(spec, result, evidence, ocr_doc=bool(images))
             trace["verification"] = {"rounds": rounds, "remaining_issues": remaining}
             vd.update(max_rounds=int(self.s.get("verify", {}).get("max_rounds", 2)), rounds=rounds,
                       remaining_issues=remaining)
-        rcfg = self.s.get("router") or {}
         if rcfg.get("enabled"):  # adaptive escalation of hard documents
             with st.step("router", "Router") as rd:
                 from . import deterministic as D
@@ -261,9 +268,16 @@ class Pipeline:
                 sim = trace.get("nearest_example_similarity")
                 diff = R.difficulty(result, det, remaining, bool(trace.get("ocr_pages")),
                                     None if sim is None else max(0.0, 100.0 - sim), rcfg)
+                ecfg = rcfg
+                if xmodel:  # first pass already ran on the scan model: only levels above it remain
+                    levels = R.remaining_levels(rcfg, xmodel)
+                    ecfg = {**rcfg, "escalation": {**(rcfg.get("escalation") or {}), "levels": levels}}
+                    if diff["escalate"] and not levels:
+                        diff.update(escalate=False,
+                                    skipped=f"pierwszy przebieg wykonał już najsilniejszy model ({xmodel})")
                 trace["router"] = diff
                 if diff["escalate"]:
-                    new, vinfo = R.escalate(self, spec, system, user, images, doc, result, det, rcfg)
+                    new, vinfo = R.escalate(self, spec, system, user, images, doc, result, det, ecfg)
                     trace["router"]["changes"] = R.changed_fields(result, new)
                     trace["router"]["vote"] = vinfo
                     result = new

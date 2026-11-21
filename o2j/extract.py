@@ -281,12 +281,34 @@ def _set_leaf(result, path, value):
         cur[last] = value
 
 
+_FOLD = str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnoszzACELNOSZZ")
+
+
+def restore_diacritics(value: str, text: str) -> str | None:
+    """Value copied without Polish diacritics ('Zaneta', 'Lodz') while the document has them ('Żaneta',
+    'Łódź'): put back the document's letters, keep the value's casing. Only whole-word matches that differ
+    by diacritics alone; never removes diacritics. None when nothing to restore."""
+    if len(value) < 3 or value in text:
+        return None
+    folded_v = value.translate(_FOLD).lower()
+    for m in re.finditer(r"(?<!\w)" + re.escape(folded_v) + r"(?!\w)", text.translate(_FOLD).lower()):
+        span = text[m.start():m.end()]
+        out = "".join(t if t.lower() != v.lower() and t.translate(_FOLD).lower() == v.lower()
+                      and t.translate(_FOLD) != t else v for v, t in zip(value, span))
+        out = "".join(c.upper() if v.isupper() else c.lower() for c, v in zip(out, value))
+        if out != value:
+            return out
+    return None
+
+
 def snap_to_text(spec: DocSpec, result: dict, doc: P.Document) -> list[dict]:
     """Correct small copy errors of the LLM using the document text (generic, no dataset knowledge):
     * identifiers: model digits are a fragment of a longer digit run in the text that satisfies the field
       pattern (e.g. 24 of 26 account digits) -> take the full run;
     * strings (e-mail, names, numbers with letters): value not found verbatim, but a near-identical span
-      (similarity >= 92, same length +-2) exists -> take the exact span from the document.
+      (similarity >= 92, same length +-2) exists -> take the exact span from the document;
+    * any string (also names): value differs from a word span of the text only by missing Polish
+      diacritics -> restore them (small models drop them when copying OCR text).
     Returns the list of changes (logged in the trace for transparency)."""
     text = " ".join(" ".join(p.text.split()) for p in doc.pages)
     if not text:
@@ -297,6 +319,12 @@ def snap_to_text(spec: DocSpec, result: dict, doc: P.Document) -> list[dict]:
     for path, node, v in _walk_leaves(spec.fields, result):
         if v is None or node.get("derive") or node["type"] in ("enum", "integer", "number", "date"):
             continue
+        if isinstance(v, str) and not re.fullmatch(r"[\d\s]+", v):
+            fixed = restore_diacritics(v, text)
+            if fixed:
+                changes.append({"field": path, "before": v, "after": fixed, "rule": "diacritics-restored"})
+                _set_leaf(result, path, fixed)
+                continue
         if "person" in (node.get("normalize") or []):
             continue  # names are legitimately in nominative while the text declines them
         s = str(v)

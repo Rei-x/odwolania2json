@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 import io
+import random
 import re
 import sys
 import threading
+import time
 
 from openai import OpenAI
 
-from .llm import openrouter_extra, track
+from .llm import hedged, openrouter_extra, track
 from .pdf import png_data_url
 
 OCR_PROMPT = ("Przepisz dokładnie cały tekst z tej strony dokumentu (język polski), od pierwszej do ostatniej linii, "
@@ -46,11 +48,20 @@ def _fatal(e: Exception) -> bool:
 
 
 class VlmOCR:
+    _slots: threading.BoundedSemaphore | None = None  # page requests in flight, shared by all documents
+    _slots_lock = threading.Lock()
+
     def __init__(self, cfg: dict, llm_cfg: dict):
         self.model = cfg.get("model") or llm_cfg["model"]
         self.client = OpenAI(base_url=cfg.get("base_url") or llm_cfg["base_url"],
                              api_key=cfg.get("api_key") or llm_cfg.get("api_key") or "none",
-                             timeout=float(cfg.get("timeout", 300)))
+                             timeout=float(cfg.get("timeout", 300)), max_retries=0)
+        self.timeout = float(cfg.get("timeout", 300))
+        self.attempts = max(1, int(cfg.get("attempts", 4)))
+        self.hedge_after = cfg.get("hedge_after")  # seconds without an answer before a duplicate request
+        with VlmOCR._slots_lock:  # batch runs: pages wait here (not in the provider queue, where the timeout ticks)
+            if VlmOCR._slots is None:
+                VlmOCR._slots = threading.BoundedSemaphore(max(1, int(cfg.get("max_concurrency", 12))))
         self.max_tokens = int(cfg.get("max_tokens", 16000))
         self.base_url = cfg.get("base_url") or llm_cfg["base_url"]
         self.extra = {}
@@ -61,20 +72,29 @@ class VlmOCR:
 
     def __call__(self, png: bytes) -> str:
         best, prompt = "", OCR_PROMPT
-        for attempt in range(4):
-            try:
-                r = self.client.chat.completions.create(
-                    model=self.model, temperature=0 if attempt == 0 else 0.2, max_tokens=self.max_tokens,
+        for attempt in range(self.attempts):
+            # the last attempt gets a double budget: a page without text is worse than a slow page
+            last = attempt == self.attempts - 1 and attempt > 0
+            client = self.client.with_options(timeout=2 * self.timeout) if last else self.client
+
+            def call(prompt=prompt, temp=0 if attempt == 0 else 0.2, client=client):
+                resp = client.chat.completions.create(
+                    model=self.model, temperature=temp, max_tokens=self.max_tokens,
                     extra_body=openrouter_extra(self.base_url, self.extra, self.model),
                     messages=[{"role": "user", "content": [
                         {"type": "text", "text": prompt},
                         {"type": "image_url", "image_url": {"url": png_data_url(png)}}]}])
+                track(resp)  # also the losing hedge request: it is billed
+                return resp
+            try:
+                with VlmOCR._slots:
+                    r = hedged(call, self.hedge_after)
             except Exception as e:  # noqa: BLE001
                 if _fatal(e):
                     raise FatalAPIError(f"OCR API: {e}") from e
                 print(f"[ocr] attempt {attempt + 1} failed: {e!r}", file=sys.stderr)
+                time.sleep(min(8.0, 2 ** attempt + random.random()))  # rate limit / 5xx: short backoff
                 continue
-            track(r)
             c = r.choices[0]
             text = c.message.content or ""
             bad = c.finish_reason == "length" or degenerate(text)

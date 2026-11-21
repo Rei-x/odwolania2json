@@ -46,6 +46,7 @@ def _llm_pipe(voting=None):
     s["ocr"] = {**s.get("ocr", {}), "engine": "none", "preprocess": None}
     s.setdefault("extraction", {})["mode"] = "llm"
     s["router"] = {"enabled": False}
+    s["classification"] = {**s.get("classification", {}), "skip_llm_margin": None}  # always exercise the LLM vote
     if voting:
         s["voting"] = voting
     p = Pipeline(s)
