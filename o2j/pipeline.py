@@ -120,11 +120,12 @@ class Pipeline:
                 trace, err = {"file": str(p), "error": repr(e), "doctype": doctype}, repr(e)
             out = output_dir / rel
             matched = doctype in self.specs
+            out.parent.mkdir(parents=True, exist_ok=True)
             if matched:
-                out.parent.mkdir(parents=True, exist_ok=True)
                 out.write_text(E.dumps(result), encoding="utf-8")
-            else:  # per UZP: unknown document type -> report, no JSON
-                trace["unmatched"] = "Nie udało się dopasować typu dokumentu — nie wygenerowano JSON."
+            else:  # per UZP: out-of-scope document -> file containing only {}
+                out.write_text("{}", encoding="utf-8")
+                trace["unmatched"] = "Nie udało się dopasować typu dokumentu — zapisano pusty JSON {}."
             if trace_dir:
                 tr = trace_dir / rel.with_suffix(".trace.json")
                 tr.parent.mkdir(parents=True, exist_ok=True)
@@ -143,10 +144,17 @@ class Pipeline:
 
 
 def build_gt(train_dir: Path, specs, gt_dir: Path, cases: list[str] | None = None):
-    """Map each training PDF to its reference JSON (per doctype `examples`) under the PDF's stem."""
+    """Map each training PDF to its reference JSON (per doctype `examples`) under the PDF's stem.
+    PDFs without a reference (out-of-scope documents) expect an empty JSON {}."""
     for case in sorted(train_dir.iterdir()):
         if not case.is_dir() or (cases and case.name not in cases):
             continue
+        mapped = {(spec.raw.get("examples") or {}).get("pdf") for spec in specs.values()}
+        for pdf in case.glob("*.pdf"):
+            if pdf.name not in mapped:
+                out = gt_dir / case.name / (pdf.stem + ".json")
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text("{}", encoding="utf-8")
         for spec in specs.values():
             ex = spec.raw.get("examples") or {}
             pdf, js = case / ex.get("pdf", "_"), case / ex.get("json", "_")

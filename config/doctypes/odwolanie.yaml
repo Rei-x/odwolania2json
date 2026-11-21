@@ -47,13 +47,13 @@ fields:
           - {value: 3, label: "Decyzja o wykluczeniu wykonawcy"}
           - {value: 4, label: "Publikacja specyfikacji warunków zamówienia (SWZ)"}
           - {value: 5, label: "Modyfikacja treści SWZ"}
-          - {value: 6, label: "Odpowiedzi i wyjaśnienia do SWZ"}
+          - {value: 6, label: "Odpowiedzi/wyjaśnienia do SWZ"}
           - {value: 7, label: "Zaniechanie odrzucenia oferty"}
           - {value: 8, label: "Zaniechanie wykluczenia wykonawcy"}
           - {value: 9, label: "Decyzja o unieważnieniu postępowania"}
           - {value: 10, label: "Zaniechanie unieważnienia postępowania"}
           - {value: 11, label: "Opis przedmiotu zamówienia (OPZ)"}
-          - {value: 12, label: "Inna czynność lub zaniechanie zamawiającego"}  # TODO: potwierdzić z UZP (brak w danych treningowych)
+          - {value: 12, label: "Projektowane postanowienia umowy"}   # słownik: data/schemas/czynnosc_powod_id_dict.md
       czynnosc_opis:
         type: string
         derive: {label_of: czynnosc_powod_id}   # wypełniane automatycznie etykietą wybranego powodu

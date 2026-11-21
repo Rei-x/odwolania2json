@@ -18,8 +18,14 @@ from pathlib import Path
 
 from rapidfuzz import fuzz
 
-LONG_STRING = 20  # strings longer than this are compared fuzzily
 FUZZY_THRESHOLD = 80.0
+# Organiser (Discord 12:26): long-string fields compared with 80% similarity; everything else exact.
+FUZZY_FIELDS = {
+    "Odwolujacy[].pelnomocnik.nazwa",   # nazwa firmy pełnomocnika
+    "przelew_bankowy.tytul",            # tytuł przelewu
+    "Odwolujacy[].nazwa", "Zamawiajacy[].nazwa",
+    "ZamowieniePubliczne.tytul",        # tytuł zamówienia publicznego
+}
 
 
 def _empty(v) -> bool:
@@ -40,15 +46,15 @@ def _norm(v):
     return v
 
 
-def leaf_equal(p, g) -> bool:
+def leaf_equal(p, g, path: str = "") -> bool:
     p, g = _norm(p), _norm(g)
     if isinstance(p, float) and isinstance(g, float):
         return abs(p - g) < 0.005
     p, g = str(p), str(g)
     if p == g:
         return True
-    if max(len(p), len(g)) > LONG_STRING:
-        return fuzz.ratio(p.casefold(), g.casefold()) >= FUZZY_THRESHOLD
+    if _field_key(path) in FUZZY_FIELDS:
+        return fuzz.ratio(p, g) >= FUZZY_THRESHOLD
     return False
 
 
@@ -93,7 +99,7 @@ def compare(pred, gt, path: str, out: list):
         out.append(("TN", path, pred, gt))
     elif _empty(pred):
         out.append(("FN", path, pred, gt))
-    elif _empty(gt) or not leaf_equal(pred, gt):
+    elif _empty(gt) or not leaf_equal(pred, gt, path):
         out.append(("FP", path, pred, gt))
     else:
         out.append(("TP", path, pred, gt))

@@ -131,8 +131,8 @@ def _one(sid: str, path: Path) -> dict:
         highlight_rects(path, evidence)
     except Exception:  # noqa: BLE001
         pass
-    if doctype in p.specs:
-        (path.parent / (path.stem + ".json")).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    (path.parent / (path.stem + ".json")).write_text(
+        json.dumps(result if doctype in p.specs else {}, ensure_ascii=False, indent=2), encoding="utf-8")
     keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage")
     return {"session": sid, "file": path.name, "doctype": doctype, "result": result,
             "trace": {**{k: trace.get(k) for k in keep}, "evidence": evidence}}
