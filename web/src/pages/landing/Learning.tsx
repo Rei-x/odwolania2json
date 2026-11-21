@@ -15,8 +15,8 @@ function LearningChart() {
       <AreaChart data={CURVE} margin={{ left: 0, right: 4, top: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="lp-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-y)" stopOpacity={0.28} />
-            <stop offset="95%" stopColor="var(--color-y)" stopOpacity={0.02} />
+            <stop offset="0" stopColor="var(--color-y)" stopOpacity={0.14} />
+            <stop offset="1" stopColor="var(--color-y)" stopOpacity={0.14} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} />

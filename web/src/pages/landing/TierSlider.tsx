@@ -4,18 +4,17 @@ import { Reveal, SectionHead } from "./Reveal"
 import { ModelName } from "./VendorLogo"
 
 type Comp = "rules" | "llm" | "verify" | "router" | "vote"
-type Tier = { n: string; d: string; f: ReactNode[]; c: Comp[]; g: string; x: string }
+type Tier = { n: string; d: string; f: ReactNode[]; c: Comp[] }
 
-const mix = (token: string, pct: number) => `color-mix(in oklab, ${token} ${pct}%, transparent)`
 const m3 = <ModelName vendor="mistral">Ministral 3B</ModelName>
 const m8 = <ModelName vendor="mistral">Ministral 8B</ModelName>
 
 const TIERS: Tier[] = [
-  { n: "Reguły", d: "Bez LLM. Działa offline na CPU.", f: ["0 zł", "66 dok./s na 1 wątku", "F1 0,816 na ślepym zbiorze"], c: ["rules"], g: mix("var(--teal-l)", 32), x: "10%" },
-  { n: "Ekonomiczny", d: "Najmniejszy model, najniższy koszt.", f: [m3], c: ["llm"], g: mix("var(--teal-l)", 26), x: "30%" },
-  { n: "Standard", d: "Model 8B z weryfikacją i naprawą.", f: [m8, "F1 0,985 na ślepym zbiorze"], c: ["llm", "verify"], g: mix("var(--wheat)", 26), x: "50%" },
-  { n: "Auto", d: "Mały model dla zwykłych PDF-ów, większy tylko dla trudnych.", f: [<>{m3} → {m8}</>, "F1 0,984", "mediana 2,7 s"], c: ["rules", "llm", "verify", "router"], g: mix("var(--wheat)", 30), x: "70%" },
-  { n: "Maksymalny", d: "Dwa modele i reguły głosują nad każdym polem.", f: [<>{m8} + {m3}</>], c: ["llm", "verify", "vote"], g: mix("var(--acc)", 34), x: "90%" },
+  { n: "Reguły", d: "Bez LLM. Działa offline na CPU.", f: ["0 zł", "66 dok./s na 1 wątku", "F1 0,816 na ślepym zbiorze"], c: ["rules"] },
+  { n: "Ekonomiczny", d: "Najmniejszy model, najniższy koszt.", f: [m3], c: ["llm"] },
+  { n: "Standard", d: "Model 8B z weryfikacją i naprawą.", f: [m8, "F1 0,985 na ślepym zbiorze"], c: ["llm", "verify"] },
+  { n: "Auto", d: "Mały model dla zwykłych PDF-ów, większy tylko dla trudnych.", f: [<>{m3} → {m8}</>, "F1 0,984", "mediana 2,7 s"], c: ["rules", "llm", "verify", "router"] },
+  { n: "Maksymalny", d: "Dwa modele i reguły głosują nad każdym polem.", f: [<>{m8} + {m3}</>], c: ["llm", "verify", "vote"] },
 ]
 
 const svg = (d: ReactNode) => (
@@ -37,7 +36,7 @@ export function TierSlider() {
     <section className="sec" id="suwak">
       <div className="wrap">
         <SectionHead title="Jeden suwak: koszt albo jakość." />
-        <Reveal className="tier" style={{ "--gc": t.g, "--gx": t.x } as CSSProperties}>
+        <Reveal className="tier">
           <div className="tends"><span>taniej</span><span>dokładniej</span></div>
           <div className="track">
             <div className="bar" />

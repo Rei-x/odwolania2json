@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, type CSSProperties, type Ref } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Flock } from "@/components/brand/flock"
+import { SparrowMark } from "@/components/brand/logo"
 import { ArrowIcon } from "./Reveal"
 import type { SceneType } from "./HeroScene"
 
@@ -12,6 +13,7 @@ export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
   return (
     <section className="hero" id="hero" ref={ref}>
       <div className="hcopy">
+        <SparrowMark className="hero-bird" />
         <h1>
           <span className="l">Akta KIO → JSON.</span>
           <span className="l l3">Każda wartość z dowodem.</span>

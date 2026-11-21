@@ -205,7 +205,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
         uniforms: { uA: { value: 0 }, uTime: { value: 0 } },
         vertexShader: VERT_UV,
         fragmentShader: `uniform float uA, uTime; varying vec2 vUv;
-          void main(){ float x = abs(vUv.x - .5) * 2.; float core = exp(-x * x * 900.); float glow = exp(-x * 7.) * .55;
+          void main(){ float x = abs(vUv.x - .5) * 2.; float core = exp(-x * x * 900.); float glow = exp(-x * 7.) * .22;
             float yv = smoothstep(0., .12, vUv.y) * smoothstep(1., .88, vUv.y);
             float fl = .85 + .15 * sin(uTime * 30. + vUv.y * 40.);
             vec3 col = vec3(1.) * core + vec3(1., .25, .5) * glow;
@@ -254,8 +254,8 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
             vA = vis * (1. - uOut) * (.7 + .3 * fl);
           }`,
         fragmentShader: `varying vec3 vCol; varying float vA;
-          void main(){ vec2 q = gl_PointCoord - .5; float d = length(q); if (d > .5) discard; float a = smoothstep(.5, .05, d);
-            gl_FragColor = vec4(vCol * (1. + smoothstep(.2, 0., d) * .6), a * vA); }`,
+          void main(){ vec2 q = gl_PointCoord - .5; float d = length(q); if (d > .5) discard; float a = smoothstep(.5, .32, d);
+            gl_FragColor = vec4(vCol * (1. + smoothstep(.2, 0., d) * .15), a * vA); }`,
       }))
       const particles = new THREE.Points(geo, ptsMat)
       particles.frustumCulled = false
@@ -265,7 +265,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
       const DN = small ? 260 : 520, dgeo = track(new THREE.BufferGeometry()), dpos = new Float32Array(DN * 3)
       for (let i = 0; i < DN; i++) { dpos[i * 3] = (Math.random() - 0.5) * 22; dpos[i * 3 + 1] = (Math.random() - 0.5) * 14; dpos[i * 3 + 2] = -Math.random() * 10 - 1 }
       dgeo.setAttribute("position", new THREE.BufferAttribute(dpos, 3))
-      const dust = new THREE.Points(dgeo, track(new THREE.PointsMaterial({ size: 0.045, color: "#c4dbaf", transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending, map: glowTex })))
+      const dust = new THREE.Points(dgeo, track(new THREE.PointsMaterial({ size: 0.045, color: "#c4dbaf", transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, map: glowTex })))
       scene.add(dust)
 
       // layout
@@ -332,7 +332,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
         pageGroup.rotation.set(-0.04, pageRotY() + (1 - kin) * 1.1, L.vertical ? -0.04 : 0.02)
         pu.uAlpha.value = kin
         const sw = Math.min(1, Math.max(0, (t - T_SW) / SWEEP))
-        haloMat.opacity = 0.18 * kin * (1 - sw)
+        haloMat.opacity = 0.05 * kin * (1 - sw)
         pu.uSweep.value = sw
         beam.position.x = (sw - 0.5) * PAGE_W
         beamMat.uniforms.uA.value = t < T_SW ? Math.max(0, (t - (T_SW - 0.25)) / 0.25) : sw < 1 ? 1 : Math.max(0, 1 - (t - T_SW - SWEEP) / 0.2)
@@ -367,7 +367,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
       }
       function still() { // reduced motion: one composed frame (intact page + assembled JSON)
         if (!armed) setParticles()
-        update(T_LAND + 0.5, 0); pageMat.uniforms.uSweep.value = 0; beamMat.uniforms.uA.value = 0; haloMat.opacity = 0.15
+        update(T_LAND + 0.5, 0); pageMat.uniforms.uSweep.value = 0; beamMat.uniforms.uA.value = 0; haloMat.opacity = 0.04
         ptsMat.uniforms.uClock.value = 99; renderer.render(scene, camera)
       }
       cleanups.push(() => cancelAnimationFrame(raf))
