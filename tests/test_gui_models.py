@@ -16,13 +16,13 @@ PICK = "mistralai/ministral-3b-2512"
 def sweep(tmp_path, monkeypatch):
     path = tmp_path / "bench_sweep.json"
     path.write_text(json.dumps({"runs": [
-        {"model": PICK, "name": "Mistral: Ministral 3B", "params_b": 3, "points": 20, "eu_providers": ["mistral"],
+        {"model": PICK, "name": "Mistral: Ministral 3B", "params_b": 3, "eu_providers": ["mistral"],
          "providers": ["mistral"], "train": {"f1": 0.97, "cost": 0.03, "seconds": 60, "per_doc": {}, "error": None},
          "blind": {"f1": 0.96, "cost": 0.04, "seconds": 40, "negatives_ok": "3/3", "per_doc": {"odwolanie": "0.95"}, "error": None}},
-        {"model": "acme/gui-agent-7b", "name": "Acme: GUI Agent 7B", "params_b": 7, "points": 20, "eu_providers": [],
+        {"model": "acme/gui-agent-7b", "name": "Acme: GUI Agent 7B", "params_b": 7, "eu_providers": [],
          "providers": ["acme"], "train": {"f1": None, "cost": None, "seconds": 5, "per_doc": None, "error": "timeout"},
          "blind": None},
-        {"model": "acme/eu-tiny-1b", "name": None, "params_b": 1, "points": 20, "eu_providers": ["nebius"],
+        {"model": "acme/eu-tiny-1b", "name": None, "params_b": 1, "eu_providers": ["nebius"],
          "providers": ["nebius", "acme"], "train": {"f1": 0.9, "cost": 0.001, "seconds": 5}, "blind": {"f1": 0.88}},
     ]}), encoding="utf-8")
     monkeypatch.setenv("O2J_BENCH_SWEEP", str(path))
@@ -35,12 +35,12 @@ def test_models_catalog_merges_sources(sweep):
     ms = {m["id"]: m for m in gui.models()["models"]}
     assert "deterministic" not in ms
     m = ms[PICK]
-    assert m["eu"] and m["params_b"] == 3 and m["points"] == 20 and m["f1_blind"] == 0.96 and m["cost"] == 0.03
+    assert m["eu"] and m["params_b"] == 3 and "points" not in m and m["f1_blind"] == 0.96 and m["cost"] == 0.03
     agent = ms["acme/gui-agent-7b"]
-    assert agent["eu"] is False and agent["points"] == 20 and agent["f1_blind"] is None and agent["name"] == "GUI Agent 7B"
+    assert agent["eu"] is False and agent["params_b"] == 7 and agent["f1_blind"] is None and agent["name"] == "GUI Agent 7B"
     assert ms["acme/eu-tiny-1b"]["eu"] is True
     big = ms["deepseek/deepseek-v4.1-flash"]  # from settings.model_params + providers + benchmarks.json
-    assert big["points"] == 0 and big["eu"] is True
+    assert big["params_b"] == 763 and big["eu"] is True
     assert list(ms).index(PICK) < list(ms).index("acme/gui-agent-7b")  # EU models listed first
 
 
@@ -116,8 +116,12 @@ def test_process_uses_chosen_model(sweep, tmp_path, monkeypatch):
     shutil.rmtree(tmp_path / "gui_data", ignore_errors=True)
 
 
-def test_static_pages_wire_the_new_endpoints():
-    idx = (ROOT / "o2j" / "static" / "index.html").read_text(encoding="utf-8")
-    assert "/api/models" in idx and "fd.append('model'" in idx and "Automatyczny (wg profilu)" in idx
-    bench = (ROOT / "o2j" / "static" / "benchmarks.html").read_text(encoding="utf-8")
-    assert "/api/bench_sweep" in bench and 'id="sweep"' in bench
+def test_pages_serve_the_spa_or_fail_clearly(tmp_path, monkeypatch):
+    spa = tmp_path / "index.html"
+    spa.write_text("<div id=root></div>", encoding="utf-8")
+    monkeypatch.setattr(gui, "DIST", tmp_path)
+    assert gui.landing() == gui.index() == gui.benchmarks_page() == gui.wizard_page() == "<div id=root></div>"
+    spa.unlink()
+    with pytest.raises(gui.HTTPException) as e:
+        gui.benchmarks_page()
+    assert e.value.status_code == 503 and "npm run build" in e.value.detail

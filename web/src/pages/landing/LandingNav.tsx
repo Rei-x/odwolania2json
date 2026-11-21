@@ -6,10 +6,7 @@ import { cn } from "@/lib/utils"
 import { ArrowIcon } from "./Reveal"
 
 const LINKS: { href: string; label: string; route?: boolean }[] = [
-  { href: "#pipeline", label: "Pipeline" },
-  { href: "#suwak", label: "Koszt i jakość" },
-  { href: "#uczenie", label: "Uczenie" },
-  { href: "#rozszerzalnosc", label: "Rozszerzalność" },
+  { href: "#pipeline", label: "Jak to działa" },
   { href: "#wyniki", label: "Wyniki" },
   { href: "/benchmarks", label: "Benchmarki", route: true },
   { href: "#wyprobuj", label: "Przykłady" },

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { prefersReducedMotion, useInViewOnce } from "./hooks"
 import { Reveal } from "./Reveal"
+import { ModelName } from "./VendorLogo"
 
 const fmt = (v: number, d: number) => v.toFixed(d).replace(".", ",")
 
@@ -29,10 +30,10 @@ function CountUp({ to, dec, suffix }: { to: number; dec: number; suffix?: ReactN
 }
 
 const KPIS = [
-  { to: 1, dec: 3, label: "F1 na danych UZP", note: "76 dokumentów" },
-  { to: 0.999, dec: 3, label: "F1 na ślepym zbiorze", note: "20 nowych spraw" },
-  { to: 98.3, dec: 1, suffix: "%", label: "trafna klasyfikacja", note: "116 trudnych przypadków" },
-  { to: 0, dec: 0, suffix: "zł", label: "w trybie Reguły", note: "180 dokumentów w 2,9 s" },
+  { to: 0.985, dec: 3, label: "F1 na ślepym zbiorze", note: <><ModelName vendor="mistral">Ministral 8B</ModelName> + Wróbelek</> },
+  { to: 0.997, dec: 3, label: "F1 na danych UZP", note: <><ModelName vendor="anthropic">Opus 5.5</ModelName> = 1,000</> },
+  { to: 2.7, dec: 1, suffix: "s", label: "mediana na dokument", note: "PDF cyfrowy, bez GPU" },
+  { to: 929, dec: 0, label: "prawdziwych PDF-ów KIO", note: "ze 111 publicznych źródeł" },
 ]
 
 export function Kpis() {

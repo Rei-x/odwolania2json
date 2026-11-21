@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { DEFAULT_BANDS, prepSweep } from "./lib"
-import type { Band, Benchmarks, SweepResponse, SweepRun } from "./types"
+import { prepSweep } from "./lib"
+import type { Benchmarks, SweepResponse, SweepRun } from "./types"
 
 export function useBenchmarks() {
   const [data, setData] = useState<Benchmarks | null>(null)
@@ -20,7 +20,7 @@ const hm = (d: Date, s = false) =>
   d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", ...(s ? { second: "2-digit" } : {}) })
 
 /** Model sweep results; re-polled every 30 s while `auto` is on (the sweep appends results while it runs). */
-export function useSweep(bands: Band[] | undefined) {
+export function useSweep() {
   const [raw, setRaw] = useState<unknown[] | null>(null)
   const [mtime, setMtime] = useState<number | null>(null)
   const [status, setStatus] = useState("")
@@ -58,7 +58,7 @@ export function useSweep(bands: Band[] | undefined) {
     return () => clearInterval(id)
   }, [auto, load])
 
-  const runs: SweepRun[] | null = useMemo(() => (raw ? prepSweep(raw, bands ?? DEFAULT_BANDS) : null), [raw, bands])
+  const runs: SweepRun[] | null = useMemo(() => (raw ? prepSweep(raw) : null), [raw])
 
   return { runs, mtime, status, loading, auto, setAuto, refresh: () => load(true), seen }
 }

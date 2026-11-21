@@ -2,7 +2,6 @@ import type { ReactNode } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { bandStrength } from "./lib"
 
 export function Section({ id, title, lead, aside, children }: { id: string; title: ReactNode; lead?: ReactNode; aside?: ReactNode; children: ReactNode }) {
   return (
@@ -35,22 +34,6 @@ export function NoResult({ error, children = "brak wyniku" }: { error?: string |
       </TooltipTrigger>
       <TooltipContent className="max-w-sm break-words">{error || "Brak wyniku (pomiar w toku albo przebieg nie zwrócił danych)"}</TooltipContent>
     </Tooltip>
-  )
-}
-
-/** UZP size points as a pill tinted by band. */
-export function PointsPill({ p }: { p: number | null | undefined }) {
-  if (p == null) return <Dash />
-  return (
-    <span
-      className={cn(
-        "inline-block min-w-12 rounded-full px-2 py-0.5 text-center text-xs font-semibold tabular-nums",
-        p >= 12 ? "text-success" : "text-muted-foreground",
-      )}
-      style={{ background: `color-mix(in oklab, var(--sage) ${Math.round(Math.max(0.08, bandStrength(p) + 0.04) * 100)}%, transparent)` }}
-    >
-      {p} pkt
-    </span>
   )
 }
 

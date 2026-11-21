@@ -1,18 +1,21 @@
 import { useState, type CSSProperties, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Reveal, SectionHead } from "./Reveal"
+import { ModelName } from "./VendorLogo"
 
 type Comp = "rules" | "llm" | "verify" | "router" | "vote"
-type Tier = { n: string; d: string; f: string[]; c: Comp[]; g: string; x: string }
+type Tier = { n: string; d: string; f: ReactNode[]; c: Comp[]; g: string; x: string }
 
 const mix = (token: string, pct: number) => `color-mix(in oklab, ${token} ${pct}%, transparent)`
+const m3 = <ModelName vendor="mistral">Ministral 3B</ModelName>
+const m8 = <ModelName vendor="mistral">Ministral 8B</ModelName>
 
 const TIERS: Tier[] = [
-  { n: "Reguły", d: "Bez LLM. Deterministycznie.", f: ["0 zł", "180 dok. w 2,9 s"], c: ["rules"], g: mix("var(--teal-l)", 32), x: "10%" },
-  { n: "Ekonomiczny", d: "Lekki model, bez pętli naprawy.", f: ["najtańszy z LLM"], c: ["llm"], g: mix("var(--teal-l)", 26), x: "30%" },
-  { n: "Standard", d: "Szybki model z weryfikacją.", f: ["domyślny"], c: ["llm", "verify"], g: mix("var(--wheat)", 26), x: "50%" },
-  { n: "Auto", d: "Tanio dla łatwych, mocny model dla trudnych.", f: ["eskalacja tylko dla trudnych"], c: ["rules", "llm", "verify", "router"], g: mix("var(--wheat)", 30), x: "70%" },
-  { n: "Maksymalny", d: "Kilka modeli głosuje nad każdym polem.", f: ["najwyższa jakość"], c: ["llm", "verify", "vote"], g: mix("var(--acc)", 34), x: "90%" },
+  { n: "Reguły", d: "Bez LLM. Działa offline na CPU.", f: ["0 zł", "66 dok./s na 1 wątku", "F1 0,816 na ślepym zbiorze"], c: ["rules"], g: mix("var(--teal-l)", 32), x: "10%" },
+  { n: "Ekonomiczny", d: "Najmniejszy model, najniższy koszt.", f: [m3], c: ["llm"], g: mix("var(--teal-l)", 26), x: "30%" },
+  { n: "Standard", d: "Model 8B z weryfikacją i naprawą.", f: [m8, "F1 0,985 na ślepym zbiorze"], c: ["llm", "verify"], g: mix("var(--wheat)", 26), x: "50%" },
+  { n: "Auto", d: "Mały model dla zwykłych PDF-ów, większy tylko dla trudnych.", f: [<>{m3} → {m8}</>, "F1 0,984", "mediana 2,7 s"], c: ["rules", "llm", "verify", "router"], g: mix("var(--wheat)", 30), x: "70%" },
+  { n: "Maksymalny", d: "Dwa modele i reguły głosują nad każdym polem.", f: [<>{m8} + {m3}</>], c: ["llm", "verify", "vote"], g: mix("var(--acc)", 34), x: "90%" },
 ]
 
 const svg = (d: ReactNode) => (
@@ -33,7 +36,7 @@ export function TierSlider() {
   return (
     <section className="sec" id="suwak">
       <div className="wrap">
-        <SectionHead eyebrow="Koszt i jakość" title="Płacisz tylko za trudne dokumenty." />
+        <SectionHead title="Jeden suwak: koszt albo jakość." />
         <Reveal className="tier" style={{ "--gc": t.g, "--gx": t.x } as CSSProperties}>
           <div className="tends"><span>taniej</span><span>dokładniej</span></div>
           <div className="track">
@@ -57,7 +60,7 @@ export function TierSlider() {
               <div className="tname">{t.n}</div>
               <p className="tdesc">{t.d}</p>
               <div className="tfacts" key={i}>
-                {t.f.map((x, k) => <span key={x} style={{ animationDelay: `${k * 60}ms` }}>{x}</span>)}
+                {t.f.map((x, k) => <span key={k} style={{ animationDelay: `${k * 60}ms` }}>{x}</span>)}
               </div>
             </div>
             <div className="comps">

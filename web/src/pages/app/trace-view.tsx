@@ -1,11 +1,17 @@
 import { useState } from "react"
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
-import { AlertTriangle, Check, ChevronRight, Clock, Coins, Cpu, Download, Minus, ScanLine, X } from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { AlertTriangle, Check, ChevronRight, Download, Minus, PencilLine, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { cn } from "@/lib/utils"
 import { type Doc, LABEL, shortModel } from "./lib"
+
+/*
+ * "Przebieg": what happened to the document, readable by a non-technical person in a few seconds.
+ * Layout inspired by Browserbase agent runs (outcome + duration + time strip on top, one row per step),
+ * the Webflow deploy stepper (status circle + one plain sentence) and H&M order tracking (numbered steps).
+ * Technical data (rule patterns, raw JSON, tokens, model ids) stays behind "Szczegóły techniczne".
+ */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type D = Record<string, any>
@@ -29,23 +35,238 @@ export type StepsSummary = {
   tokens: { prompt: number; completion: number }
   models: string[]
 }
+type Status = "ok" | "changed" | "warn" | "error"
+type Change = { field: string; before: unknown; after: unknown; reason?: string }
 
-const COLOR: Record<string, string> = {
-  load: "var(--chart-5)",
-  classify: "var(--chart-3)",
-  few_shot: "var(--chart-4)",
-  extract: "var(--chart-1)",
-  normalize: "var(--chart-2)",
-  ground: "var(--success)",
-  verify: "var(--rust)",
-  router: "var(--wheat)",
+const TITLE: Record<string, string> = {
+  load: "Wczytanie",
+  classify: "Klasyfikacja",
+  extract: "Ekstrakcja",
+  normalize: "Normalizacja",
+  ground: "Dowody",
+  verify: "Weryfikacja",
+  router: "Router",
 }
-const color = (id: string) => COLOR[id] || "var(--muted-foreground)"
 
-const sec = (s: number) => (s < 0.01 ? "<0,01 s" : s < 10 ? `${s.toFixed(2).replace(".", ",")} s` : `${s.toFixed(1).replace(".", ",")} s`)
-const usd = (v: number) => v === 0 ? "$0" : `$${v < 0.001 ? v.toFixed(5) : v.toFixed(4)}`.replace(".", ",")
+/* ------------------------------------------------------------------ formatting */
+
+const sec = (s: number) =>
+  s < 0.01 ? "<0,01 s" : s < 10 ? `${s.toFixed(2).replace(".", ",")} s` : `${s.toFixed(1).replace(".", ",")} s`
+const usd = (v: number) => (v === 0 ? "$0" : `$${v < 0.001 ? v.toFixed(5) : v.toFixed(4)}`.replace(".", ","))
 const pct = (v: number) => `${Math.round(v)}%`
-const val = (v: unknown) => (v === null || v === undefined ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v))
+const val = (v: unknown) => (v === null || v === undefined ? "brak" : typeof v === "object" ? JSON.stringify(v) : String(v))
+const plural = (n: number, one: string, few: string, many: string) =>
+  n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many
+
+/** "mistralai/ministral-8b-2512" -> "Ministral 8B" */
+export function prettyModel(id?: string | null): string {
+  if (!id) return ""
+  if (id === "deterministic") return "reguły"
+  const base = shortModel(id).replace(/[-_:]?\d{4}$/, "").replace(/-(it|instruct|chat)$/i, "")
+  return base
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((t) => (/^\d+(\.\d+)?[bkmt]$/i.test(t) || /^a\d+b$/i.test(t) ? t.toUpperCase() : t[0].toUpperCase() + t.slice(1)))
+    .join(" ")
+}
+
+/** Field path -> short readable name: "Odwolujacy[0].pelnomocnik.imie_nazwisko" -> "pełnomocnik · imię i nazwisko" */
+const NICE: Record<string, string> = {
+  imie_nazwisko: "imię i nazwisko",
+  numer_postepowania: "nr postępowania",
+  numer_bzp: "nr BZP",
+  numer_ted: "nr TED",
+  czynnosc_dzien: "data czynności",
+  czynnosc_opis: "czynność",
+  czynnosc_powod_id: "powód",
+  data_operacji: "data operacji",
+  na_rachunek: "na rachunek",
+  z_rachunku: "z rachunku",
+  numer_transakcji: "nr transakcji",
+  miejscowosc: "miejscowość",
+  pelnomocnik: "pełnomocnik",
+  pelnomocnicy: "pełnomocnik",
+  podpisujacy: "podpisujący",
+  Odwolujacy: "odwołujący",
+  Zamawiajacy: "zamawiający",
+  mocodawca: "mocodawca",
+  tytul: "tytuł",
+}
+function fieldName(path: string): string {
+  const parts = path.replace(/\[\d+\]/g, "").split(".")
+  const leaf = parts[parts.length - 1]
+  const parent = parts.length > 1 ? parts[parts.length - 2] : ""
+  const n = (k: string) => NICE[k] ?? k.replaceAll("_", " ").replaceAll("-", " ")
+  const showParent = parent && !/^(OdwolanieKIO|ZamowieniePubliczne|przelew_bankowy|data)$/.test(parent)
+  return showParent ? `${n(parent)} · ${n(leaf)}` : n(leaf)
+}
+
+function leaves(x: unknown, out: unknown[] = []): unknown[] {
+  if (Array.isArray(x)) x.forEach((v) => leaves(v, out))
+  else if (x && typeof x === "object") Object.values(x).forEach((v) => leaves(v, out))
+  else out.push(x)
+  return out
+}
+
+/* ------------------------------------------------------------------ plain-language model of the run */
+
+type View = {
+  key: string
+  title: string
+  usesModel: boolean
+  status: Status
+  sentence: string
+  note?: string
+  changes: Change[]
+  duration: number
+  steps: Step[] // underlying backend steps (few-shot is folded into extraction)
+}
+
+function build(steps: Step[], doc: Doc): View[] {
+  const few = steps.find((s) => s.id === "few_shot")
+  const out: View[] = []
+  for (const s of steps) {
+    if (s.id === "few_shot") continue
+    const d = s.detail || {}
+    const parts = s.id === "extract" && few ? [few, s] : [s]
+    const usesModel = parts.some((p) => !!p.calls)
+    const v: View = {
+      key: s.id,
+      title: TITLE[s.id] || s.label,
+      usesModel,
+      status: "ok",
+      sentence: "",
+      changes: [],
+      duration: parts.reduce((a, p) => a + p.duration_s, 0),
+      steps: parts,
+    }
+    const models = [...new Set(parts.flatMap((p) => p.models || []))].map(prettyModel)
+    switch (s.id) {
+      case "load": {
+        const n = d.n_pages ?? 0
+        const ocr = (d.ocr_pages || []).length
+        const pages = (d.pages || []) as D[]
+        const rotated = pages.filter((p) => p.orientation && p.orientation.angle)
+        const fixed = pages.filter((p) => p.mojibake_fixed).length
+        const garbled = pages.filter((p) => p.garbled).length
+        const ocrInfo = pages.find((p) => p.ocr)?.ocr
+        const strony = `${n} ${plural(n, "strona", "strony", "stron")}`
+        v.sentence = ocr
+          ? `${strony}, ${ocr === n ? "skan" : `${ocr} ze skanu`} odczytany przez OCR${
+              ocrInfo?.model ? ` (${prettyModel(ocrInfo.model)})` : ocrInfo?.engine ? " (lokalnie)" : ""
+            }`
+          : `${strony}, tekst z PDF (bez OCR)`
+        const notes = [
+          rotated.length ? `obrócono ${rotated.length === 1 ? "stronę" : "strony"} o ${rotated[0].orientation.angle}°` : "",
+          fixed ? "naprawiono polskie znaki" : "",
+          garbled ? "zepsuta warstwa tekstowa, użyto OCR" : "",
+        ].filter(Boolean)
+        v.note = notes.join(" · ") || undefined
+        v.status = notes.length ? "changed" : "ok"
+        if (d.load_error) {
+          v.sentence = "Nie udało się odczytać pliku"
+          v.status = "error"
+        }
+        break
+      }
+      case "classify": {
+        const name = LABEL[d.decision] || d.decision
+        const votes = (d.llm_votes || []) as string[]
+        const llmAgrees = votes.length > 0 && votes.every((x) => x === d.decision)
+        if (d.out_of_scope) {
+          v.sentence = "Poza zakresem: to nie jest odwołanie, pełnomocnictwo ani przelew, więc wynik to pusty JSON {}"
+          v.status = "warn"
+        } else {
+          const how = d.confident ? "pewne (reguły)" : "reguły niepewne"
+          const model = votes.length ? (llmAgrees ? ", model potwierdził" : ", rozstrzygnął model") : ""
+          v.sentence = `${name}, ${how}${model}`
+          v.status = d.confident || llmAgrees ? "ok" : "warn"
+        }
+        break
+      }
+      case "extract": {
+        const vals = leaves(doc.result || {})
+        const filled = vals.filter((x) => x !== null && x !== "").length
+        const ex = (few?.detail?.examples || []) as D[]
+        const who = usesModel ? models.join(" + ") || "model" : "reguły z konfiguracji"
+        v.sentence = d.skipped ? `Pominięto: ${d.skipped}` : `${filled} z ${vals.length} pól wypełnionych · ${who}`
+        const notes = [
+          ex.length ? `na wzór ${ex.length} ${plural(ex.length, "podobnego dokumentu", "podobnych dokumentów", "podobnych dokumentów")}` : "",
+          d.voting ? `głosowanie ${d.voting.runs ?? ""} przebiegów` : "",
+          d.retries ? `ponowiono ${d.retries}×` : "",
+          d.images ? `model widział obraz ${d.images === 1 ? "strony" : "stron"}` : "",
+        ].filter(Boolean)
+        v.note = notes.join(" · ") || undefined
+        v.status = d.skipped || (vals.length && filled / vals.length < 0.5) ? "warn" : "ok"
+        break
+      }
+      case "normalize": {
+        const ch: Change[] = [...(d.normalized || []), ...(d.snap_to_text || []), ...(d.rules_fill || [])].filter(
+          (c: Change) => !(c.before == null && c.after == null),
+        )
+        v.changes = ch
+        v.sentence = ch.length
+          ? `${ch.length} ${plural(ch.length, "pole ujednolicone", "pola ujednolicone", "pól ujednoliconych")} (daty, numery, odmiana)`
+          : "Wartości już w poprawnym formacie"
+        v.status = ch.length ? "changed" : "ok"
+        break
+      }
+      case "ground": {
+        const c = d.counts || {}
+        const total = (d.fields || []).length
+        const loc = c.located || 0
+        v.sentence = total ? `${loc} z ${total} wartości ma cytat w dokumencie` : "Brak wartości do potwierdzenia"
+        const notes = [
+          c.inferred ? `${c.inferred} ${plural(c.inferred, "wywnioskowana", "wywnioskowane", "wywnioskowanych")} przez model` : "",
+          c.derived ? `${c.derived} z reguły` : "",
+        ].filter(Boolean)
+        v.note = notes.join(" · ") || undefined
+        v.status = total && loc / total < 0.6 ? "warn" : "ok"
+        break
+      }
+      case "verify": {
+        const rounds = (d.rounds || []) as D[]
+        const fixes: Change[] = rounds.flatMap((r) => r.changes || [])
+        const left = (d.remaining_issues || []).length
+        v.changes = fixes
+        if (d.max_rounds === 0 && !rounds.length) v.sentence = "Wyłączona w tym profilu"
+        else if (!rounds.length) v.sentence = "Bez uwag: formaty i wartości się zgadzają"
+        else
+          v.sentence = fixes.length
+            ? `${fixes.length} ${plural(fixes.length, "pole poprawione", "pola poprawione", "pól poprawionych")} przez model`
+            : `Znaleziono ${rounds[0].issues?.length ?? 0} uwag, model nic nie zmienił`
+        if (left) v.note = `${left} ${plural(left, "uwaga pozostała", "uwagi pozostały", "uwag pozostało")} do sprawdzenia`
+        v.status = rounds.some((r) => r.error) || left ? "warn" : fixes.length ? "changed" : "ok"
+        break
+      }
+      case "router": {
+        if (d.escalate) {
+          const target = (d.vote?.steps || []).map((x: D) => x.models.map(prettyModel).join(" + ")).join(" → ")
+          v.sentence = `Eskalacja do ${target || "mocniejszego modelu"}, bo ${(d.reasons || [])[0] || "dokument jest trudny"}`
+          v.changes = d.changes || []
+          v.status = "changed"
+        } else {
+          v.sentence = "Bez eskalacji: łatwy dokument"
+        }
+        break
+      }
+    }
+    const failed = parts.find((p) => p.error)
+    if (failed) {
+      v.status = "error"
+      v.note = "Przerwano: " + friendlyError(failed.error!)
+    }
+    out.push(v)
+  }
+  return out
+}
+
+function friendlyError(e: string) {
+  if (/402|credits/i.test(e)) return "brak środków na koncie dostawcy modeli"
+  if (/401|403/.test(e)) return "dostawca modeli odrzucił klucz"
+  if (/timeout/i.test(e)) return "przekroczono czas odpowiedzi modelu"
+  return e.length > 120 ? e.slice(0, 120) + "…" : e
+}
 
 /* ------------------------------------------------------------------ main view */
 
@@ -54,83 +275,71 @@ export function TraceView({ doc }: { doc: Doc }) {
   const summary = (doc.trace as D | undefined)?.steps_summary as StepsSummary | undefined
   if (!steps?.length)
     return <p className="p-4 text-sm text-muted-foreground">Brak zapisanego przebiegu dla tego dokumentu.</p>
+  const views = build(steps, doc)
   return (
-    <div className="flex flex-col gap-3 px-2 py-3">
-      <SummaryBar doc={doc} steps={steps} summary={summary} />
-      <TimeBar steps={steps} />
-      <Accordion multiple className="mt-1">
-        {steps.map((s, i) => (
-          <AccordionItem key={`${s.id}-${i}`} value={`${s.id}-${i}`} className="border-none">
-            <StepRow step={s} last={i === steps.length - 1} />
-          </AccordionItem>
+    <div className="flex min-w-0 flex-col gap-4 px-2 py-3">
+      <Summary doc={doc} views={views} summary={summary} />
+      <ol className="flex min-w-0 flex-col px-1">
+        {views.map((v, i) => (
+          <StepItem key={v.key} v={v} n={i + 1} last={i === views.length - 1} />
         ))}
-      </Accordion>
+      </ol>
     </div>
   )
 }
 
-function Stat({ icon, children, title }: { icon: React.ReactNode; children: React.ReactNode; title?: string }) {
-  return (
-    <span title={title} className="inline-flex items-center gap-1.5 text-sm tabular-nums [&_svg]:size-3.5 [&_svg]:text-muted-foreground">
-      {icon}
-      {children}
-    </span>
-  )
-}
+/* ------------------------------------------------------------------ summary */
 
-function SummaryBar({ doc, steps, summary }: { doc: Doc; steps: Step[]; summary?: StepsSummary }) {
-  const total = summary?.total_s ?? steps.reduce((a, s) => Math.max(a, s.t_start + s.duration_s), 0)
-  const tok = summary?.tokens
+const stepColor = (v: View) => (v.usesModel ? "var(--primary)" : "var(--sage)")
+
+function Summary({ doc, views, summary }: { doc: Doc; views: View[]; summary?: StepsSummary }) {
+  const total = summary?.total_s ?? views.reduce((a, v) => a + v.duration, 0)
+  const models = (summary?.models || []).filter((m) => m !== "deterministic")
+  const calls = summary?.llm_calls ?? 0
+  const failed = views.some((v) => v.status === "error")
   return (
-    <div className="mx-1 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-muted/50 px-3 py-2.5">
-      <Stat icon={<Clock />} title="Łączny czas">
-        <b>{sec(total)}</b>
-      </Stat>
-      <Stat icon={<Cpu />} title={tok ? `Tokeny: ${tok.prompt} wejście / ${tok.completion} wyjście` : "Wywołania LLM"}>
-        {summary?.llm_calls ?? 0} LLM
-      </Stat>
-      <Stat icon={<Coins />} title="Koszt wywołań LLM (wg dostawcy)">
-        {usd(summary?.cost_usd ?? 0)}
-      </Stat>
-      <span className="flex min-w-0 flex-wrap gap-1">
-        {(summary?.models || []).map((m) => (
-          <span key={m} className="rounded-full bg-card px-2 py-0.5 font-mono text-[11px] ring-1 ring-border">
-            {m === "deterministic" ? "reguły" : shortModel(m)}
-          </span>
-        ))}
-      </span>
-      {doc.session && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto rounded-full"
-          nativeButton={false}
-          render={
-            <a
-              href={`/api/trace/${doc.session}/${encodeURIComponent(doc.file)}`}
-              download={doc.file.replace(/\.pdf$/i, ".trace.json")}
-            />
-          }
-        >
-          <Download /> Trace JSON
-        </Button>
-      )}
+    <div className="mx-1 flex flex-col gap-3 rounded-xl bg-muted/50 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <p className="text-base font-semibold">
+            {failed ? "Przetwarzanie przerwane" : "Dokument przetworzony"} w {sec(total)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {calls
+              ? `${calls} ${plural(calls, "zapytanie", "zapytania", "zapytań")} do modelu AI (${models.map(prettyModel).join(", ")}) · koszt ${usd(summary?.cost_usd ?? 0)}`
+              : "Bez modelu AI, tylko reguły · koszt $0"}
+          </p>
+        </div>
+        {doc.session && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-full"
+            nativeButton={false}
+            render={
+              <a
+                href={`/api/trace/${doc.session}/${encodeURIComponent(doc.file)}`}
+                download={doc.file.replace(/\.pdf$/i, ".trace.json")}
+              />
+            }
+          >
+            <Download /> Pobierz przebieg (JSON)
+          </Button>
+        )}
+      </div>
+      <TimeBar views={views} />
     </div>
   )
 }
 
-/* ------------------------------------------------------------------ where the time went */
-
-function TimeBar({ steps }: { steps: Step[] }) {
-  const keys = steps.map((s, i) => `${s.id}_${i}`)
-  const config: ChartConfig = Object.fromEntries(
-    steps.map((s, i) => [keys[i], { label: s.label, color: color(s.id) }]),
-  )
+function TimeBar({ views }: { views: View[] }) {
+  const config: ChartConfig = Object.fromEntries(views.map((v) => [v.key, { label: v.title, color: stepColor(v) }]))
   const row: D = { name: "czas" }
-  steps.forEach((s, i) => (row[keys[i]] = Math.max(s.duration_s, 0.0005)))
+  views.forEach((v) => (row[v.key] = Math.max(v.duration, 0.0005)))
+  const total = views.reduce((a, v) => a + v.duration, 0) || 1
   return (
-    <div className="mx-1">
-      <ChartContainer config={config} className="aspect-auto h-3 w-full">
+    <div>
+      <ChartContainer config={config} className="aspect-auto h-2.5 w-full">
         <BarChart data={[row]} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }} barCategoryGap={0}>
           <XAxis type="number" hide domain={[0, "dataMax"]} />
           <YAxis type="category" dataKey="name" hide />
@@ -139,79 +348,182 @@ function TimeBar({ steps }: { steps: Step[] }) {
             content={
               <ChartTooltipContent
                 hideLabel
-                formatter={(v, name) => (
+                formatter={(value, name) => (
                   <span className="flex w-full items-center justify-between gap-3">
-                    <span className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-[2px]" style={{ background: config[String(name)]?.color }} />
-                      {config[String(name)]?.label}
-                    </span>
-                    <b className="tabular-nums">{sec(Number(v))}</b>
+                    <span>{config[String(name)]?.label}</span>
+                    <b className="tabular-nums">{sec(Number(value))}</b>
                   </span>
                 )}
               />
             }
           />
-          {keys.map((k, i) => (
+          {views.map((v, i) => (
             <Bar
-              key={k}
-              dataKey={k}
+              key={v.key}
+              dataKey={v.key}
               stackId="t"
-              fill={`var(--color-${k})`}
-              radius={i === 0 ? [4, 0, 0, 4] : i === keys.length - 1 ? [0, 4, 4, 0] : 0}
+              fill={`var(--color-${v.key})`}
+              stroke="var(--card)"
+              strokeWidth={1.5}
+              radius={i === 0 ? [4, 0, 0, 4] : i === views.length - 1 ? [0, 4, 4, 0] : 0}
               isAnimationActive={false}
             />
           ))}
         </BarChart>
       </ChartContainer>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
+        {views
+          .filter((v) => v.duration / total >= 0.03)
+          .map((v) => (
+            <span key={v.key} className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-[2px]" style={{ background: stepColor(v) }} />
+              {v.title} <span className="tabular-nums">{sec(v.duration)}</span>
+            </span>
+          ))}
+        <span className="ml-auto inline-flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-sage" /> kod
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-primary" /> model AI
+          </span>
+        </span>
+      </div>
     </div>
   )
 }
 
 /* ------------------------------------------------------------------ one step */
 
-function StepRow({ step: s, last }: { step: Step; last: boolean }) {
+const STATUS_ICON: Record<Status, React.ReactNode> = {
+  ok: <Check className="size-3.5" strokeWidth={3} />,
+  changed: <PencilLine className="size-3.5" strokeWidth={2.5} />,
+  warn: <AlertTriangle className="size-3.5" strokeWidth={2.5} />,
+  error: <X className="size-3.5" strokeWidth={3} />,
+}
+const STATUS_LABEL: Record<Status, string> = {
+  ok: "gotowe",
+  changed: "coś zmieniono",
+  warn: "uwaga",
+  error: "błąd",
+}
+
+function StepItem({ v, n, last }: { v: View; n: number; last: boolean }) {
+  const bg = v.status === "error" ? "var(--destructive)" : v.status === "warn" ? "var(--wheat)" : stepColor(v)
   return (
-    <div className="relative grid grid-cols-[20px_1fr] gap-x-2">
+    <li className="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] gap-x-3">
       <div className="relative flex justify-center">
         <span
-          className="relative z-10 mt-[14px] size-2.5 rounded-full ring-4 ring-card"
-          style={{ background: s.error ? "var(--destructive)" : color(s.id) }}
-        />
-        {!last && <span className="absolute top-[19px] bottom-[-19px] w-px bg-border" />}
+          className="relative z-10 grid size-7 place-items-center rounded-full text-white"
+          style={{ background: bg }}
+          title={`${STATUS_LABEL[v.status]} · ${v.usesModel ? "krok z modelem AI" : "krok wykonany kodem"}`}
+        >
+          {STATUS_ICON[v.status]}
+        </span>
+        {!last && <span className="absolute top-7 bottom-0 w-0.5 rounded-full bg-foreground/10" />}
       </div>
-      <div className="min-w-0">
-        <AccordionTrigger className="items-center gap-2 py-2 pr-1 hover:no-underline">
-          <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="font-semibold">{s.label}</span>
-            <span className="min-w-0 truncate text-xs font-normal text-muted-foreground">{headline(s)}</span>
-          </span>
-          <span className="flex shrink-0 items-center gap-1.5 text-xs font-normal text-muted-foreground tabular-nums">
-            {s.model && s.model !== "deterministic" && (
-              <span className="hidden rounded-full bg-muted px-1.5 py-px font-mono text-[10.5px] sm:inline">
-                {shortModel(s.model)}
-              </span>
+      <div className={cn("min-w-0", last ? "pb-1" : "pb-5")}>
+        <div className="flex min-w-0 items-center gap-2 pt-1">
+          <h3 className="font-semibold">
+            <span className="mr-1.5 text-xs font-normal text-muted-foreground tabular-nums">{n}.</span>
+            {v.title}
+          </h3>
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-px text-[10.5px] font-medium",
+              v.usesModel ? "bg-primary/10 text-primary" : "bg-sage/15 text-sage",
             )}
-            {!!s.cost_usd && <span className="hidden sm:inline">{usd(s.cost_usd)}</span>}
-            <span className="w-14 text-right">{sec(s.duration_s)}</span>
+          >
+            {v.usesModel ? "model AI" : "kod"}
           </span>
-        </AccordionTrigger>
-        <AccordionContent className="pr-1">
-          {s.error && (
-            <p className="mb-2 rounded-md bg-destructive/10 px-2 py-1.5 font-mono text-xs break-all text-destructive">{s.error}</p>
-          )}
-          <StepMeta s={s} />
-          <StepDetail s={s} />
-        </AccordionContent>
+          <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{sec(v.duration)}</span>
+        </div>
+        <p className="mt-0.5 text-sm break-words">{v.sentence}</p>
+        {v.note && (
+          <p className={cn("mt-0.5 text-xs break-words", v.status === "error" ? "text-destructive" : "text-muted-foreground")}>
+            {v.note}
+          </p>
+        )}
+        {v.changes.length > 0 && <Changes items={v.changes} />}
+        <Technical v={v} />
       </div>
+    </li>
+  )
+}
+
+function Changes({ items }: { items: Change[] }) {
+  const [all, setAll] = useState(false)
+  const shown = all ? items : items.slice(0, 4)
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      {shown.map((c, i) => (
+        <div key={i} className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          <span className="w-full text-[11px] text-muted-foreground sm:w-36 sm:shrink-0 sm:truncate" title={c.field}>
+            {fieldName(c.field)}
+          </span>
+          <span className="max-w-full rounded-md bg-destructive/10 px-1.5 py-0.5 break-all text-muted-foreground line-through decoration-destructive/60">
+            {val(c.before)}
+          </span>
+          <span className="text-muted-foreground">→</span>
+          <span className="max-w-full rounded-md bg-success/15 px-1.5 py-0.5 font-medium break-all text-success">{val(c.after)}</span>
+          {c.reason && <span className="w-full text-[11px] break-words text-muted-foreground italic sm:pl-38">„{c.reason}”</span>}
+        </div>
+      ))}
+      {items.length > 4 && (
+        <button type="button" onClick={() => setAll((a) => !a)} className="self-start text-xs text-primary hover:underline">
+          {all ? "Pokaż mniej" : `+${items.length - 4} więcej`}
+        </button>
+      )}
     </div>
   )
 }
 
-function StepMeta({ s }: { s: Step }) {
-  if (!s.calls) return null
+/* ------------------------------------------------------------------ technical details (collapsed) */
+
+function Technical({ v }: { v: View }) {
+  const [open, setOpen] = useState(false)
   return (
-    <div className="mb-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-      <Chip>{s.calls}× LLM</Chip>
+    <div className="mt-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground"
+      >
+        <ChevronRight className={cn("size-3 transition-transform", open && "rotate-90")} />
+        Szczegóły techniczne
+      </button>
+      {open && (
+        <div className="mt-2 flex min-w-0 flex-col gap-3 rounded-lg border bg-card px-3 py-2.5">
+          {v.steps.map((s) => (
+            <div key={s.id} className="min-w-0">
+              {v.steps.length > 1 && (
+                <div className="mb-1 text-xs font-medium">{s.id === "few_shot" ? "Dobór przykładów (few-shot)" : "Wywołanie modelu"}</div>
+              )}
+              {s.error && <p className="mb-2 font-mono text-[11px] break-all text-destructive">{s.error}</p>}
+              <Meta s={s} />
+              <StepDetail s={s} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Chip({ children, mono, className }: { children: React.ReactNode; mono?: boolean; className?: string }) {
+  return (
+    <span className={cn("max-w-full rounded-full bg-muted px-2 py-0.5 text-[11px] break-all text-secondary-foreground", mono && "font-mono", className)}>
+      {children}
+    </span>
+  )
+}
+
+function Meta({ s }: { s: Step }) {
+  return (
+    <div className="mb-2 flex flex-wrap gap-1.5">
+      <Chip>czas {sec(s.duration_s)}</Chip>
+      {!!s.calls && <Chip>{s.calls}× LLM</Chip>}
       {(s.models || []).map((m) => (
         <Chip key={m} mono>
           {m}
@@ -219,63 +531,13 @@ function StepMeta({ s }: { s: Step }) {
       ))}
       {s.tokens && (
         <Chip>
-          {s.tokens.prompt} → {s.tokens.completion} tok.
+          tokeny {s.tokens.prompt} → {s.tokens.completion}
         </Chip>
       )}
       {!!s.cost_usd && <Chip>{usd(s.cost_usd)}</Chip>}
     </div>
   )
 }
-
-function Chip({ children, mono, className }: { children: React.ReactNode; mono?: boolean; className?: string }) {
-  return (
-    <span className={cn("rounded-full bg-muted px-2 py-0.5 text-[11px] text-secondary-foreground", mono && "font-mono", className)}>
-      {children}
-    </span>
-  )
-}
-
-function headline(s: Step): string {
-  const d = s.detail || {}
-  switch (s.id) {
-    case "load": {
-      const ocr = (d.ocr_pages || []).length
-      return `${d.n_pages ?? 0} str. · ${ocr ? `OCR ${ocr} str.` : "warstwa tekstowa"}`
-    }
-    case "classify":
-      return d.out_of_scope
-        ? "poza zakresem → {}"
-        : `${LABEL[d.decision] || d.decision}${d.confident === false ? " · niepewna" : ""}`
-    case "few_shot": {
-      const ex = d.examples || []
-      return ex.length ? `${ex.length} · najbliższy ${pct(ex[0].similarity)}` : "bez przykładów"
-    }
-    case "extract":
-      return [d.voting ? `głosowanie ${d.voting.runs ?? ""}` : null, d.retries ? `${d.retries} ponowienia` : null, d.skipped]
-        .filter(Boolean)
-        .join(" · ") || (d.fill_ratio != null ? `wypełnienie ${pct(d.fill_ratio * 100)}` : "")
-    case "normalize": {
-      const n = (d.normalized || []).length + (d.snap_to_text || []).length + (d.rules_fill || []).length
-      return n ? `${n} zmian` : "bez zmian"
-    }
-    case "ground": {
-      const c = d.counts || {}
-      return [c.located && `${c.located} cytatów`, c.inferred && `${c.inferred} wywnioskowanych`, c.derived && `${c.derived} z reguł`]
-        .filter(Boolean)
-        .join(" · ")
-    }
-    case "verify": {
-      const r = (d.rounds || []).length
-      const left = (d.remaining_issues || []).length
-      return r ? `${r} ${r === 1 ? "runda" : "rundy"}${left ? ` · ${left} uwag zostało` : " · naprawiono"}` : d.max_rounds === 0 ? "wyłączona" : "bez uwag"
-    }
-    case "router":
-      return d.escalate ? `eskalacja → ${(d.vote?.steps || []).map((x: D) => x.models.map(shortModel).join("+")).join(" → ")}` : "bez eskalacji"
-  }
-  return ""
-}
-
-/* ------------------------------------------------------------------ step details */
 
 function StepDetail({ s }: { s: Step }) {
   const d = s.detail || {}
@@ -303,7 +565,7 @@ function StepDetail({ s }: { s: Step }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mt-2 first:mt-0">
-      <div className="mb-1 text-[10.5px] font-semibold tracking-wider text-muted-foreground uppercase">{title}</div>
+      <div className="mb-1 text-[11px] font-medium text-muted-foreground">{title}</div>
       {children}
     </div>
   )
@@ -313,7 +575,7 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-muted-foreground">{children}</p>
 }
 
-function JsonBlock({ data, text, label = "Pokaż JSON" }: { data?: unknown; text?: string; label?: string }) {
+function JsonBlock({ data, text, label = "JSON" }: { data?: unknown; text?: string; label?: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="mt-1">
@@ -326,7 +588,7 @@ function JsonBlock({ data, text, label = "Pokaż JSON" }: { data?: unknown; text
         {label}
       </button>
       {open && (
-        <pre className="mt-1 max-h-80 overflow-auto rounded-md bg-muted/60 p-2.5 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap break-all">
+        <pre className="mt-1 max-h-80 overflow-auto rounded-md bg-muted/60 p-2.5 font-mono text-[11.5px] leading-relaxed break-all whitespace-pre-wrap">
           {text ?? JSON.stringify(data, null, 2)}
         </pre>
       )}
@@ -334,21 +596,14 @@ function JsonBlock({ data, text, label = "Pokaż JSON" }: { data?: unknown; text
   )
 }
 
-function DiffList({ items, empty = "Bez zmian." }: { items?: D[]; empty?: string }) {
+function DiffRows({ items, empty = "Bez zmian." }: { items?: D[]; empty?: string }) {
   if (!items?.length) return <Empty>{empty}</Empty>
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-0.5">
       {items.map((c, i) => (
-        <div key={i} className="rounded-md bg-muted/40 px-2 py-1.5 text-xs">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="font-mono text-[11px] text-muted-foreground">{c.field}</span>
-            {c.rule && <Chip className="py-0 text-[10px]">{c.rule}</Chip>}
-          </div>
-          <div className="mt-0.5 break-words">
-            <s className="text-muted-foreground">{val(c.before)}</s> <span className="text-muted-foreground">→</span>{" "}
-            <b>{val(c.after)}</b>
-          </div>
-          {c.reason && <div className="mt-0.5 text-[11px] text-muted-foreground italic">„{c.reason}”</div>}
+        <div key={i} className="font-mono text-[11px] break-all">
+          <span className="text-muted-foreground">{c.field}</span> {val(c.before)} → {val(c.after)}
+          {c.rule && <span className="text-muted-foreground"> [{c.rule}]</span>}
         </div>
       ))}
     </div>
@@ -359,41 +614,32 @@ function LoadDetail({ d }: { d: D }) {
   return (
     <div className="flex flex-col gap-1.5">
       {(d.preprocess || []).length > 0 && (d.ocr_pages || []).length > 0 && (
-        <div className="text-xs text-muted-foreground">Przygotowanie skanu: {d.preprocess.join(", ")}</div>
+        <div className="text-xs text-muted-foreground">przygotowanie skanu: {d.preprocess.join(", ")}</div>
       )}
-      {d.load_error && <p className="font-mono text-xs text-destructive">{d.load_error}</p>}
+      {d.load_error && <p className="font-mono text-xs break-all text-destructive">{d.load_error}</p>}
       {(d.pages || []).map((p: D) => (
         <div key={p.page} className="rounded-md bg-muted/40 px-2.5 py-2 text-xs">
           <div className="flex flex-wrap items-center gap-1.5">
             <b>str. {p.page}</b>
-            <Chip className={p.source === "ocr" ? "bg-wheat/30 text-bark" : ""}>
-              {p.source === "ocr" ? (
-                <>
-                  <ScanLine className="mr-0.5 inline size-3" />
-                  OCR
-                </>
-              ) : (
-                "tekst"
-              )}
-            </Chip>
-            <span className="text-muted-foreground tabular-nums">{p.chars} zn.</span>
-            {p.scan && <Chip>skan (brak warstwy tekstowej)</Chip>}
-            {p.garbled && <Chip className="bg-destructive/10 text-destructive">zepsute kodowanie · jakość {p.quality}</Chip>}
-            {p.mojibake_fixed && <Chip>naprawiono kodowanie (cp1250)</Chip>}
-            {p.annotation_chars > 0 && <Chip>adnotacje +{p.annotation_chars} zn.</Chip>}
-            {p.orientation && p.orientation.angle !== 0 && (
-              <Chip>obrót {p.orientation.angle}°{p.orientation.prob ? ` (${pct(p.orientation.prob * 100)})` : ""}</Chip>
+            <Chip>{p.source === "ocr" ? "OCR" : "tekst z PDF"}</Chip>
+            <span className="text-muted-foreground tabular-nums">{p.chars} znaków</span>
+            {p.quality != null && <span className="text-muted-foreground">jakość tekstu {p.quality}</span>}
+            {p.orientation && (
+              <Chip>
+                obrót {p.orientation.angle}°{p.orientation.prob ? ` (${pct(p.orientation.prob * 100)})` : ""}
+              </Chip>
             )}
+            {p.annotation_chars > 0 && <Chip>adnotacje +{p.annotation_chars}</Chip>}
             {p.ocr && (
-              <span className="ml-auto flex items-center gap-1.5 text-muted-foreground tabular-nums">
-                {p.ocr.model ? <span className="font-mono text-[10.5px]">{shortModel(p.ocr.model)}</span> : p.ocr.engine}
-                {p.ocr.duration_s != null && <span>{sec(p.ocr.duration_s)}</span>}
-                {!!p.ocr.cost_usd && <span>{usd(p.ocr.cost_usd)}</span>}
+              <span className="ml-auto text-muted-foreground tabular-nums">
+                {p.ocr.model || p.ocr.engine}
+                {p.ocr.duration_s != null && ` · ${sec(p.ocr.duration_s)}`}
+                {p.ocr.cost_usd ? ` · ${usd(p.ocr.cost_usd)}` : ""}
               </span>
             )}
           </div>
           {p.preview && (
-            <pre className="mt-1.5 max-h-28 overflow-auto font-mono text-[11px] leading-snug whitespace-pre-wrap text-secondary-foreground">
+            <pre className="mt-1.5 max-h-28 overflow-auto font-mono text-[11px] leading-snug break-words whitespace-pre-wrap text-secondary-foreground">
               {p.preview}
             </pre>
           )}
@@ -408,13 +654,7 @@ function ClassifyDetail({ d }: { d: D }) {
   const max = Math.max(1, ...scores.map(([, v]) => v))
   return (
     <div>
-      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
-        <b className="text-sm">{d.out_of_scope ? "poza zakresem" : LABEL[d.decision] || d.decision}</b>
-        {d.confident ? <Chip className="bg-success/15 text-success">reguły pewne</Chip> : <Chip>reguły niepewne</Chip>}
-        {d.method && <Chip>{d.method}</Chip>}
-        {d.out_of_scope && <Chip className="bg-wheat/30 text-bark">wynik: {"{}"}</Chip>}
-      </div>
-      <Section title={`Punkty reguł (próg ${d.min_score ?? "?"})`}>
+      <Section title={`Dopasowanie reguł (wymagane co najmniej ${d.min_score ?? "?"})`}>
         <div className="flex flex-col gap-1.5">
           {scores.map(([name, v]) => (
             <div key={name} className="text-xs">
@@ -442,24 +682,23 @@ function ClassifyDetail({ d }: { d: D }) {
         </div>
       </Section>
       {d.llm_votes && (
-        <Section title="Głosy">
+        <Section title="Głosy (reguły + modele)">
           <div className="flex flex-wrap gap-1">
-            {d.llm_votes.map((v: string, i: number) => (
-              <Chip key={i} className={v === d.decision ? "bg-primary/10 text-primary" : ""}>
-                {LABEL[v] || v}
-              </Chip>
+            {d.llm_votes.map((x: string, i: number) => (
+              <Chip key={i}>{LABEL[x] || x}</Chip>
             ))}
           </div>
         </Section>
       )}
-      {d.llm_errors && <p className="mt-1 font-mono text-[11px] text-destructive">{d.llm_errors.join("; ")}</p>}
+      {d.method && <p className="mt-1 text-[11px] text-muted-foreground">metoda: {d.method}</p>}
+      {d.llm_errors && <p className="mt-1 font-mono text-[11px] break-all text-destructive">{d.llm_errors.join("; ")}</p>}
     </div>
   )
 }
 
 function FewShotDetail({ d }: { d: D }) {
   const ex = d.examples || []
-  if (!ex.length) return <Empty>Model działał bez przykładów.</Empty>
+  if (!ex.length) return <Empty>Bez przykładów.</Empty>
   return (
     <div className="flex flex-col gap-1">
       {ex.map((e: D) => (
@@ -471,7 +710,7 @@ function FewShotDetail({ d }: { d: D }) {
           <span className="w-10 text-right tabular-nums">{pct(e.similarity)}</span>
         </div>
       ))}
-      <p className="mt-1 text-[11px] text-muted-foreground">Z pamięci dostępnych: {d.learned_available ?? 0}</p>
+      <p className="mt-1 text-[11px] text-muted-foreground">podobieństwo tekstu · z pamięci dostępnych: {d.learned_available ?? 0}</p>
     </div>
   )
 }
@@ -480,25 +719,20 @@ function ExtractDetail({ d }: { d: D }) {
   return (
     <div>
       <div className="flex flex-wrap gap-1.5">
-        {d.prompt_chars && <Chip>prompt ≈ {d.prompt_tokens_est} tok.</Chip>}
-        {d.few_shot != null && <Chip>{d.few_shot} przykł.</Chip>}
-        {!!d.images && <Chip>{d.images} obrazów stron</Chip>}
+        {d.prompt_tokens_est != null && <Chip>prompt ≈ {d.prompt_tokens_est} tok.</Chip>}
         {d.attempts > 1 && <Chip>{d.attempts} próby JSON</Chip>}
-        {!!d.retries && <Chip>{d.retries} ponowienia (puste)</Chip>}
         {d.pages_read != null && <Chip>{d.pages_read} str. czytanych</Chip>}
-        {d.skipped && <Chip>{d.skipped}</Chip>}
+        {d.fill_ratio != null && <Chip>wypełnienie {pct(d.fill_ratio * 100)}</Chip>}
       </div>
       {d.voting && (
-        <Section title="Głosowanie">
-          <div className="text-xs text-muted-foreground">
-            {d.voting.runs} przebiegów · {(d.voting.models || []).map(shortModel).join(", ")}
-            {d.voting.disagreements?.length ? ` · spory: ${d.voting.disagreements.length}` : ""}
-          </div>
-        </Section>
+        <p className="mt-1 text-xs break-words text-muted-foreground">
+          głosowanie: {d.voting.runs} przebiegów · {(d.voting.models || []).join(", ")}
+          {d.voting.disagreements?.length ? ` · spory: ${d.voting.disagreements.length}` : ""}
+        </p>
       )}
-      {d.raw_output && <JsonBlock data={d.raw_output} label="Surowy JSON modelu" />}
+      {d.raw_output && <JsonBlock data={d.raw_output} label="Surowa odpowiedź (JSON)" />}
       {(d.raw_outputs || []).map((r: D, i: number) => (
-        <JsonBlock key={i} text={r.raw} label={`Przebieg ${i + 1} · ${shortModel(r.model || "")}`} />
+        <JsonBlock key={i} text={r.raw} label={`Przebieg ${i + 1} · ${r.model || ""}`} />
       ))}
     </div>
   )
@@ -507,17 +741,17 @@ function ExtractDetail({ d }: { d: D }) {
 function NormalizeDetail({ d }: { d: D }) {
   return (
     <div>
-      <Section title="Schemat (formaty, mianownik, cyfry)">
-        <DiffList items={d.normalized} />
+      <Section title="normalizacja schematu">
+        <DiffRows items={d.normalized} />
       </Section>
       {d.snap_to_text && (
-        <Section title="Dopasowanie do tekstu">
-          <DiffList items={d.snap_to_text} />
+        <Section title="dopasowanie do tekstu (snap_to_text)">
+          <DiffRows items={d.snap_to_text} />
         </Section>
       )}
       {d.rules_fill && (
-        <Section title="Uzupełnione regułami">
-          <DiffList items={d.rules_fill} />
+        <Section title="uzupełnienie regułami (rules_fill)">
+          <DiffRows items={d.rules_fill} />
         </Section>
       )}
     </div>
@@ -536,12 +770,12 @@ function GroundDetail({ d }: { d: D }) {
   return (
     <div className="flex flex-col">
       {fields.map((f) => (
-        <div key={f.field} className="grid grid-cols-[14px_minmax(0,40%)_1fr] items-baseline gap-x-2 py-0.5 text-xs">
+        <div key={f.field} className="grid grid-cols-[14px_minmax(0,40%)_minmax(0,1fr)] items-baseline gap-x-2 py-0.5 text-xs">
           <span className="self-center">{METHOD_ICON[f.method] || <X className="size-3 text-destructive" />}</span>
-          <span className="truncate font-mono text-[11px] text-muted-foreground" title={f.field}>
-            {f.field}
+          <span className="truncate text-muted-foreground" title={f.field}>
+            {fieldName(f.field)}
           </span>
-          <span className="min-w-0 truncate">
+          <span className="truncate">
             {f.page ? <span className="text-muted-foreground">s.{f.page} </span> : null}
             {f.quote || (f.method === "inferred" ? "wywnioskowane" : f.method === "derived" ? "reguła" : "—")}
           </span>
@@ -555,25 +789,22 @@ function VerifyDetail({ d }: { d: D }) {
   const rounds: D[] = d.rounds || []
   return (
     <div>
-      {!rounds.length && <Empty>{d.max_rounds === 0 ? "Profil bez pętli naprawy." : "Weryfikacja nie znalazła problemów."}</Empty>}
+      {!rounds.length && <Empty>Brak uwag.</Empty>}
       {rounds.map((r, i) => (
-        <Section key={i} title={`Runda ${i + 1}`}>
-          <div className="mb-1 flex flex-col gap-0.5">
-            {(r.issues || []).map((x: D, j: number) => (
-              <div key={j} className="text-xs">
-                <span className="font-mono text-[11px] text-muted-foreground">{x.field}</span> = {val(x.value)}{" "}
-                <span className="text-rust">· {x.issue}</span>
-              </div>
-            ))}
-          </div>
-          {r.error ? <p className="font-mono text-[11px] text-destructive">{r.error}</p> : <DiffList items={r.changes} empty="Model nie zmienił pól." />}
+        <Section key={i} title={`runda ${i + 1}: uwagi`}>
+          {(r.issues || []).map((x: D, j: number) => (
+            <div key={j} className="text-xs break-words">
+              <span className="text-muted-foreground">{fieldName(x.field)}</span> = {val(x.value)} · {x.issue}
+            </div>
+          ))}
+          {r.error && <p className="font-mono text-[11px] break-all text-destructive">{r.error}</p>}
         </Section>
       ))}
       {(d.remaining_issues || []).length > 0 && (
-        <Section title="Pozostałe uwagi">
+        <Section title="pozostałe uwagi">
           {d.remaining_issues.map((x: D, j: number) => (
-            <div key={j} className="text-xs">
-              <span className="font-mono text-[11px] text-muted-foreground">{x.field}</span> · {x.issue}
+            <div key={j} className="text-xs break-words">
+              <span className="text-muted-foreground">{fieldName(x.field)}</span> · {x.issue}
             </div>
           ))}
         </Section>
@@ -585,7 +816,7 @@ function VerifyDetail({ d }: { d: D }) {
 function RouterDetail({ d }: { d: D }) {
   return (
     <div>
-      <Section title="Sygnały trudności">
+      <Section title="sygnały trudności">
         {(d.reasons || []).length ? (
           <ul className="flex flex-col gap-0.5 text-xs">
             {d.reasons.map((r: string) => (
@@ -593,35 +824,23 @@ function RouterDetail({ d }: { d: D }) {
             ))}
           </ul>
         ) : (
-          <Empty>Łatwy dokument.</Empty>
+          <Empty>Brak.</Empty>
         )}
         {(d.disputed || []).length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1">
-            {d.disputed.map((f: string) => (
-              <code key={f} className="rounded bg-muted px-1 text-[10.5px] text-muted-foreground">
-                {f}
-              </code>
-            ))}
-          </div>
+          <p className="mt-1 text-[11px] break-words text-muted-foreground">rozbieżne pola: {d.disputed.map(fieldName).join(", ")}</p>
         )}
       </Section>
       {d.vote && (
-        <Section title="Eskalacja">
+        <Section title="kaskada">
           {(d.vote.steps || []).map((s: D) => (
-            <div key={s.level} className="text-xs">
-              poziom {s.level}: <span className="font-mono text-[11px]">{s.models.map(shortModel).join(" + ")}</span>
+            <div key={s.level} className="text-xs break-words">
+              poziom {s.level}: <span className="font-mono text-[11px]">{s.models.join(" + ")}</span>
               {s.disagreed_with_previous?.length ? ` · różnice: ${s.disagreed_with_previous.length}` : " · potwierdził"}
             </div>
           ))}
           <div className="text-[11px] text-muted-foreground">głosujących: {d.vote.voters}</div>
         </Section>
       )}
-      {d.changes && (
-        <Section title="Zmiany po głosowaniu">
-          <DiffList items={d.changes} />
-        </Section>
-      )}
     </div>
   )
 }
-

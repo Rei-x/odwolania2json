@@ -5,7 +5,7 @@ const config = {
   acc: { label: "Trafność", color: "var(--primary)" },
 } satisfies ChartConfig
 
-/** Cumulative share of fields accepted without correction, review after review (downsampled to ≤ 60 points). */
+/** Cumulative share of fields accepted without correction, review after review (downsampled to ≤ 60 samples). */
 export function MemoryChart({ timeline }: { timeline: { cumulative_accuracy: number }[] }) {
   const step = Math.max(1, Math.ceil(timeline.length / 60))
   const data = timeline

@@ -2,7 +2,7 @@
 
   python -m eval.bench_models MODEL [MODEL ...]      # appends results to docs/bench_sweep.json
 Per model: 12 training cases (36 docs + 16 out-of-scope negatives) and the frozen blind set (63 docs + 3 negatives).
-Records F1 (overall + per doc type), cost, wall time, errors, size/points (from settings.model_params or the
+Records F1 (overall + per doc type), cost, wall time, errors, model size (from settings.model_params or the
 OpenRouter catalogue name), and whether an EU-headquartered provider serves it.
 """
 import json
@@ -17,16 +17,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs/bench_sweep.json"
 EU_PROVIDERS = {"mistral", "nebius", "inceptron", "nextbit"}
-BANDS = [(8, 20), (14, 18), (32, 12), (70, 8), (150, 4)]
-
-
-def points(b):
-    if b is None:
-        return None
-    for lim, p in BANDS:
-        if b <= lim:
-            return p
-    return 0
 
 
 def catalogue(model):
@@ -63,7 +53,7 @@ def main():
         env = {**os.environ, "O2J_PROFILE": "standard"}
         name, provs = catalogue(m)
         size = (params.get(m) or {}).get("total") or size_from_name(name, m)
-        rec = {"model": m, "name": name, "params_b": size, "points": points(size),
+        rec = {"model": m, "name": name, "params_b": size,
                "eu_providers": [p for p in provs if p in EU_PROVIDERS], "providers": provs, "ts": time.time()}
         out, dt, err = run([sys.executable, "run.py", "eval", "--profile", "standard", "--model", m,
                             "--cases", "12", "--workers", "8"], env, 1200)
@@ -83,7 +73,7 @@ def main():
                         "error": err or (None if mb else out[-300:])}
         data["runs"] = [r for r in data["runs"] if r["model"] != m] + [rec]
         OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2))
-        print(f"{m:42s} size={size} pts={rec['points']} train={rec['train']['f1']} blind={rec['blind']['f1']} "
+        print(f"{m:42s} size={size} train={rec['train']['f1']} blind={rec['blind']['f1']} "
               f"cost={rec['train']['cost']}+{rec['blind']['cost']} eu={rec['eu_providers']}", flush=True)
 
 

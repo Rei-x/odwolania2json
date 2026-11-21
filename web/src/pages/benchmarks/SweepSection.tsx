@@ -8,10 +8,9 @@ import { Section } from "./parts"
 import { SweepCallouts } from "./SweepCallouts"
 import { SweepScatter } from "./SweepScatter"
 import { SweepTable } from "./SweepTable"
-import type { Band } from "./types"
 
-export function SweepSection({ bands }: { bands: Band[] }) {
-  const { runs, status, loading, auto, setAuto, refresh, seen } = useSweep(bands)
+export function SweepSection() {
+  const { runs, status, loading, auto, setAuto, refresh, seen } = useSweep()
   return (
     <Section
       id="sweep"
@@ -57,7 +56,7 @@ export function SweepSection({ bands }: { bands: Band[] }) {
         </Card>
       ) : (
         <div className="grid gap-4">
-          <SweepScatter runs={runs} bands={bands} />
+          <SweepScatter runs={runs} />
           <SweepCallouts runs={runs} />
           <SweepTable runs={runs} seen={seen} />
         </div>

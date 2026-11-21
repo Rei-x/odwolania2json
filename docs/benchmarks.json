@@ -1,42 +1,6 @@
 {
-  "_readme": "Dane strony /benchmarks (o2j/static/benchmarks.html). Edytuj liczby tutaj — strona renderuje się z tego pliku. null = pomiar w toku (strona pokaże 'w trakcie pomiaru'). f1: miara organizatora (mikro-F1 po polach). cost_usd: koszt API całego przebiegu danego zbioru (OpenRouter, USD). params_b: łączna liczba parametrów w mld (MoE liczone łącznie, zgodnie z regulaminem).",
+  "_readme": "Dane strony /benchmarks. Edytuj liczby tutaj — strona renderuje się z tego pliku. null = pomiar w toku (strona pokaże 'w trakcie pomiaru'). f1: miara organizatora (mikro-F1 po polach). cost_usd: koszt API całego przebiegu danego zbioru (OpenRouter, USD). params_b: łączna liczba parametrów w mld (MoE liczone łącznie).",
   "updated": "2026-11-21",
-  "scoring": {
-    "title": "Punkty UZP za rozmiar modelu",
-    "rule": "Średnia ważona rozmiarów użytych modeli; MoE liczone łącznymi parametrami; OCR przez API też się liczy.",
-    "bands": [
-      {
-        "max_b": 8,
-        "points": 20,
-        "label": "≤ 8B"
-      },
-      {
-        "max_b": 14,
-        "points": 18,
-        "label": "8–14B"
-      },
-      {
-        "max_b": 32,
-        "points": 12,
-        "label": "14–32B"
-      },
-      {
-        "max_b": 70,
-        "points": 8,
-        "label": "32–70B"
-      },
-      {
-        "max_b": 150,
-        "points": 4,
-        "label": "70–150B"
-      },
-      {
-        "max_b": null,
-        "points": 0,
-        "label": "> 150B"
-      }
-    ]
-  },
   "datasets": [
     {
       "id": "train",
@@ -151,7 +115,7 @@
       "cost_usd": {
         "train": 0.024
       },
-      "note": "Tylko 3.8B aktywnych, ale regulamin liczy łącznie 25.8B → 12 pkt."
+      "note": "MoE: tylko 3.8B aktywnych z 25.8B łącznie."
     },
     {
       "id": "inkling-2-mini",
@@ -236,7 +200,7 @@
       "cost_usd": {
         "train": 0.017
       },
-      "note": "Najtańszy przebieg i F1 = 1,000 — ale 763B łącznie = 0 pkt."
+      "note": "Najtańszy przebieg i F1 = 1,000 — ale 763B parametrów: nie do uruchomienia na własnym serwerze."
     },
     {
       "id": "moonshotai/kimi-k3.1-pro",
@@ -252,7 +216,7 @@
         "train": null
       },
       "early": true,
-      "note": "Punkt startowy projektu (pierwsze wersje promptów i referencja jakości)."
+      "note": "Model startowy projektu (pierwsze wersje promptów i referencja jakości)."
     },
     {
       "id": "openrouter/auto",
@@ -267,7 +231,7 @@
       "cost_usd": {
         "train": null
       },
-      "note": "Router wybiera model sam — rozmiar nieznany, więc nie da się go punktować."
+      "note": "Router wybiera model sam — rozmiar i dostawca nieznane."
     }
   ],
   "ocr": {
@@ -357,12 +321,12 @@
     "desc": "487 publicznych dokumentów KIO; Opus 5.5 jako niezależny anotator, rozbieżności rozstrzygane ręcznie. Zgodność systemu ~0,95–0,96."
   },
   "decision": {
-    "headline": "Wybraliśmy modele ≤ 8B",
-    "points": [
-      "Na danych UZP prawie każdy sensowny model dochodzi do F1 0,99–1,00. Różnica jakości to ułamki procenta, a różnica punktów za rozmiar to aż 20 pkt (≤ 8B) wobec 0 pkt (> 150B).",
+    "headline": "Dlaczego małe otwarte modele",
+    "reasons": [
+      "Na danych UZP prawie każdy sensowny model dochodzi do F1 0,99–1,00. Model 8B daje praktycznie tę samą jakość co modele kilkaset razy większe.",
       "Jakość dowozi architektura, nie rozmiar modelu: JSON Schema z YAML, few-shot z danych treningowych, normalizacja deterministyczna, grounding i pętla weryfikacja → naprawa.",
-      "Profil Auto: najpierw reguły (0 parametrów), mały model tylko dla niepewnych dokumentów — średnia ważona rozmiaru zostaje w paśmie ≤ 8B.",
-      "Ministral 3B / 8B: open-weight, hostowane przez Mistral AI w UE, bez zbierania danych przez dostawcę.",
+      "Profil Auto: najpierw reguły (bez LLM i bez kosztu), mały model tylko dla niepewnych dokumentów — przebieg 36 dokumentów kosztuje grosze.",
+      "Ministral 3B / 8B: open-weight, hostowane przez Mistral AI w UE, bez zbierania danych przez dostawcę — albo na własnym serwerze, bez wysyłania dokumentów na zewnątrz.",
       "Duże modele (DeepSeek, GLM, Kimi) posłużyły jako referencja jakości i do budowy promptów — nie są potrzebne w produkcji."
     ]
   },
@@ -370,7 +334,6 @@
     {
       "profile": "Auto (domyślny): reguły + Ministral 3B → 8B",
       "avg_params_b": 5.5,
-      "points": 20,
       "blind": 0.9844,
       "variants": 0.9971,
       "train_sample": 0.9984,
@@ -380,7 +343,6 @@
     {
       "profile": "Standard: Ministral 8B",
       "avg_params_b": 8,
-      "points": 20,
       "blind": 0.9815,
       "variants": 0.9951,
       "train": 0.9965
@@ -388,14 +350,12 @@
     {
       "profile": "Maksymalny: głosowanie 8B+3B+reguły",
       "avg_params_b": 5.5,
-      "points": 20,
       "blind": 0.9815,
       "variants": 0.9961
     },
     {
       "profile": "Reguły (bez LLM)",
       "avg_params_b": 0,
-      "points": 20,
       "blind": 0.816,
       "variants": 0.998,
       "train": 1.0

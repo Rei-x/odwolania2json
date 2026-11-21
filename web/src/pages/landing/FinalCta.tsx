@@ -15,7 +15,7 @@ export function FinalCta() {
       </Reveal>
       <footer className="foot">
         <Wordmark className="wm" />
-        <span>open-source · CPU · hosting w UE</span>
+        <span>open source · bez GPU · modele w UE</span>
       </footer>
     </section>
   )

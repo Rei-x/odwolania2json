@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis, YAxis } from "rec
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PointTip, RightLabel, TipRow, useWide } from "./chart-kit"
+import { LogoTick, PointTip, RightLabel, TipRow, useWide } from "./chart-kit"
 import { f1s, fmt, pb, pct, usd } from "./lib"
 import { Dash } from "./parts"
 import type { Benchmarks, OcrModel } from "./types"
@@ -20,6 +20,7 @@ export function OcrSection({ ocr }: { ocr: Benchmarks["ocr"] }) {
     .filter((m) => m.f1 != null)
     .sort((a, b) => b.f1! - a.f1!)
     .map((m) => ({ name: m.name, f1: m.f1!, tag: f1s(m.f1)!, m }))
+  const ids = Object.fromEntries(rows.map((r) => [r.name, r.m.id]))
   const missing = ocr.models.filter((m) => m.f1 == null)
   return (
     <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
@@ -33,7 +34,7 @@ export function OcrSection({ ocr }: { ocr: Benchmarks["ocr"] }) {
             <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 64, bottom: 0, left: 0 }} barCategoryGap={9}>
               <CartesianGrid horizontal={false} />
               <XAxis type="number" domain={[0.95, 1]} ticks={wide ? [0.95, 0.96, 0.97, 0.98, 0.99, 1] : [0.95, 0.97, 0.99, 1]} tickFormatter={(v: number) => fmt(v, 2)!} tickLine={false} axisLine={false} allowDataOverflow />
-              <YAxis type="category" dataKey="name" width={wide ? 146 : 104} tickLine={false} axisLine={false} interval={0} tick={{ fontSize: wide ? 12.5 : 11.5 }} />
+              <YAxis type="category" dataKey="name" width={wide ? 170 : 132} tickLine={false} axisLine={false} interval={0} tick={<LogoTick ids={ids} fontSize={wide ? 12.5 : 11} />} />
               <ChartTooltip
                 cursor={{ fill: "var(--muted)", opacity: 0.6 }}
                 content={

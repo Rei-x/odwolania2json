@@ -113,7 +113,7 @@ export function Extensibility() {
   return (
     <section className="sec" id="rozszerzalnosc">
       <div className="wrap">
-        <SectionHead eyebrow="Rozszerzalność" title="Nowy typ dokumentu = jeden plik YAML.">
+        <SectionHead title="Nowy typ dokumentu = jeden plik YAML.">
           <p className="lede">Bez zmian w kodzie.</p>
           <Button nativeButton={false} variant="outline" render={<Link to="/nowy-typ" />} className="mt-6 h-10 rounded-full bg-card px-4">
             <Plus /> Otwórz kreator

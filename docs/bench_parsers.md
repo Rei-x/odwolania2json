@@ -15,7 +15,7 @@ Data przebiegu: 2026-11-21. Wszystkie liczby poniżej pochodzą z przebiegów op
    Baseline dostaje **prawdziwy typ dokumentu za darmo** (oracle) i liczony jest tylko na dokumentach
    w zakresie, co go faworyzuje.
 3. **Szybkość** parsowania (zimny start i rozgrzany) oraz end-to-end.
-4. **Opus jako punkt odniesienia**: Claude Opus 5.5 przez Anthropic API (nie OpenRouter), czyta PDF
+4. **Opus jako referencja**: Claude Opus 5.5 przez Anthropic API (nie OpenRouter), czyta PDF
    natywnie, dostaje tylko szablon organizatora (`eval/opus_reference.annotate`), typ dokumentu oracle.
 
 Konfiguracja parserów:
@@ -48,7 +48,7 @@ Docling i Unstructured są zainstalowane w osobnym `.venv-bench` (1,5 GB, torch 
 
 ## Wyniki
 
-**Uwaga: przebiegi z Ministral 8B na tekście z Docling / Unstructured (pkt 1 i 2) NIE zostały wykonane.**
+**Uwaga: przebiegi z Ministral 8B na tekście z Docling / Unstructured (pozycje 1 i 2) NIE zostały wykonane.**
 Konto OpenRouter skończyło środki (HTTP 402) w trakcie benchmarku. Wykonano je tylko dla naszego parsera.
 Komórki „czeka” uzupełnimy po doładowaniu (komendy na dole). Wszystkie pozostałe liczby pochodzą z faktycznych przebiegów.
 

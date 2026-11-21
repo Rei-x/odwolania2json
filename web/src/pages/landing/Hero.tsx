@@ -12,13 +12,11 @@ export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
   return (
     <section className="hero" id="hero" ref={ref}>
       <div className="hcopy">
-        <span className="eyebrow">Odwołanie · pełnomocnictwo · przelew</span>
         <h1>
-          <span className="l">Skan wchodzi.</span>
-          <span className="l">JSON wychodzi.</span>
-          <span className="l l3">Każde pole z dowodem.</span>
+          <span className="l">Akta KIO → JSON.</span>
+          <span className="l l3">Każda wartość z dowodem.</span>
         </h1>
-        <p className="lede">Akta odwołania do KIO zamienione na dane zgodne ze schematem UZP. Przy każdej wartości strona i cytat.</p>
+        <p className="lede">Odwołanie, pełnomocnictwo i przelew w JSON‑ie zgodnym ze schematem UZP. Przy każdym polu strona i cytat.</p>
         <div className="ctas">
           <Button nativeButton={false} render={<Link to="/app" />} className="btn btn-p">
             Wypróbuj <ArrowIcon />
@@ -26,7 +24,7 @@ export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
           <a className="btn btn-g" href="#wyprobuj">Trudne dokumenty</a>
         </div>
         <div className="trust">
-          <span>F1 1,000 na danych UZP</span><span>open-weight</span><span>hosting w UE</span><span>CPU</span>
+          <span>F1 0,985 na ślepym zbiorze</span><span>modele 3–8B w UE</span><span>bez GPU</span><span>open source</span>
         </div>
       </div>
       <div className="hscene">

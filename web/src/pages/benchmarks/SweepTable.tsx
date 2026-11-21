@@ -3,9 +3,10 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ModelName } from "@/components/brand/model-logo"
 import { cn } from "@/lib/utils"
 import { errorOf, f1s, negRatio, pb, PD_LABEL, secs, usd } from "./lib"
-import { cmp, Dash, EuBadge, HintBadge, NoResult, PointsPill, SortHead, useSort } from "./parts"
+import { cmp, Dash, EuBadge, HintBadge, NoResult, SortHead, useSort } from "./parts"
 import type { SweepRun } from "./types"
 
 type Part = "blind" | "train"
@@ -34,7 +35,6 @@ export function SweepTable({ runs, seen }: { runs: SweepRun[]; seen: Set<string>
   const cols: { k: string; label: string; get: (r: SweepRun) => number | string; num?: boolean; title?: string }[] = [
     { k: "name", label: "Model", get: (r) => r.label.toLowerCase() },
     { k: "params", label: "Parametry", get: (r) => r.params_b ?? 1e9, num: true },
-    { k: "pts", label: "Punkty", get: (r) => r.pts ?? -1, num: true },
     { k: "blind", label: "F1 ślepy", get: (r) => r.fb ?? -1, num: true },
     { k: "train", label: "F1 trening", get: (r) => r.ft ?? -1, num: true },
     ...pdKeys.map((k) => ({
@@ -90,19 +90,16 @@ export function SweepTable({ runs, seen }: { runs: SweepRun[]; seen: Set<string>
                 >
                   <TableCell className="min-w-52 px-1.5 py-2 whitespace-normal">
                     <div className="flex flex-wrap items-center gap-1">
-                      <span className="mr-0.5 font-medium">{r.label}</span>
+                      <ModelName id={r.model} name={r.label} className="mr-0.5 font-medium" />
                       <EuBadge eu={r.eu_providers ?? []} providers={r.providers} />
                       {r.pareto && (
-                        <HintBadge hint="Nikt nie ma wyższego F1 ślepego przy tej samej lub wyższej liczbie punktów" className="bg-primary text-primary-foreground">
-                          Pareto
+                        <HintBadge hint="Żaden model tej samej wielkości lub mniejszy nie ma wyższego F1 ślepego" className="bg-primary text-primary-foreground">
+                          najlepszy
                         </HintBadge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="px-1.5 text-right tabular-nums">{r.params_b == null ? <Dash>nieznane</Dash> : pb(r.params_b)}</TableCell>
-                  <TableCell className="px-1.5 text-right">
-                    <PointsPill p={r.pts} />
-                  </TableCell>
                   <TableCell className="px-1.5 text-right font-bold tabular-nums">{f1s(r.fb) ?? <NoResult error={errorOf(r, "blind")} />}</TableCell>
                   <TableCell className="px-1.5 text-right tabular-nums">{f1s(r.ft) ?? <NoResult error={errorOf(r, "train")} />}</TableCell>
                   {pdKeys.map((k) => {

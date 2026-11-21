@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Slider } from "@/components/ui/slider"
 import { MemoryChart } from "./memory-chart"
+import { ModelLogo } from "@/components/brand/model-logo"
 import { cn } from "@/lib/utils"
 import {
   api,
@@ -115,25 +116,6 @@ export function ProfileControl({
 
 /* ------------------------------------------------------------------ model picker */
 
-function PointsBadge({ p }: { p: number | null }) {
-  const cls =
-    p == null
-      ? "bg-muted text-muted-foreground"
-      : p >= 18
-        ? "bg-sage/15 text-sage"
-        : p >= 8
-          ? "bg-secondary text-secondary-foreground"
-          : "bg-destructive/10 text-destructive"
-  return (
-    <span
-      title={p == null ? "Rozmiar nieznany, brak punktów" : "Punkty UZP za rozmiar modelu"}
-      className={cn("rounded-full px-1.5 py-px text-[10.5px] font-bold whitespace-nowrap", cls)}
-    >
-      {p ?? "?"} pkt
-    </span>
-  )
-}
-
 function EuBadge({ m }: { m: Model }) {
   return m.eu ? (
     <span
@@ -144,7 +126,7 @@ function EuBadge({ m }: { m: Model }) {
     </span>
   ) : (
     <span
-      title="Brak dostawcy z siedzibą w UE/EOG: niezgodne z regulaminem, tylko do eksperymentów"
+      title="Brak dostawcy z siedzibą w UE/EOG: dokumenty wychodzą poza UE, tylko do eksperymentów"
       className="rounded-full bg-wheat/25 px-1.5 py-px text-[10.5px] font-bold whitespace-nowrap text-bark"
     >
       poza UE
@@ -186,7 +168,10 @@ export function ModelPicker({
     >
       <span className="text-primary">{x.id === model && <Check className="size-3.5" />}</span>
       <span className="min-w-0">
-        <b className="block truncate text-[13px]">{x.name}</b>
+        <b className="flex min-w-0 items-center gap-1.5 text-[13px]">
+          <ModelLogo id={x.id} name={x.name} size={14} />
+          <span className="truncate">{x.name}</span>
+        </b>
         <small className="block truncate text-[11px] text-muted-foreground">
           {x.id}
           {x.f1_blind != null
@@ -201,7 +186,6 @@ export function ModelPicker({
         <span className="rounded-full bg-muted px-1.5 py-px text-[10.5px] font-bold" title="Łączna liczba parametrów">
           {pb(x.params_b)}
         </span>
-        <PointsBadge p={x.points} />
         <EuBadge m={x} />
       </span>
     </button>
@@ -222,7 +206,7 @@ export function ModelPicker({
           det
             ? "Profil Reguły nie używa modelu LLM"
             : m
-              ? `${m.name} (${m.id}) · ${pb(m.params_b)} · ${m.points ?? "?"} pkt${m.eu ? " · UE" : " · poza UE (tylko eksperyment)"}`
+              ? `${m.name} (${m.id}) · ${pb(m.params_b)}${m.eu ? " · UE" : " · poza UE (tylko eksperyment)"}`
               : "Model: automatyczny (wg profilu)"
         }
         render={
@@ -236,7 +220,7 @@ export function ModelPicker({
           />
         }
       >
-        <Cpu className="text-muted-foreground" />
+        {m && !det ? <ModelLogo id={m.id} name={m.name} size={16} /> : <Cpu className="text-muted-foreground" />}
         <span className="min-w-0 flex-1 truncate text-left text-xs">{det ? "bez LLM" : m ? m.name : "Model: auto"}</span>
         <ChevronDown className="size-3 opacity-60" />
       </PopoverTrigger>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { f1s, fmt, negRatio, pb } from "./lib"
+import { f1s, fmt, negRatio, pb, SMALL_B } from "./lib"
 import type { SweepRun } from "./types"
 
 function Stat({ k, value, children }: { k: string; value: string; children: ReactNode }) {
@@ -18,7 +18,7 @@ function Stat({ k, value, children }: { k: string; value: string; children: Reac
 /** Three findings the chart does not show directly (each appears only when the data supports it). */
 export function SweepCallouts({ runs }: { runs: SweepRun[] }) {
   const ok = runs.filter((r) => r.fb != null)
-  const best = ok.filter((r) => r.pts === 20 && r.eu).sort((a, b) => b.fb! - a.fb!)[0]
+  const best = ok.filter((r) => r.params_b != null && r.params_b <= SMALL_B && r.eu).sort((a, b) => b.fb! - a.fb!)[0]
   const gap = ok
     .filter((r) => r.ft != null)
     .map((r) => ({ r, d: r.ft! - r.fb! }))
@@ -30,7 +30,7 @@ export function SweepCallouts({ runs }: { runs: SweepRun[] }) {
   const cards: ReactNode[] = []
   if (best)
     cards.push(
-      <Stat key="best" k="Najlepszy za 20 pkt z hostingiem w UE" value={f1s(best.fb)!}>
+      <Stat key="best" k="Najlepszy mały model (≤ 8B) z hostingiem w UE" value={f1s(best.fb)!}>
         {best.label} · {pb(best.params_b)}
       </Stat>,
     )

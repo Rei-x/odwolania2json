@@ -65,7 +65,7 @@ export function ResultPanel(p: Props) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className={cn("size-2.5 shrink-0 rounded-full", typeDot(d.doctype))} />
           <h2 className="text-xl font-semibold tracking-tight">{LABEL[d.doctype || ""] || d.doctype}</h2>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
             <TabsList>
               <TabsTrigger value="dane" className="px-2.5">
                 Dane
@@ -201,7 +201,7 @@ function Chips({ doc, models, fixes }: { doc: Doc; models: Model[]; fixes: numbe
           title={`Model wybrany ręcznie: ${ov} (OCR + klasyfikacja + ekstrakcja)${ovm && !ovm.eu ? ", poza UE, tylko eksperyment" : ""}`}
         >
           <Cpu /> model: {shortModel(t.model || ov)}
-          {ovm && ` · ${pb(ovm.params_b)} · ${ovm.points ?? "?"} pkt`}
+          {ovm && ` · ${pb(ovm.params_b)}`}
           {ovm && !ovm.eu && " · poza UE"}
         </Chip>
       ) : t.voting?.models ? (

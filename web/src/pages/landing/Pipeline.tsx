@@ -1,34 +1,39 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { cn } from "@/lib/utils"
 import { SectionHead } from "./Reveal"
+import { ModelName } from "./VendorLogo"
 
-type Step = { name: string; title: string; body: ReactNode; tags?: string[] }
+/* The deck's 7 steps. "kod" steps are deterministic (sage), "LLM" steps use a model (chestnut).
+   Steps that only change the JSON put the stage in focus mode: the page shrinks, the JSON grows. */
+type Kind = "kod" | "LLM"
+type Step = { name: string; title: string; kind: Kind; body: string; ex: [string, string][]; focus?: boolean }
 
 const STEPS: Step[] = [
-  { name: "wejście", title: "PDF, skan albo zdjęcie", body: "Najpierw naprawiamy warstwę tekstową.", tags: ["pieczęć e-podpisu", "mojibake → UTF-8", "zepsuty font → OCR"] },
-  { name: "orientacja", title: "Orientacja", body: "PP-LCNet prostuje obrócone strony." },
-  { name: "ocr", title: "OCR", body: "Otwarty model wizyjny czyta skan." },
-  { name: "klasyfikacja", title: "Klasyfikacja", body: <>Reguły, potem LLM. Dokument spoza zakresu dostaje <code className="mono">{"{}"}</code>.</> },
-  { name: "ekstrakcja", title: "Ekstrakcja", body: "LLM z JSON Schema i przykładami few-shot." },
-  { name: "normalizacja", title: "Normalizacja", body: "Deterministyczna, bez modelu.", tags: ["daty", "NIP · KRS", "IBAN", "BZP"] },
-  { name: "dowody", title: "Weryfikacja i dowody", body: "Agent poprawia błędne pola. Każda wartość ma stronę i cytat." },
-  { name: "sprawa", title: "Cała sprawa", body: "Kontrole krzyżowe między dokumentami." },
+  { name: "odczyt", title: "Odczyt", kind: "kod", body: "Prostujemy stronę i czytamy tekst.", ex: [["skan bokiem", "tekst + data podpisu"]] },
+  { name: "klasyfikacja", title: "Klasyfikacja", kind: "kod", body: "Reguły rozpoznają typ dokumentu.", ex: [["pismo", "odwołanie ✓"], ["wyrok KIO", "{}"]] },
+  { name: "ekstrakcja", title: "Ekstrakcja", kind: "LLM", body: "Model wypełnia pola według schematu.", ex: [["pełnomocnik", "\"radcę prawną Aleksandrę Rybak\""]], focus: true },
+  { name: "normalizacja", title: "Normalizacja", kind: "kod", body: "Reguły ujednolicają formaty.",
+    ex: [["radcę prawną Aleksandrę Rybak", "Aleksandra Rybak"], ["999-295-65-50", "9992956550"], ["11 września 2026 roku", "2026-09-11"]], focus: true },
+  { name: "dowód", title: "Dowód", kind: "kod", body: "Każde pole dostaje stronę i cytat. Pole bez cytatu jest oznaczane.",
+    ex: [["nip", "str. 1, „NIP: 999-295-65-50”"], ["numer_postepowania", "⚠ brak cytatu"]] },
+  { name: "weryfikacja", title: "Weryfikacja", kind: "LLM", body: "Model poprawia tylko oznaczone pola.", ex: [["242.5O (litera O)", "242.50"]], focus: true },
+  { name: "router", title: "Router", kind: "LLM", body: "Większy model tylko dla trudnych dokumentów.", ex: [["zwykły PDF", "Ministral 3B"], ["skan, niezgodność", "Ministral 8B"]] },
 ]
+const N = STEPS.length
 const pad = (n: number) => String(n).padStart(2, "0")
 
 function StepBody({ i }: { i: number }) {
   const s = STEPS[i]
   return (
     <>
-      <span className="n">{pad(i + 1)}</span>
+      <span className={cn("n", s.kind === "LLM" ? "llm" : "code")}>{pad(i + 1)} · {s.kind}</span>
       <h3>{s.title}</h3>
       <p>{s.body}</p>
-      {s.tags && (
-        <div className="tags">
-          {s.tags.map((t) => <Badge variant="outline" className="bg-card font-mono" key={t}>{t}</Badge>)}
-        </div>
-      )}
+      <div className="exs">
+        {s.ex.map(([a, b]) => (
+          <div className="ex" key={a}><span>{a}</span><i>→</i><b>{b.startsWith("Ministral") ? <ModelName vendor="mistral">{b}</ModelName> : b}</b></div>
+        ))}
+      </div>
     </>
   )
 }
@@ -53,9 +58,9 @@ export function Pipeline() {
     return () => io.disconnect()
   }, [])
 
-  // evidence wire from the NIP on the page to its JSON row
+  // evidence wire from the NIP on the page to its JSON row (step 5), measured after the layout transition
   useEffect(() => {
-    if (step < 7) return
+    if (step !== 5) return
     const compute = () => {
       const st = stageRef.current, qa = qNipRef.current, jb = jNipRef.current
       if (!st || !qa || !jb) return
@@ -71,23 +76,27 @@ export function Pipeline() {
       }
     }
     const raf = requestAnimationFrame(compute)
+    const late = window.setTimeout(compute, 1050)
     window.addEventListener("resize", compute)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", compute) }
+    return () => { cancelAnimationFrame(raf); clearTimeout(late); window.removeEventListener("resize", compute) }
   }, [step])
 
-  const stageCls = ["stage", ...Array.from({ length: step }, (_, i) => `s${i + 1}`)].join(" ")
+  const cur = STEPS[step - 1]
+  const stageCls = cn("stage", Array.from({ length: step }, (_, i) => `s${i + 1}`).join(" "), cur.focus && "focus", cur.kind === "LLM" && "is-llm")
 
   return (
     <section className="sec pipeline" id="pipeline">
       <div className="wrap">
-        <SectionHead eyebrow="Pipeline" title="Od skanu do dowodu." />
+        <SectionHead title="Od skanu do dowodu w 7 krokach.">
+          <p className="lede legend"><span className="code">kod</span> deterministyczny · <span className="llm">LLM</span> tylko tam, gdzie trzeba</p>
+        </SectionHead>
         <div className="pipe">
           <div className="stage-wrap">
             <div className={stageCls} ref={stageRef}>
-              <div className="slabel"><b>{pad(step)}</b><span>{STEPS[step - 1].name}</span></div>
+              <div className="slabel"><b>{pad(step)}</b><span>{cur.title}</span><em>{cur.kind}</em></div>
               <div className="sdoc">
                 <div className="paper">
-                  <div className="dl r">Poznań, dnia <span className="qq">11 września 2026 roku</span></div>
+                  <div className="dl r">Poznań, dnia <span className="qq dt">11 września 2026 roku</span></div>
                   <div className="dl to">Prezes Krajowej Izby Odwoławczej</div>
                   <div className="dl"><span className="moj"><i className="bad">OdwoĹ‚ujÄ…cy:</i><i className="good">Odwołujący:</i></span> <b>Asterion Budownictwo sp. k.</b></div>
                   <div className="dl">KRS: 9991022552, <span className="qq g" ref={qNipRef}>NIP: 999-295-65-50</span></div>
@@ -97,14 +106,14 @@ export function Pipeline() {
                   <div className="ttl">ODWOŁANIE</div>
                   {[96, 88, 93, 62, 90, 95, 71, 84, 48].map((w, i) => <div className="ln" key={i} style={{ "--w": `${w}%` } as CSSProperties} />)}
                   <div className="stamp">WPŁYNĘŁO<small>dnia 11.09.2026</small></div>
-                  <div className="esig">Podpisano elektronicznie<small>kwalifikowany podpis · adnotacja PDF</small></div>
+                  <div className="esig">Podpisano elektronicznie<small>data podpisu: 11.09.2026</small></div>
                   <div className="noise" />
                   <div className="scan" />
                 </div>
               </div>
-              <div className="badge b-fix"><span className="d" />warstwa tekstowa <small>naprawiona</small></div>
-              <div className="badge b-rot"><span className="d" />90° → 0° <small>PP-LCNet</small></div>
-              <div className="badge b-cls"><span className="d" />odwołanie <small>reguły ✓ · LLM ✓</small></div>
+              <div className="badge b-rot"><span className="d" />90° → 0° <small>orientacja + OCR</small></div>
+              <div className="badge b-fix"><span className="d" />tekst + data podpisu <small>gotowe</small></div>
+              <div className="badge b-cls"><span className="d" />odwołanie ✓ <small>reguły</small></div>
               <div className="ghost"><span className="pg" /><span>wyrok_KIO.pdf<br /><small>spoza zakresu</small></span><b>{"{}"}</b></div>
               <div className="sjson">
                 <div className="jh"><i /><i /><i /><span>odwolanie.json</span></div>
@@ -116,13 +125,13 @@ export function Pipeline() {
                 <div className="jr"><span className="k">"nazwa":</span><span className="v"><i className="raw s">"Asterion Budownictwo sp. k."</i></span><span className="st" /></div>
                 <div className="jr n g" ref={jNipRef}><span className="k">"nip":</span><span className="v"><i className="raw">"999-295-65-50"</i><i className="norm">"9992956550"</i></span><span className="st" /></div>
                 <div className="jr n"><span className="k">"pelnomocnik":</span><span className="v"><i className="raw">"radcę prawną Aleksandrę Rybak"</i><i className="norm">"Aleksandra Rybak"</i></span><span className="st" /></div>
-                <div className="jr x"><span className="k">"numer_postepowania":</span><span className="v"><i className="raw">"DA.ZP.242.5<u>O</u>.2026"</i><i className="norm">"DA.ZP.242.50.2026"</i></span><span className="st" /></div>
+                <div className="jr x"><span className="k">"numer_postepowania":</span><span className="v"><i className="raw">"DA.ZP.242.5<u>O</u>.2026"</i><i className="norm">"DA.ZP.242.50.2026"</i></span><span className="st" /><span className="flag">brak cytatu</span></div>
                 <div className="jr n"><span className="k">"numer_bzp":</span><span className="v"><i className="raw">"nr 2026/BZP 00767819/01"</i><i className="norm">"2026/BZP00767819/01"</i></span><span className="st" /></div>
                 <div className="jr"><span className="k">"czynnosc_powod_id":</span><span className="v"><i className="raw">4</i></span><span className="st" /></div>
                 <div className="jbr">{"}"}</div>
               </div>
               <div className="sprog">
-                {STEPS.map((_, i) => <div key={i} className={cn(i < step && "on")}><i /><span>{pad(i + 1)}</span></div>)}
+                {STEPS.map((s, i) => <div key={i} className={cn(i < step && "on", s.kind === "LLM" && "llm")}><i /><span>{pad(i + 1)}</span></div>)}
               </div>
               <svg className="wire" aria-hidden="true">
                 <path d={wire?.d ?? ""} />
@@ -130,22 +139,13 @@ export function Pipeline() {
                 <circle r="4" cx={wire?.b[0] ?? 0} cy={wire?.b[1] ?? 0} />
               </svg>
               <div className="pgl"><b>dowód</b> · str. 1<br />„NIP: 999-295-65-50”</div>
-              <div className="case">
-                <div className="cdocs">
-                  <div className="cdoc" style={{ "--c": "var(--acc)" } as CSSProperties}><span className="pg" />odwołanie</div>
-                  <span className="clink" />
-                  <div className="cdoc" style={{ "--c": "var(--teal)" } as CSSProperties}><span className="pg" />pełnomocnictwo</div>
-                  <span className="clink" />
-                  <div className="cdoc" style={{ "--c": "var(--amber)" } as CSSProperties}><span className="pg" />przelew</div>
+              <div className="router">
+                <div className="rt-doc"><span className="pg" />dokument</div>
+                <div className="rt-lanes">
+                  <div className="rt-lane"><ModelName vendor="mistral">Ministral 3B</ModelName><small>zwykłe PDF-y, większość akt</small></div>
+                  <div className="rt-lane hard"><ModelName vendor="mistral">Ministral 8B</ModelName><small>skan, niezgodność, nowy układ</small></div>
                 </div>
-                <div className="checks">
-                  <div className="ck"><i>✓</i><span>NIP odwołującego = mocodawca pełnomocnictwa</span></div>
-                  <div className="ck"><i>✓</i><span>Pełnomocnik z odwołania jest umocowany</span></div>
-                  <div className="ck"><i>✓</i><span>Numer postępowania w tytule przelewu</span></div>
-                  <div className="ck"><i>✓</i><span>Przelew nie później niż odwołanie</span></div>
-                  <div className="ck"><i>✓</i><span>Kwota wpisu zgodna z rozporządzeniem</span></div>
-                  <div className="ck fill"><i>↔</i><span>Brak uzupełniony z innego dokumentu<small>ze źródłem</small></span></div>
-                </div>
+                <div className="rt-foot">tryb Auto: F1 0,984 · mediana 2,7 s / dokument</div>
               </div>
             </div>
             <div className="mcap" aria-live="polite">
@@ -153,14 +153,9 @@ export function Pipeline() {
             </div>
           </div>
           <div className="steps">
-            <div className="rail"><i style={{ "--p": `${((step - 1) / (STEPS.length - 1)) * 100}%` } as CSSProperties} /></div>
+            <div className="rail"><i style={{ "--p": `${((step - 1) / (N - 1)) * 100}%` } as CSSProperties} /></div>
             {STEPS.map((_, i) => (
-              <div
-                key={i}
-                className={cn("step", step === i + 1 && "on")}
-                data-s={i + 1}
-                ref={(el) => { stepRefs.current[i] = el }}
-              >
+              <div key={i} className={cn("step", step === i + 1 && "on")} data-s={i + 1} ref={(el) => { stepRefs.current[i] = el }}>
                 <StepBody i={i} />
               </div>
             ))}

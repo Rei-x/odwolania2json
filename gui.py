@@ -77,15 +77,6 @@ def _read_json(path: Path, default):
         return default
 
 
-def _points(b) -> int | None:
-    if b is None:
-        return None
-    for lim, pts in ((8, 20), (14, 18), (32, 12), (70, 8), (150, 4)):
-        if b <= lim:
-            return pts
-    return 0
-
-
 def _num(v):
     try:
         return None if v is None or v == "" else float(v)
@@ -117,11 +108,12 @@ def model_catalog() -> list[dict]:
         f1t = tr.get("f1") if tr.get("f1") is not None else (b.get("f1") or {}).get("train")
         cost = tr.get("cost") if tr.get("cost") is not None else (b.get("cost_usd") or {}).get("train")
         out.append({"id": mid, "name": b.get("name") or re.sub(r"^[^:]{1,30}:\s*", "", r.get("name") or "") or mid.split("/")[-1], "params_b": size,
-                    "active_b": (params.get(mid) or {}).get("active"), "points": _points(size),
+                    "active_b": (params.get(mid) or {}).get("active"),
                     "eu": bool(pinned or (eu_sweep and not cfg.get("only"))), "eu_providers": pinned or eu_sweep,
                     "pinned": bool(pinned), "f1_blind": f1b, "f1_train": f1t, "cost": cost, "cost_blind": bl.get("cost"),
                     "in_sweep": bool(r), "configured": mid in params or mid in provs})
-    out.sort(key=lambda m: (not m["eu"], -(m["points"] if m["points"] is not None else -1), -(m["f1_blind"] or 0), m["name"]))
+    # EU-hosted first, then smallest (runs on own hardware), then best blind F1
+    out.sort(key=lambda m: (not m["eu"], m["params_b"] if m["params_b"] is not None else float("inf"), -(m["f1_blind"] or 0), m["name"]))
     return out
 
 
@@ -215,33 +207,33 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
         pdf.close()
 
 
-STATIC = ROOT / "o2j" / "static"
 SAMPLES = ROOT / "samples"
-DIST = STATIC / "dist"  # React SPA built from web/ (npm run build); committed, so no Node is needed to run
-app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+DIST = ROOT / "o2j" / "static" / "dist"  # React SPA built from web/ (npm run build); committed, so no Node is needed to run
 if DIST.is_dir():
     app.mount("/dist", StaticFiles(directory=str(DIST)), name="dist")
 
 
-def _page(legacy: str) -> str:
-    """SPA shell when the React build exists, otherwise the legacy static page."""
+def _page() -> str:
+    """The React SPA shell; every page route serves it and the client router picks the view."""
     spa = DIST / "index.html"
-    return (spa if spa.exists() else STATIC / legacy).read_text(encoding="utf-8")
+    if not spa.exists():
+        raise HTTPException(503, f"Brak zbudowanego frontendu ({spa}). Zbuduj go: cd web && npm ci && npm run build")
+    return spa.read_text(encoding="utf-8")
 
 
 @app.get("/", response_class=HTMLResponse)
 def landing():
-    return _page("landing.html")
+    return _page()
 
 
 @app.get("/app", response_class=HTMLResponse)
 def index():
-    return _page("index.html")
+    return _page()
 
 
 @app.get("/nowy-typ", response_class=HTMLResponse)
 def wizard_page():
-    return _page("index.html")
+    return _page()
 
 
 @app.get("/api/samples")
@@ -279,7 +271,7 @@ def profiles():
 
 @app.get("/api/models")
 def models():
-    """Modele do ręcznego wyboru w aplikacji (rozmiar, punkty UZP, hosting w UE, F1 ze sweepu/benchmarków)."""
+    """Modele do ręcznego wyboru w aplikacji (rozmiar, hosting w UE, F1 ze sweepu/benchmarków)."""
     return {"default": None, "models": model_catalog()}
 
 
@@ -667,7 +659,7 @@ def doctype_delete(name: str):
 # ---------------------------------------------------------------- benchmarki
 @app.get("/benchmarks", response_class=HTMLResponse)
 def benchmarks_page():
-    return _page("benchmarks.html")
+    return _page()
 
 
 @app.get("/api/benchmarks")

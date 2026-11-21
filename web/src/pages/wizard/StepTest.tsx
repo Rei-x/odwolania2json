@@ -12,7 +12,7 @@ import type { Wizard } from "./useWizard"
 const METHOD_DOT: Record<string, string> = { located: "bg-success", inferred: "bg-wheat", derived: "bg-sage" }
 
 const CLS_CONFIG = {
-  score: { label: "Punkty" },
+  score: { label: "Wynik" },
   me: { label: "Nowy typ", color: "var(--primary)" },
   other: { label: "Inne typy", color: "var(--muted-foreground)" },
 } satisfies ChartConfig

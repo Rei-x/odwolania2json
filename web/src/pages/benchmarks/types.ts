@@ -1,7 +1,5 @@
 // Shapes of docs/benchmarks.json (GET /api/benchmarks) and docs/bench_sweep.json (GET /api/bench_sweep).
 
-export type Band = { max_b: number | null; points: number; label?: string }
-
 export type BenchModel = {
   id: string
   name: string
@@ -33,7 +31,6 @@ export type OcrLocal = { name: string; where: string; cer?: number | null; sec_p
 export type Profile8b = {
   profile: string
   avg_params_b?: number | null
-  points?: number | null
   blind?: number | null
   variants?: number | null
   train?: number | null
@@ -44,12 +41,11 @@ export type Profile8b = {
 
 export type Benchmarks = {
   updated: string
-  scoring: { title?: string; rule: string; bands: Band[] }
   datasets: { id: string; name: string; docs: number | null; desc: string }[]
   models: BenchModel[]
   ocr: { dataset: string; models: OcrModel[]; local: OcrLocal[] }
   real_corpus: { docs: number; agreement_low: number; agreement_high: number; desc: string }
-  decision: { headline: string; points: string[] }
+  decision: { headline: string; reasons: string[] }
   profiles_8b?: Profile8b[]
 }
 
@@ -67,7 +63,6 @@ export type SweepRun = {
   model: string
   name?: string
   params_b: number | null
-  points?: number | null
   eu_providers?: string[]
   providers?: string[]
   ts?: number
@@ -75,7 +70,6 @@ export type SweepRun = {
   blind?: SweepPart | null
   // derived
   label: string
-  pts: number | null
   fb: number | null
   ft: number | null
   cost: number | null

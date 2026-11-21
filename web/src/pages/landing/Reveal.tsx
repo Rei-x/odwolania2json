@@ -10,10 +10,9 @@ export function Reveal({ as: Tag = "div", delay = 0, className, ...rest }: Props
   return <Tag ref={ref} className={cn("rv", delay && `d${delay}`, seen && "in", className)} {...rest} />
 }
 
-export function SectionHead({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
+export function SectionHead({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <Reveal className="shead">
-      <span className="eyebrow">{eyebrow}</span>
       <h2>{title}</h2>
       {children}
     </Reveal>

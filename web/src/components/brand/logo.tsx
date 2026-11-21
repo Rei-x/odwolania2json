@@ -31,9 +31,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2 font-extrabold tracking-tight", className)}>
       <SparrowMark />
-      <span>
-        Wróbel<span className="text-primary">ek</span>
-      </span>
+      <span>Wróbelek</span>
     </span>
   )
 }

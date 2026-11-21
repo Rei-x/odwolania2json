@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { ReferenceArea } from "recharts"
-import { bandRanges, bandStrength } from "./lib"
-import type { Band } from "./types"
+import { SvgModelLogo } from "@/components/brand/model-logo"
+import { SMALL_B } from "./lib"
 
 /** Tooltip card in the shadcn chart style; `render` gets the hovered datum. */
 export function PointTip<T>({ active, payload, render }: { active?: boolean; payload?: readonly { payload?: unknown }[]; render: (d: T) => ReactNode }) {
@@ -32,20 +32,19 @@ export function useWide(min = 768) {
   return wide
 }
 
-/** UZP points bands as shaded ReferenceAreas (call as a function inside the chart). */
-export function bandAreas(bands: Band[], lo: number, hi: number, showLabels = true) {
-  return bandRanges(bands, lo, hi).map((b) => (
+/** Shaded "small model" zone (≤ 8B: runs on an own server) on a log size axis. */
+export function smallArea(lo: number, showLabel = true) {
+  return (
     <ReferenceArea
-      key={b.points}
-      x1={b.x1}
-      x2={b.x2}
+      x1={lo}
+      x2={SMALL_B}
       ifOverflow="hidden"
       fill="var(--sage)"
-      fillOpacity={bandStrength(b.points) * 0.9}
+      fillOpacity={0.13}
       strokeOpacity={0}
-      label={showLabels ? { value: `${b.points} pkt`, position: "top", fontSize: 11, fontWeight: 600, fill: b.points ? "var(--success)" : "var(--muted-foreground)" } : undefined}
+      label={showLabel ? { value: "≤ 8B · własny serwer", position: "top", fontSize: 11, fontWeight: 600, fill: "var(--success)" } : undefined}
     />
-  ))
+  )
 }
 
 export function LegendDot({ color, children }: { color: string; children: ReactNode }) {
@@ -65,4 +64,50 @@ export function RightLabel(p: { x?: number | string; y?: number | string; width?
       {String(p.value)}
     </text>
   )
+}
+
+/** Category-axis tick (horizontal bar charts): vendor logo + model name, right-aligned to the axis. */
+export function LogoTick({ x, y, payload, ids, fontSize = 12.5 }: { x?: number | string; y?: number | string; payload?: { value?: unknown }; ids: Record<string, string>; fontSize?: number }) {
+  const name = String(payload?.value ?? "")
+  const X = Number(x), Y = Number(y)
+  const w = name.length * fontSize * 0.6
+  return (
+    <g>
+      <SvgModelLogo id={ids[name] ?? ""} name={name} x={X - w - 22} y={Y} size={14} />
+      <text x={X - 4} y={Y} textAnchor="end" dominantBaseline="central" className="fill-foreground" fontSize={fontSize}>
+        {name}
+      </text>
+    </g>
+  )
+}
+
+/** Scatter label (logo + text) right of / above a point. `items` is the series' data, `text` picks the label. */
+export function logoLabel<T extends { id: string; name: string }>(items: T[], text: (d: T) => string, side: "right" | "top") {
+  return function LogoLabel(p: { x?: number | string; y?: number | string; width?: number | string; height?: number | string; index?: number }) {
+    const d = p.index != null ? items[p.index] : undefined
+    const t = d ? text(d) : ""
+    if (!d || !t) return null
+    const x = Number(p.x), y = Number(p.y), w = Number(p.width ?? 0), h = Number(p.height ?? 0)
+    if (side === "top") {
+      const tw = t.length * 6.3
+      const lx = x + w / 2 - (tw + 18) / 2
+      return (
+        <g>
+          <SvgModelLogo id={d.id} name={d.name} x={lx} y={y - 14} size={13} />
+          <text x={lx + 18} y={y - 14} dominantBaseline="central" className="fill-foreground" fontSize={11.5} fontWeight={500} paintOrder="stroke" stroke="var(--card)" strokeWidth={4} strokeLinejoin="round">
+            {t}
+          </text>
+        </g>
+      )
+    }
+    const lx = x + w + 7
+    return (
+      <g>
+        <SvgModelLogo id={d.id} name={d.name} x={lx} y={y + h / 2} size={13} />
+        <text x={lx + 17} y={y + h / 2} dominantBaseline="central" className="fill-foreground" fontSize={11.5} fontWeight={500} paintOrder="stroke" stroke="var(--card)" strokeWidth={4} strokeLinejoin="round">
+          {t}
+        </text>
+      </g>
+    )
+  }
 }

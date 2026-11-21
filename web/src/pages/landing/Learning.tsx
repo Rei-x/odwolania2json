@@ -73,7 +73,7 @@ export function Learning() {
   return (
     <section className="sec" id="uczenie">
       <div className="wrap">
-        <SectionHead eyebrow="Uczenie" title="Każda poprawka zostaje w pamięci.">
+        <SectionHead title="Każda poprawka zostaje w pamięci.">
           <p className="lede">Zatwierdzony dokument staje się przykładem few-shot dla podobnych.</p>
         </SectionHead>
         <div className="learn">

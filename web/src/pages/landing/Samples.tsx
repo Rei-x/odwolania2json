@@ -24,7 +24,7 @@ export function Samples() {
   return (
     <section className="sec" id="wyprobuj">
       <div className="wrap">
-        <SectionHead eyebrow="Wypróbuj" title="Sprawdź na trudnych dokumentach.">
+        <SectionHead title="Sprawdź na trudnych dokumentach.">
           <p className="lede">Skany, szum, pieczęcie i zdjęcia z telefonu. Kliknij, by otworzyć w aplikacji.</p>
         </SectionHead>
         {failed ? (

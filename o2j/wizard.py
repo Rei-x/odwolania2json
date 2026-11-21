@@ -951,7 +951,7 @@ def check_classification(spec_classify: dict, name: str, texts: list[str], specs
         other = max([v for k, v in sc.items() if k != name] or [0])
         if mine < min_score or mine - other < 2:
             best = max(sc, key=sc.get)
-            warns.append(f"Przykład {i + 1}: reguły nie wskazują pewnie nowego typu ({name} {mine:g} pkt, "
+            warns.append(f"Przykład {i + 1}: reguły nie wskazują pewnie nowego typu ({name}: wynik {mine:g}, "
                          f"{best if best != name else 'drugi'} {other:g}) — zdecyduje LLM z opisu.")
     stolen = 0
     for true, t in reference:

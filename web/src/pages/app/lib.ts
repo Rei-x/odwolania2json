@@ -46,7 +46,6 @@ export type Model = {
   name: string
   params_b: number | null
   active_b?: number | null
-  points: number | null
   eu: boolean
   eu_providers?: string[]
   f1_blind: number | null

@@ -230,13 +230,13 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
       geo.setAttribute("aSCol", new THREE.BufferAttribute(aSCol, 3))
       const ptsMat = track(new THREE.ShaderMaterial({
         transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-        uniforms: { uClock: { value: 0 }, uSweepDur: { value: 2.6 }, uFly: { value: 1.5 }, uOut: { value: 0 }, uTime: { value: 0 }, uSize: { value: small ? 2.1 : 2.0 }, uPR: { value: PR }, uType: { value: new THREE.Color("#c4551f") } },
+        uniforms: { uClock: { value: 0 }, uSweepDur: { value: 1.3 }, uFly: { value: 0.8 }, uOut: { value: 0 }, uTime: { value: 0 }, uSize: { value: small ? 2.1 : 2.0 }, uPR: { value: PR }, uType: { value: new THREE.Color("#c4551f") } },
         vertexShader: `attribute vec3 aStart, aEnd, aCol, aSCol; attribute float aU, aSeed;
           uniform float uClock, uSweepDur, uFly, uOut, uTime, uSize, uPR; uniform vec3 uType;
           varying vec3 vCol; varying float vA;
           float ease(float t){ return t < .5 ? 4.*t*t*t : 1. - pow(-2.*t + 2., 3.) / 2.; }
           void main(){
-            float tEmit = aU * uSweepDur + aSeed * .18;
+            float tEmit = aU * uSweepDur + aSeed * .1;
             float p = clamp((uClock - tEmit) / (uFly * (.75 + aSeed * .6)), 0., 1.);
             float e = ease(p);
             vec3 mid = mix(aStart, aEnd, .45) + vec3(0., (aSeed - .5) * 2.4, 1.2 + aSeed * 1.8);
@@ -257,9 +257,9 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
           void main(){ vec2 q = gl_PointCoord - .5; float d = length(q); if (d > .5) discard; float a = smoothstep(.5, .05, d);
             gl_FragColor = vec4(vCol * (1. + smoothstep(.2, 0., d) * .6), a * vA); }`,
       }))
-      const points = new THREE.Points(geo, ptsMat)
-      points.frustumCulled = false
-      world.add(points)
+      const particles = new THREE.Points(geo, ptsMat)
+      particles.frustumCulled = false
+      world.add(particles)
 
       // dust
       const DN = small ? 260 : 520, dgeo = track(new THREE.BufferGeometry()), dpos = new Float32Array(DN * 3)
@@ -287,8 +287,9 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
 
       // cycle: the next page flies in while the previous JSON dissolves; particles re-target when the sweep starts
       let ti = -1, cycleT = 0, hasOld = false, armed = false
-      const T_IN = 1.1, T_SW = 1.5, SWEEP = 2.6, HOLD = 2.6, OUT = 1.1
-      const T_LAND = T_SW + SWEEP + 0.18 + 1.5 * 1.35
+      // ~4.6 s per document (was ~8.9 s): faster fly-in, sweep and particle flight, shorter hold
+      const T_IN = 0.6, T_SW = 0.75, SWEEP = 1.3, HOLD = 1.4, OUT = 0.55
+      const T_LAND = T_SW + SWEEP + 0.1 + 0.8 * 1.35
       const CYCLE = T_LAND + HOLD
       const pageRotY = () => (L.vertical ? 0.26 : 0.32)
       function nextPage() {
@@ -334,7 +335,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
         haloMat.opacity = 0.18 * kin * (1 - sw)
         pu.uSweep.value = sw
         beam.position.x = (sw - 0.5) * PAGE_W
-        beamMat.uniforms.uA.value = t < T_SW ? Math.max(0, (t - (T_SW - 0.5)) / 0.5) : sw < 1 ? 1 : Math.max(0, 1 - (t - T_SW - SWEEP) / 0.4)
+        beamMat.uniforms.uA.value = t < T_SW ? Math.max(0, (t - (T_SW - 0.25)) / 0.25) : sw < 1 ? 1 : Math.max(0, 1 - (t - T_SW - SWEEP) / 0.2)
         // particles: previous JSON dissolves during the fly-in, then the new page streams in
         if (t >= T_SW && !armed) setParticles()
         if (armed) { U.uClock.value = t - T_SW; U.uOut.value = 0 }

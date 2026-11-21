@@ -9,7 +9,7 @@ import { CostBars } from "./CostBars"
 import { DatasetsSection } from "./DatasetsSection"
 import { DecisionSection } from "./DecisionSection"
 import { useBenchmarks } from "./hooks"
-import { DEFAULT_BANDS, fmt, pointsFor } from "./lib"
+import { f1s, fmt, usd } from "./lib"
 import { ModelsTable } from "./ModelsTable"
 import { OcrSection } from "./OcrSection"
 import { Section } from "./parts"
@@ -24,25 +24,18 @@ const TOC = [
   ["koszt", "Koszt"],
   ["ocr", "OCR"],
   ["zbiory", "Zbiory testowe"],
-  ["decyzja", "Dlaczego ≤ 8B"],
+  ["decyzja", "Dlaczego małe modele"],
 ] as const
 
 function Kpis({ data }: { data: Benchmarks }) {
-  const ms = data.models
-  const measured = ms.filter((m) => m.f1.train != null && m.arch !== "rules" && m.arch !== "router")
-  const top = measured.filter((m) => m.f1.train! >= 0.99).length
-  const chosen = ms.filter((m) => m.chosen && m.params_b != null)
-  const avg = chosen.length ? chosen.reduce((a, m) => a + m.params_b!, 0) / chosen.length : null
-  const items = [
-    { v: ms.length, s: null, t: "modeli i konfiguracji porównanych na tych samych dokumentach" },
-    { v: top, s: ` / ${measured.length}`, t: "modeli LLM z F1 ≥ 0,99 na danych treningowych" },
-    {
-      v: avg != null ? pointsFor(avg, data.scoring.bands) : "—",
-      s: " pkt",
-      t: `za rozmiar w profilu Auto: reguły → ${chosen.map((m) => m.name.replace("Ministral ", "")).join(" / ")} (średnio ${avg != null ? String(avg).replace(".", ",") : "—"}B)`,
-      accent: true,
-    },
-    { v: `~${fmt(data.real_corpus.agreement_low, 2)}`, s: null, t: `zgodność na ${data.real_corpus.docs} prawdziwych dokumentach KIO` },
+  const auto = data.profiles_8b?.[0]
+  const chosen = data.models.filter((m) => m.chosen && m.cost_usd?.train != null).sort((a, b) => a.cost_usd!.train! - b.cost_usd!.train!)[0]
+  const median = auto?.latency?.match(/mediana\s+([\d.,]+)\s*s/)?.[1]?.replace(".", ",")
+  const items: { v: string; s?: string; t: string; accent?: boolean }[] = [
+    ...(auto?.blind != null ? [{ v: f1s(auto.blind)!, t: "F1 na ślepym zbiorze (nowe sprawy), profil Auto" }] : []),
+    ...(chosen ? [{ v: usd(chosen.cost_usd!.train)!, t: `za 36 dokumentów modelem ${chosen.name} przez API`, accent: true }] : []),
+    ...(median ? [{ v: median, s: " s", t: "mediana czasu na dokument" }] : []),
+    { v: `~${fmt(data.real_corpus.agreement_low, 2)}`, t: `zgodność na ${data.real_corpus.docs} prawdziwych dokumentach KIO` },
   ]
   return (
     <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -77,7 +70,6 @@ function Toc() {
 
 export default function BenchmarksPage() {
   const { data, error } = useBenchmarks()
-  const bands = data?.scoring.bands ?? DEFAULT_BANDS
   useEffect(() => {
     document.title = "Benchmarki modeli · Wróbelek"
   }, [])
@@ -121,22 +113,22 @@ export default function BenchmarksPage() {
               <Section
                 id="rozmiar"
                 title="Rozmiar modelu a jakość"
-                lead="Prawie każdy model mieści się w F1 0,985–1,000. O punktach decyduje rozmiar (tło), nie jakość."
+                lead="Model 8B, który uruchomisz na własnym serwerze, daje prawie tę samą jakość co modele setki razy większe."
               >
-                <SizeScatter models={data.models} bands={bands} />
+                <SizeScatter models={data.models} />
               </Section>
               <Section id="tabela" title="Wszystkie przetestowane modele" lead="Koszt to przebieg 36 dokumentów treningowych przez API (OpenRouter, USD).">
-                <ModelsTable models={data.models} bands={bands} />
+                <ModelsTable models={data.models} />
               </Section>
             </>
           )}
 
-          {(data || error) && <SweepSection bands={bands} />}
+          {(data || error) && <SweepSection />}
 
           {data && (
             <>
-              <Section id="koszt" title="Koszt przebiegu" lead="Najtańsze są duże modele MoE, ale za ich rozmiar jest 0 pkt.">
-                <CostBars models={data.models} bands={bands} />
+              <Section id="koszt" title="Koszt przebiegu" lead="Przebieg 36 dokumentów przez API kosztuje grosze. Reguły YAML nie kosztują nic.">
+                <CostBars models={data.models} />
               </Section>
               <Section id="ocr" title="OCR skanów" lead={`${data.ocr.dataset}. Średnie modele dorównują największym.`}>
                 <OcrSection ocr={data.ocr} />
@@ -149,7 +141,7 @@ export default function BenchmarksPage() {
                 <DatasetsSection data={data} />
               </Section>
               <Section id="decyzja" title={data.decision.headline}>
-                <DecisionSection data={data} bands={bands} />
+                <DecisionSection data={data} />
               </Section>
             </>
           )}
