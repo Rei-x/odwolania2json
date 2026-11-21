@@ -114,7 +114,10 @@ def amount(v):
     s = strip(v)
     if s is None:
         return None
-    s = re.sub(r"[^\d,.\-]", "", s.replace(" ", ""))
+    s = s.split("(")[0]  # drop "(słownie: ...)"
+    s = re.sub(r"[^\d,.\-]", "", s.replace("\u00a0", ""))
+    if re.fullmatch(r"\d{1,3}(\.\d{3})+", s):  # 7.500 / 15.000 -> thousands separators
+        s = s.replace(".", "")
     if "," in s and "." in s:
         s = s.replace(".", "").replace(",", ".") if s.rfind(",") > s.rfind(".") else s.replace(",", "")
     else:
@@ -136,7 +139,7 @@ def integer(v):
     return int(d) if d else None
 
 
-TITLES = r"(adw\.?|adwokat|r\.\s?pr\.?|radca\s+prawny|radczyni\s+prawna|mec\.?|dr\.?\s*hab\.?|dr\.?|prof\.?|apl\.?\s*adw\.?|apl\.?\s*radc\.?|pan|pani|mgr\.?|inż\.?)"
+TITLES = r"(mecenas|aplikant(ka)?\s+(adwokack[ia]|radcowsk[ia])|radca|adw\.?|adwokat|r\.\s?pr\.?|radca\s+prawny|radczyni\s+prawna|mec\.?|dr\.?\s*hab\.?|dr\.?|prof\.?|apl\.?\s*adw\.?|apl\.?\s*radc\.?|pan|pani|mgr\.?|inż\.?)"
 
 
 def person(v):

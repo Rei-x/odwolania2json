@@ -38,8 +38,13 @@ def main(argv=None):
 
     if a.command == "run":
         trace = a.trace or s["paths"]["trace"]
-        pipe.run_dir(a.input, a.output, trace, workers=a.workers)
-        print(f"Gotowe. Wyniki: {a.output}  Ślady: {trace}")
+        summary = pipe.run_dir(a.input, a.output, trace, workers=a.workers)
+        unmatched = [x["file"] for x in summary if x["doctype"] == "NIEDOPASOWANY"]
+        if unmatched:
+            print("\nNie udało się dopasować typu dokumentu (brak JSON):")
+            for f in unmatched:
+                print("  -", f.removesuffix(".json"))
+        print(f"\nGotowe. Wyniki: {a.output}  Ślady: {trace}")
         return
 
     # eval on training data, excluding the evaluated case from few-shot retrieval

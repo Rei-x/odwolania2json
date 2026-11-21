@@ -42,12 +42,34 @@ def render_png(page: pdfium.PdfPage, dpi: int = 200) -> bytes:
     return buf.getvalue()
 
 
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}
+SUPPORTED_EXT = {".pdf"} | IMAGE_EXT
+
+
+def _load_image(path: Path, ocr, ocr_max_pages: int) -> Document:
+    from PIL import Image, ImageSequence
+    doc = Document(path=path)
+    im = Image.open(path)
+    for i, frame in enumerate(ImageSequence.Iterator(im)):
+        buf = io.BytesIO()
+        frame.convert("RGB").save(buf, format="PNG")
+        png = buf.getvalue()
+        text = ocr(png) if (ocr is not None and i < ocr_max_pages) else ""
+        doc.pages.append(Page(i + 1, (text or "").strip(), "ocr", png))
+    return doc
+
+
 def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: int | None = None,
          ocr_max_pages: int = 4) -> Document:
     """ocr: callable(png_bytes) -> str, used for pages without a usable text layer."""
+    if path.suffix.lower() in IMAGE_EXT:
+        return _load_image(path, ocr, ocr_max_pages)
     raw: list[tuple[str, bytes | None]] = []
     with _PDFIUM_LOCK:
-        pdf = pdfium.PdfDocument(str(path))
+        try:
+            pdf = pdfium.PdfDocument(str(path))
+        except pdfium.PdfiumError:
+            pdf = pdfium.PdfDocument(str(path), password="")  # encrypted with empty user password
         n = len(pdf) if max_pages is None else min(len(pdf), max_pages)
         for i in range(n):
             page = pdf[i]

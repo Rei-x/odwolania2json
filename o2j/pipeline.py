@@ -29,18 +29,26 @@ class Pipeline:
     def process(self, pdf_path: Path, exclude_cases: set[str] = frozenset()) -> tuple[str, dict, dict]:
         t0 = time.time()
         ocr_cfg = self.s.get("ocr", {})
-        doc = P.load(pdf_path, ocr=self._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)),
+        try:
+            doc = P.load(pdf_path, ocr=self._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)),
                      dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)))
+            load_error = None
+        except Exception as e:  # noqa: BLE001  corrupted / unreadable file
+            doc, load_error = P.Document(path=pdf_path), repr(e)
         full = doc.text()
         doctype, cls_info = classify(full, pdf_path, self.specs, self.llm,
-                                     float(self.s.get("classification", {}).get("min_score", 3)))
-        trace = {"file": str(pdf_path), "doctype": doctype, "classification": cls_info,
+                                     float(self.s.get("classification", {}).get("min_score", 3)),
+                                     self.s.get("classification", {}).get("mode", "llm_confirm"))
+        trace = {"file": str(pdf_path), "doctype": doctype, "classification": cls_info, "load_error": load_error,
                  "pages": len(doc.pages), "ocr_pages": [p.number for p in doc.pages if p.source == "ocr"]}
         if doctype not in self.specs:
             trace["elapsed_s"] = round(time.time() - t0, 2)
             return doctype, {}, trace
         spec = self.specs[doctype]
         text = doc.text(spec.pages)
+        if not text.strip():  # nothing readable -> schema-valid skeleton (nulls still score as TN)
+            trace["elapsed_s"] = round(time.time() - t0, 2)
+            return doctype, spec.skeleton(), trace
         examples = E.few_shot_examples(spec, self.s["paths"].get("train"), text, set(exclude_cases), spec.few_shot)
         system, user = E.build_prompt(spec, text, examples)
         images = None
@@ -65,11 +73,11 @@ class Pipeline:
         evidence = E.ground(doc, result, derived)
         rounds = []
         for _ in range(int(self.s.get("verify", {}).get("max_rounds", 2))):
-            issues = V.verify(spec, result, evidence)
+            issues = V.verify(spec, result, evidence, ocr_doc=bool(images))
             if not issues:
                 break
             try:
-                result, changes = V.repair(self.llm, spec, text, result, issues)
+                result, changes = V.repair(self.llm, spec, text, result, issues, images=images)
             except Exception as e:  # noqa: BLE001
                 rounds.append({"issues": issues, "error": repr(e)})
                 break
@@ -77,16 +85,28 @@ class Pipeline:
             rounds.append({"issues": issues, "changes": changes})
             if not changes:
                 break
-        trace["verification"] = {"rounds": rounds, "remaining_issues": V.verify(spec, result, evidence)}
+        trace["verification"] = {"rounds": rounds, "remaining_issues": V.verify(spec, result, evidence, ocr_doc=bool(images))}
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
                      raw_llm_output=raw, evidence=evidence,
                      page_texts=[{"page": p.number, "source": p.source, "text": p.text} for p in doc.pages],
                      elapsed_s=round(time.time() - t0, 2))
         return doctype, result, trace
 
+    def fallback(self, path: Path) -> tuple[str, dict]:
+        """Best-effort doctype from filename (+text if readable) and a null skeleton."""
+        from .classify import rule_scores
+        try:
+            text = P.load(path).text()[:6000]
+        except Exception:  # noqa: BLE001
+            text = ""
+        scores = rule_scores(text, path.name, self.specs)
+        name, score = max(scores.items(), key=lambda x: x[1])
+        return (name, self.specs[name].skeleton()) if score > 0 else ("inny", {})
+
     def run_dir(self, input_dir: Path, output_dir: Path, trace_dir: Path | None = None, workers: int = 8,
                 exclude_self: bool = False, log=print) -> list[dict]:
-        pdfs = sorted(p for p in input_dir.rglob("*") if p.suffix.lower() == ".pdf")
+        pdfs = sorted(p for p in input_dir.rglob("*") if p.is_file() and p.suffix.lower() in P.SUPPORTED_EXT
+                      and not p.name.startswith("."))
         summary = []
 
         def job(p: Path):
@@ -95,16 +115,22 @@ class Pipeline:
             try:
                 doctype, result, trace = self.process(p, excl)
                 err = None
-            except Exception as e:  # noqa: BLE001
-                doctype, result, trace, err = "error", {}, {"file": str(p), "error": repr(e)}, repr(e)
+            except Exception as e:  # noqa: BLE001  never leave a document without output
+                doctype, result = self.fallback(p)
+                trace, err = {"file": str(p), "error": repr(e), "doctype": doctype}, repr(e)
             out = output_dir / rel
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(E.dumps(result), encoding="utf-8")
+            matched = doctype in self.specs
+            if matched:
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(E.dumps(result), encoding="utf-8")
+            else:  # per UZP: unknown document type -> report, no JSON
+                trace["unmatched"] = "Nie udało się dopasować typu dokumentu — nie wygenerowano JSON."
             if trace_dir:
                 tr = trace_dir / rel.with_suffix(".trace.json")
                 tr.parent.mkdir(parents=True, exist_ok=True)
                 tr.write_text(E.dumps(trace), encoding="utf-8")
-            return {"file": str(rel), "doctype": doctype, "error": err, "elapsed_s": trace.get("elapsed_s")}
+            return {"file": str(rel), "doctype": doctype if matched else "NIEDOPASOWANY", "error": err,
+                    "elapsed_s": trace.get("elapsed_s")}
 
         with ThreadPoolExecutor(max_workers=workers) as ex:
             futs = [ex.submit(job, p) for p in pdfs]

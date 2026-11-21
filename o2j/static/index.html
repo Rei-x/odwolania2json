@@ -152,7 +152,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const LABEL = {odwolanie:'Odwołanie', pelnomocnictwo:'Pełnomocnictwo', przelew:'Przelew', inny:'Inny dokument', error:'Błąd'};
+const LABEL = {odwolanie:'Odwołanie', pelnomocnictwo:'Pełnomocnictwo', przelew:'Przelew', inny:'Nie rozpoznano typu', error:'Błąd'};
 const NICE = {OdwolanieKIO:'Odwołanie', Odwolujacy:'Odwołujący', Zamawiajacy:'Zamawiający', ZamowieniePubliczne:'Zamówienie',
   przelew_bankowy:'Przelew', mocodawca:'Mocodawca', pelnomocnicy:'Pełnomocnik', podpisujacy:'Podpisujący', pelnomocnik:'Pełnomocnik', data:'Dane'};
 const KEY = {czynnosc_dzien:'data czynności', czynnosc_powod_id:'powód (id)', czynnosc_opis:'czynność', miejscowosc:'miejscowość',

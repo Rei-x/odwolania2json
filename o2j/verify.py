@@ -36,7 +36,7 @@ def _walk(props: dict, value, path: str, out: list):
             out.append((p, node, v))
 
 
-def verify(spec, result: dict, evidence: list[dict]) -> list[dict]:
+def verify(spec, result: dict, evidence: list[dict], ocr_doc: bool = False) -> list[dict]:
     ev = {e["field"]: e for e in evidence}
     issues = []
     leaves: list = []
@@ -52,7 +52,9 @@ def verify(spec, result: dict, evidence: list[dict]) -> list[dict]:
             issues.append({"field": path, "value": v,
                            "issue": "pole musi zawierać dokładnie jedną osobę (pierwszą wskazaną), a nie listę"})
             continue
-        literal = node.get("literal", node["type"] in LITERAL_TYPES and not node.get("normalize") == ["integer"])
+        norm = node.get("normalize") or []
+        # declined names, dates in words/relative and OCR'd text legitimately differ from the literal value
+        literal = node.get("literal", node["type"] in {"string", "number"} and "person" not in norm and not ocr_doc)
         e = ev.get(path)
         if literal and node["type"] != "integer" and e and e.get("method") == "inferred":
             issues.append({"field": path, "value": v,
@@ -95,7 +97,8 @@ def _set(result: dict, path: str, value):
     return True
 
 
-def repair(llm, spec, doc_text: str, result: dict, issues: list[dict]) -> tuple[dict, list[dict]]:
+def repair(llm, spec, doc_text: str, result: dict, issues: list[dict],
+           images: list[bytes] | None = None) -> tuple[dict, list[dict]]:
     system = REPAIR_SYSTEM.format(guide=spec.field_guide(), instructions=spec.instructions.strip() or "-")
     user = (f"### DOKUMENT\n{doc_text}\n\n### WYNIK EKSTRAKCJI\n{E.dumps(result)}\n\n"
             f"### PODEJRZANE POLA\n" + "\n".join(f"- {i['field']} = {json.dumps(i['value'], ensure_ascii=False)}: {i['issue']}"
@@ -106,7 +109,9 @@ def repair(llm, spec, doc_text: str, result: dict, issues: list[dict]) -> tuple[
                                          "uzasadnienie": {"type": "string"}},
         "required": ["field", "value", "uzasadnienie"], "additionalProperties": False}}},
         "required": ["poprawki"], "additionalProperties": False}
-    out, _ = llm.extract_json(system, user, schema, name="repair")
+    if images:
+        user += "\n\nTekst pochodzi z OCR i może być niepełny lub błędny — rozstrzygaj na podstawie dołączonych obrazów stron."
+    out, _ = llm.extract_json(system, user, schema, name="repair", images=images)
     flagged = {i["field"] for i in issues}
     raw = json.loads(json.dumps(result))
     changes = []

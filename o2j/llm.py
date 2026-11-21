@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import random
 import time
 
 from openai import OpenAI
@@ -26,9 +27,11 @@ class LLM:
                 extra = self.cfg.get("extra_body") or None
                 return self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
                                                            extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001  (rate limits, timeouts, 5xx)
+                if getattr(e, "status_code", None) in (401, 402, 403):
+                    raise RuntimeError(f"LLM API odrzuciło żądanie (klucz/środki): {e}") from e
                 last = e
-                time.sleep(2 * (attempt + 1))
+                time.sleep(min(30, 2 ** attempt + random.random()))
         raise last
 
     def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction",

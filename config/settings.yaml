@@ -7,7 +7,7 @@ llm:
   max_tokens: 32000                  # modele reasoningowe zużywają część limitu na myślenie
   structured_output: json_schema     # json_schema | json_object
   timeout: 180
-  retries: 2
+  retries: 5
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
   min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
@@ -21,6 +21,7 @@ ocr:
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
+  mode: llm_confirm                  # rules | llm_confirm (LLM potwierdza typ, odrzuca dokumenty spoza puli)
   min_score: 3                       # poniżej => klasyfikacja przez LLM
 paths:
   doctypes: config/doctypes

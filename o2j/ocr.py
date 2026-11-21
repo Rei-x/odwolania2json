@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import io
+import re
+import sys
 import threading
 
 from openai import OpenAI
@@ -16,6 +18,30 @@ from .pdf import png_data_url
 OCR_PROMPT = ("Przepisz dokładnie cały tekst z tej strony dokumentu (język polski), od pierwszej do ostatniej linii, "
               "łącznie z nagłówkami, podpisami i stopkami. Zachowaj kolejność i podział na linie, polskie znaki "
               "diakrytyczne oraz wszystkie cyfry. Niczego nie poprawiaj ani nie pomijaj — przepisuj litera po literze, także nazwiska bez polskich znaków (np. 'Szymanski' zostaje 'Szymanski'). Zwróć wyłącznie tekst.")
+
+
+ANTI_LOOP = (" Linie separatorów (kreski, kropki, podkreślenia) zapisz jako '---'. Nigdy nie powtarzaj tego samego "
+             "fragmentu wielokrotnie.")
+
+
+def collapse(text: str) -> str:
+    """Collapse degenerate repetitions (e.g. thousands of '- - -' from dashed rules)."""
+    text = re.sub(r"((?:\S{1,4}\s?))\1{15,}", lambda m: m.group(1) * 3, text)
+    return re.sub(r"(.{5,80}?)\1{4,}", r"\1", text, flags=re.S)
+
+
+def degenerate(text: str) -> bool:
+    c = collapse(text)
+    return len(text) - len(c) > 1500 or (len(text) > 200 and len(c) < 0.7 * len(text))
+
+
+class FatalAPIError(RuntimeError):
+    """Auth / billing errors: retrying cannot help, surface them."""
+
+
+def _fatal(e: Exception) -> bool:
+    code = getattr(e, "status_code", None)
+    return code in (401, 402, 403)
 
 
 class VlmOCR:
@@ -32,22 +58,29 @@ class VlmOCR:
             self.extra["reasoning"] = {"effort": cfg["reasoning"]}
 
     def __call__(self, png: bytes) -> str:
-        best = ""
-        for _ in range(3):
+        best, prompt = "", OCR_PROMPT
+        for attempt in range(4):
             try:
                 r = self.client.chat.completions.create(
-                    model=self.model, temperature=0, max_tokens=self.max_tokens, extra_body=self.extra or None,
+                    model=self.model, temperature=0 if attempt == 0 else 0.2, max_tokens=self.max_tokens,
+                    extra_body=self.extra or None,
                     messages=[{"role": "user", "content": [
-                        {"type": "text", "text": OCR_PROMPT},
+                        {"type": "text", "text": prompt},
                         {"type": "image_url", "image_url": {"url": png_data_url(png)}}]}])
-            except Exception:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001
+                if _fatal(e):
+                    raise FatalAPIError(f"OCR API: {e}") from e
+                print(f"[ocr] attempt {attempt + 1} failed: {e!r}", file=sys.stderr)
                 continue
             c = r.choices[0]
             text = c.message.content or ""
-            if len(text) > len(best):
+            bad = c.finish_reason == "length" or degenerate(text)
+            text = collapse(text)
+            if len(text.strip()) > len(best.strip()) and not (bad and best):
                 best = text
-            if c.finish_reason != "length" and len(best.strip()) > 40:
+            if not bad and len(best.strip()) > 40:
                 break
+            prompt = OCR_PROMPT + ANTI_LOOP
         return best
 
 

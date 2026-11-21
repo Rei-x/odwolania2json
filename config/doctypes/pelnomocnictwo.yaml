@@ -1,10 +1,13 @@
 name: pelnomocnictwo
-description: Pełnomocnictwo udzielone przez wykonawcę (mocodawcę) osobom (pełnomocnikom) do reprezentacji, np. przed KIO.
+description: Dokument, w którym mocodawca (wykonawca/podmiot) udziela pełnomocnictwa wskazanym osobom do reprezentowania go, zwykle w postępowaniu o zamówienie publiczne lub przed KIO; zawiera mocodawcę, pełnomocnika(ów) i podpisy. Nie jest nim wzmianka o pełnomocnictwie w innym piśmie.
 classify:
   keywords:
     '\bPEŁNOMOCNICTWO\b': 5
     'Mocodawc': 3
     'udziela(m|my|ją)? pełnomocnictwa': 3
+    'ustanawia(m|my|ją)? (swoim |swoimi )?pełnomocnik': 3
+    'Pełnomocnictwo przyjmuję|do reprezentowania': 1
+    'pełnomocnikami|pełnomocnikiem': 2
     'umocowan': 1
   filename: ['pelnomoc', 'pełnomoc']
 pages: 3

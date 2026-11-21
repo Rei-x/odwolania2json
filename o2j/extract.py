@@ -16,6 +16,8 @@ SYSTEM = """Jesteś precyzyjnym systemem ekstrakcji danych z polskich dokumentó
 Zasady:
 - Zwracasz WYŁĄCZNIE obiekt JSON o podanej strukturze (te same klucze, ta sama kolejność).
 - Wartości przepisujesz z dokumentu wiernie, litera po literze (pisownia, wielkie litery, obecność lub brak polskich znaków) — nawet jeśli zapis wygląda na literówkę, NIE poprawiaj go; nie dopisujesz niczego, czego nie ma w dokumencie.
+- Imiona i nazwiska osób ZAWSZE w mianowniku, bez tytułów, nawet gdy w dokumencie są odmienione ("udzielam pełnomocnictwa Janowi Kowalskiemu" → "Jan Kowalski"; "przez r.pr. Klaudię Nowak" → "Klaudia Nowak"). Zasada wiernego przepisywania dotyczy pisowni, nie przypadka.
+- Daty względne ("br.", "tego samego dnia", "dnia dwunastego czerwca") zamieniaj na pełną datę YYYY-MM-DD na podstawie kontekstu dokumentu (rok z daty pisma).
 - Gdy informacji nie ma w dokumencie, wpisz null (listy mogą być puste). Nigdy nie zgaduj.
 - Daty w formacie YYYY-MM-DD. Numery identyfikacyjne (KRS, NIP, REGON, rachunki) bez spacji i myślników.
 - Listy zawierają tylko faktycznie występujące podmioty/osoby — nie dopełniaj ich.
@@ -138,9 +140,11 @@ def _date_variants(iso: str) -> list[str]:
     if not m:
         return []
     y, mo, d = m.groups()
-    names = [k for k, v in N.MONTHS.items() if v == int(mo) and k.endswith(("a", "ia"))]
-    out = [f"{d}.{mo}.{y}", f"{int(d)}.{mo}.{y}"]
-    out += [f"{int(d)} {n} {y}" for n in names] + [f"{d} {n} {y}" for n in names]
+    gen = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września",
+           "października", "listopada", "grudnia"][int(mo) - 1]
+    roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][int(mo) - 1]
+    out = [f"{d}.{mo}.{y}", f"{int(d)}.{mo}.{y}", f"{d}-{mo}-{y}", f"{d}/{mo}/{y}",
+           f"{int(d)} {gen} {y}", f"{d} {gen} {y}", f"{int(d)} {roman} {y}", f"{int(d)} {gen}"]
     return out
 
 
@@ -169,6 +173,10 @@ def ground(doc: P.Document, result: dict, derived: set[str] = frozenset()) -> li
                     break
         if best is None:
             cands = [s] + _date_variants(s)
+            m = re.fullmatch(r"(\d{5,7})-(\d{4})", s)  # TED 'NNNNNN-YYYY' may appear as 'YYYY/S ###-NNNNNN'
+            if m:
+                cands.append(f"{m.group(2)}/S")
+                cands.insert(1, m.group(1))
             if isinstance(val, float):
                 cands.append(f"{val:,.2f}".replace(",", " ").replace(".", ","))
             for c in cands:

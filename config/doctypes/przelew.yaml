@@ -1,12 +1,17 @@
 name: przelew
-description: Potwierdzenie wykonania przelewu bankowego (np. wpis od odwołania, opłata skarbowa od pełnomocnictwa).
+description: Potwierdzenie wykonania pojedynczego przelewu bankowego wygenerowane przez bank (rachunek nadawcy i odbiorcy, kwota, data operacji, tytuł). Nie jest nim faktura, rachunek do zapłaty, wezwanie do zapłaty, wyciąg z wielu operacji ani prezentacja.
 classify:
   keywords:
-    'POTWIERDZENIE (WYKONANIA )?PRZELEWU': 6
-    'Rachunek (zleceniodawcy|odbiorcy|nadawcy)': 3
-    'Tytuł (przelewu|operacji)': 2
-    'Kwota': 1
-    'Data operacji': 2
+    'POTWIERDZENIE (WYKONANIA |REALIZACJI )?(POLECENIA )?(PRZELEWU|TRANSAKCJI|OPERACJI)': 6
+    'Rachunek (zleceniodawcy|odbiorcy|nadawcy|obciążany|uznawany)': 3
+    '\bZ RACHUNKU\b|\bNA RACHUNEK\b': 2
+    'Tytuł (przelewu|operacji)|\bOPIS:': 2
+    'Kwota|WARTOŚĆ': 1
+    'Data (operacji|realizacji|transakcji|księgowania)': 2
+    'Numer referencyjny|ID transakcji|Numer transakcji': 1
+    '(dowód|potwierdzenie) (wykonania )?przelewu|\bprzelew\w*\b': 2
+    'Data wykonania|Nadawca|Adresat przelewu|Odbiorca': 1
+    '\bPL ?\d{2}(?: ?\d{4}){6}\b': 2
   filename: ['przelew', 'potwierdzenie']
 pages: 2
 few_shot: 2

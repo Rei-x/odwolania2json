@@ -1,11 +1,12 @@
 # Klasa dokumentu: odwołanie do Prezesa Krajowej Izby Odwoławczej.
 # Dodanie nowej klasy = nowy plik YAML w tym katalogu (bez zmian w kodzie).
 name: odwolanie
-description: Odwołanie wykonawcy do Prezesa Krajowej Izby Odwoławczej (KIO) od czynności lub zaniechania zamawiającego.
+description: Pismo wykonawcy (Odwołującego) skierowane do Prezesa Krajowej Izby Odwoławczej, wnoszące odwołanie od czynności lub zaniechania zamawiającego w postępowaniu o udzielenie zamówienia publicznego (zarzuty, żądania, wskazanie Zamawiającego i Odwołującego). Nie jest nim wyrok/postanowienie KIO, pismo procesowe innego rodzaju ani materiał informacyjny o odwołaniach.
 classify:
   # słowo/regex -> waga; najwyższy wynik wygrywa
   keywords:
-    '\bODWOŁANIE\b': 5
+    '^\s*ODWOŁANIE\s*$': 5
+    'Prezes Krajowej Izby Odwoławczej|Krajowa Izba Odwoławcza': 1
     'Odwołując[yaey]': 3
     'Krajow[aej]+ Izb[ayi] Odwoławcz': 2
     'Zarzut nr': 2
