@@ -24,6 +24,29 @@ from o2j.pipeline import Pipeline  # noqa: E402
 
 DATA = ROOT / "gui_data"
 app = FastAPI(title="Odwołania2JSON")
+
+
+@app.middleware("http")
+async def basic_auth(request, call_next):
+    """Optional HTTP Basic Auth (env O2J_GUI_PASSWORD, user O2J_GUI_USER default 'uzp') — required when the GUI
+    is exposed beyond localhost, e.g. through a tunnel."""
+    import base64
+    import os
+    import secrets
+    pw = os.environ.get("O2J_GUI_PASSWORD")
+    if pw:
+        user = os.environ.get("O2J_GUI_USER", "uzp")
+        hdr = request.headers.get("authorization", "")
+        ok = False
+        if hdr.startswith("Basic "):
+            try:
+                u, _, p = base64.b64decode(hdr[6:]).decode().partition(":")
+                ok = secrets.compare_digest(u, user) and secrets.compare_digest(p, pw)
+            except Exception:  # noqa: BLE001
+                ok = False
+        if not ok:
+            return Response("Wymagane logowanie", status_code=401, headers={"WWW-Authenticate": 'Basic realm="odwolania2json"'})
+    return await call_next(request)
 _pipes: dict[str, Pipeline] = {}
 PROFILE_INFO = {
     "deterministyczny": "Reguły bez LLM — najtańszy, w pełni powtarzalny",
