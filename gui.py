@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 import pypdfium2 as pdfium  # noqa: E402
 import uvicorn  # noqa: E402
-from fastapi import FastAPI, File, HTTPException, UploadFile  # noqa: E402
+from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile  # noqa: E402
 from fastapi.concurrency import run_in_threadpool  # noqa: E402
 from fastapi.responses import FileResponse, HTMLResponse, Response  # noqa: E402
 
@@ -24,14 +24,21 @@ from o2j.pipeline import Pipeline  # noqa: E402
 
 DATA = ROOT / "gui_data"
 app = FastAPI(title="Odwołania2JSON")
-_pipe: Pipeline | None = None
+_pipes: dict[str, Pipeline] = {}
+PROFILE_INFO = {
+    "deterministyczny": "Reguły bez LLM — najtańszy, w pełni powtarzalny",
+    "ekonomiczny": "Tani model, bez pętli naprawy",
+    "standard": "Szybki model + weryfikacja i naprawa",
+    "maksymalny": "Głosowanie kilku przebiegów/modeli — najwyższa jakość",
+}
 
 
-def get_pipe() -> Pipeline:
-    global _pipe
-    if _pipe is None:
-        _pipe = Pipeline()
-    return _pipe
+def get_pipe(profile: str | None = None) -> Pipeline:
+    from o2j.config import load_settings
+    key = profile or ""
+    if key not in _pipes:
+        _pipes[key] = Pipeline(load_settings(profile=profile))
+    return _pipes[key]
 
 
 def _safe(sid: str, name: str) -> Path:
@@ -102,9 +109,17 @@ def doctypes():
     return [{"name": n, "description": s.description} for n, s in get_pipe().specs.items()]
 
 
+@app.get("/api/profiles")
+def profiles():
+    from o2j.config import load_settings
+    s = load_settings()
+    names = list((s.get("profiles") or {}).keys())
+    return {"default": s.get("profile"), "profiles": [{"name": n, "opis": PROFILE_INFO.get(n, "")} for n in names]}
+
+
 @app.post("/api/process")
-async def process(files: list[UploadFile] = File(...)):
-    sid = uuid.uuid4().hex[:10]
+async def process(files: list[UploadFile] = File(...), case: str | None = Form(None), profile: str | None = Form(None)):
+    sid = case if case and case.isalnum() and len(case) <= 32 else uuid.uuid4().hex[:10]
     d = DATA / sid
     d.mkdir(parents=True, exist_ok=True)
     out = []
@@ -114,14 +129,14 @@ async def process(files: list[UploadFile] = File(...)):
             continue
         path = d / name
         path.write_bytes(await f.read())
-        out.append(await run_in_threadpool(_one, sid, path))
+        out.append(await run_in_threadpool(_one, sid, path, profile))
     if not out:
         raise HTTPException(400, "Brak plików PDF")
     return {"session": sid, "documents": out}
 
 
-def _one(sid: str, path: Path) -> dict:
-    p = get_pipe()
+def _one(sid: str, path: Path, profile: str | None = None) -> dict:
+    p = get_pipe(profile)
     try:
         doctype, result, trace = p.process(path)
     except Exception as e:  # noqa: BLE001
@@ -133,9 +148,51 @@ def _one(sid: str, path: Path) -> dict:
         pass
     (path.parent / (path.stem + ".json")).write_text(
         json.dumps(result if doctype in p.specs else {}, ensure_ascii=False, indent=2), encoding="utf-8")
-    keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage")
+    (path.parent / (path.stem + ".result.json")).write_text(json.dumps({
+        "doctype": doctype, "result": result, "file": path.name, "profile": p.s.get("active_profile"),
+        "text": "\n".join(pg.get("text", "") for pg in trace.get("page_texts", []))}, ensure_ascii=False), encoding="utf-8")
+    keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage",
+            "voting", "learned_examples_available", "active_profile")
+    trace["active_profile"] = p.s.get("active_profile")
     return {"session": sid, "file": path.name, "doctype": doctype, "result": result,
             "trace": {**{k: trace.get(k) for k in keep}, "evidence": evidence}}
+
+
+@app.get("/api/case/{sid}")
+def case_report(sid: str):
+    """Cross-document consistency of all documents uploaded in one case (session)."""
+    from o2j.case import analyze_case, load_case_rules
+    d = (DATA / sid).resolve()
+    if DATA.resolve() not in d.parents or not d.exists():
+        raise HTTPException(404)
+    p = get_pipe()
+    docs = {}
+    for f in sorted(d.glob("*.result.json")):
+        r = json.loads(f.read_text(encoding="utf-8"))
+        if r["doctype"] in p.specs:
+            docs[r["file"]] = {"doctype": r["doctype"], "result": json.loads(json.dumps(r["result"])), "text": r["text"]}
+    rules = load_case_rules(ROOT / "config" / "case.yaml")
+    return analyze_case(docs, rules) if docs else {"dokumenty": {}, "kontrole": [], "uzupelnienia_krzyzowe": []}
+
+
+@app.post("/api/feedback")
+def feedback(payload: dict = Body(...)):
+    """User approved (optionally corrected) a result -> memory (few-shot pool + quality stats)."""
+    sid, name, corrected = payload.get("session"), payload.get("file"), payload.get("corrected")
+    pdf = _safe(sid, name)
+    r = json.loads((pdf.parent / (pdf.stem + ".result.json")).read_text(encoding="utf-8"))
+    p = get_pipe()
+    if r["doctype"] not in p.specs:
+        raise HTTPException(400, "Dokument spoza obsługiwanych typów")
+    from o2j.extract import postprocess
+    corrected = postprocess(p.specs[r["doctype"]], corrected)  # same normalisation as the pipeline
+    meta = p.memory.add(pdf, r["doctype"], r["result"], corrected, source="gui")
+    return {"saved": True, "corrected_fields": meta["corrected"], "changes": meta["changes"], "stats": p.memory.stats()}
+
+
+@app.get("/api/stats")
+def stats():
+    return get_pipe().memory.stats()
 
 
 @app.get("/api/page/{sid}/{name}/{n}.png")

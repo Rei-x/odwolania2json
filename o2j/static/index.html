@@ -98,6 +98,23 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 .tab.on .spin{border-color:rgba(255,255,255,.25);border-top-color:#fff}
 @keyframes rot{to{transform:rotate(360deg)}}
 
+#qual{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap}
+#qual input{width:110px;accent-color:var(--accent)}
+#qual b{color:var(--ink);min-width:92px;display:inline-block}
+#mem{font-size:12px;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--ink2);white-space:nowrap}
+#mem:hover{background:#fff}
+#mempop{position:fixed;top:62px;right:20px;width:320px;background:#fff;border-radius:14px;box-shadow:var(--sh);padding:14px 16px;display:none;z-index:20;font-size:13px}
+#mempop.on{display:block}
+#mempop svg{width:100%;height:70px}
+.approve{margin-left:8px;padding:6px 14px;border-radius:99px;background:var(--ink);color:#fff;font-size:12.5px}
+.approve.edited{background:var(--accent)}
+.row .v input{width:100%;font:inherit;font-weight:600;border:1px solid var(--accent);border-radius:6px;padding:2px 6px}
+.row.edited .v{color:var(--accent)}
+.chk{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:9px 12px;border-radius:10px;align-items:start}
+.chk:nth-child(odd){background:#f8f9f8}
+.chk .ic{font-weight:700}
+.chk.ok .ic{color:var(--ok)} .chk.uwaga .ic{color:var(--warn)} .chk.nd .ic{color:#b6bfbb}
+.chk small{display:block;color:var(--mute);word-break:break-all}
 #toast{position:fixed;right:22px;bottom:22px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;box-shadow:var(--sh);
   display:flex;gap:9px;align-items:center;transform:translateY(20px);opacity:0;transition:.3s;font-size:13px}
 #toast.on{transform:none;opacity:1}
@@ -137,6 +154,8 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
   <header>
     <div class="mark">odwołania <i>→</i> json</div>
     <nav id="tabs"></nav>
+    <div id="qual" title="Dokładność / koszt"><span>koszt</span><input id="qslider" type="range" min="0" max="3" step="1" value="2"><span>jakość</span><b id="qlabel">standard</b></div>
+    <button id="mem" title="Pamięć systemu — uczenie w czasie">Pamięć: —</button>
     <button class="iconbtn" id="add" title="Dodaj PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="iconbtn" id="dl" title="Pobierz JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg></button>
   </header>
@@ -147,6 +166,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 </section>
 
 <div id="dragcover">Upuść, aby dodać</div>
+<div id="mempop"></div>
 <div id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg><span></span></div>
 
 <script>
@@ -162,6 +182,26 @@ const KEY = {czynnosc_dzien:'data czynności', czynnosc_powod_id:'powód (id)', 
   krs:'KRS', nip:'NIP', regon:'REGON', pesel:'PESEL', kwota:'kwota', data:'data'};
 
 let docs = [], cur = -1, view = 'dane', selected = null;
+let caseId = null, PROFILES = ['deterministyczny', 'ekonomiczny', 'standard', 'maksymalny'];
+fetch('/api/profiles').then(r => r.json()).then(p => { PROFILES = p.profiles.map(x => x.name); const i = Math.max(0, PROFILES.indexOf(p.default));
+  $('#qslider').max = PROFILES.length - 1; $('#qslider').value = i; $('#qlabel').textContent = PROFILES[i];
+  $('#qual').title = p.profiles.map(x => `${x.name}: ${x.opis}`).join('\n'); }).catch(() => {});
+const profile = () => PROFILES[+$('#qslider').value];
+document.addEventListener('input', e => { if (e.target.id === 'qslider') $('#qlabel').textContent = profile(); });
+function loadMem() {
+  fetch('/api/stats').then(r => r.json()).then(st => {
+    const n = Object.values(st.examples || {}).reduce((a, b) => a + b, 0);
+    $('#mem').textContent = `Pamięć: ${n} dok.` + (st.accuracy != null ? ` · ${(st.accuracy * 100).toFixed(1)}%` : '');
+    const tl = st.timeline || [];
+    const pts = tl.map((t, i) => `${tl.length > 1 ? i / (tl.length - 1) * 300 : 150},${70 - (t.cumulative_accuracy - 0.5) * 2 * 66}`).join(' ');
+    $('#mempop').innerHTML = `<b>Uczenie w czasie</b><br><span style="color:var(--mute)">Zatwierdzone i poprawione dokumenty trafiają do pamięci przykładów — kolejne podobne dokumenty są ekstrahowane trafniej.</span>
+      <svg viewBox="0 0 300 72" preserveAspectRatio="none"><polyline fill="none" stroke="#e8004f" stroke-width="2.5" points="${pts}"/></svg>
+      Recenzji: <b>${st.reviews}</b> · pól: ${st.fields} · poprawionych: ${st.corrected}<br>
+      ${(st.most_corrected || []).slice(0, 4).map(([f, c]) => `<div style="color:var(--ink2)">• ${esc(f)} — ${c}×</div>`).join('')}`;
+  }).catch(() => {});
+}
+loadMem();
+document.addEventListener('click', e => { if (e.target.id === 'mem') $('#mempop').classList.toggle('on'); else if (!e.target.closest('#mempop')) $('#mempop').classList.remove('on'); });
 
 // ---------- upload ----------
 const input = $('#file');
@@ -182,7 +222,8 @@ function add(files) {
   renderTabs(); select(start);
   let left = files.length;
   files.forEach((f, i) => {
-    const fd = new FormData(); fd.append('files', f);
+    if (!caseId) caseId = Math.random().toString(36).slice(2, 12);
+    const fd = new FormData(); fd.append('files', f); fd.append('case', caseId); fd.append('profile', profile());
     fetch('/api/process', { method: 'POST', body: fd }).then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t); }))
       .then(d => Object.assign(docs[start + i], d.documents[0], { pending: false }))
       .catch(err => Object.assign(docs[start + i], { pending: false, doctype: 'error', error: err.message, result: {}, trace: {} }))
@@ -233,12 +274,49 @@ function renderRes(d) {
   if (t.model) chips.push(icon('chip') + esc(t.model.split('/').pop()));
   el.innerHTML = `<div class="rhead">
       <div class="rtitle t-${d.doctype}"><span class="dot" style="width:11px;height:11px"></span><h2>${LABEL[d.doctype] || esc(d.doctype)}</h2>
-        <div class="sw"><button class="${view === 'dane' ? 'on' : ''}" onclick="setView('dane')">Dane</button><button class="${view === 'json' ? 'on' : ''}" onclick="setView('json')">JSON</button></div></div>
+        <div class="sw"><button class="${view === 'dane' ? 'on' : ''}" onclick="setView('dane')">Dane</button><button class="${view === 'json' ? 'on' : ''}" onclick="setView('json')">JSON</button><button class="${view === 'sprawa' ? 'on' : ''}" onclick="setView('sprawa')">Sprawa</button></div>
+        ${d.doctype in LABEL && d.doctype !== 'error' && d.doctype !== 'inny' ? `<button class="approve ${d.edited ? 'edited' : ''}" onclick="approve()" title="Zapisz do pamięci systemu">${d.edited ? 'Zapisz poprawki' : 'Zatwierdź'}</button>` : ''}</div>
       <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div></div>
-    <div class="rbody">${d.error ? `<p style="padding:16px;color:#b91c1c">${esc(d.error)}</p>` : view === 'json' ? `<pre class="json">${hjson(d.result, 0)}</pre>` :
+    <div class="rbody">${d.error ? `<p style="padding:16px;color:#b91c1c">${esc(d.error)}</p>` : view === 'sprawa' ? '<div id="casebox" style="padding:10px 4px;color:var(--mute)">Analiza spójności sprawy…</div>' : view === 'json' ? `<pre class="json">${hjson(d.edited || d.result, 0)}</pre>` :
       (fixes.length ? `<div class="fixes"><b>Weryfikacja poprawiła:</b>${fixes.map(f => `<div>${esc(f.field)}: <s>${esc(JSON.stringify(f.before))}</s> → ${esc(JSON.stringify(f.after))}</div>`).join('')}</div>` : '') +
-      fields(d.result, '', evMap(d))}</div>`;
+      fields(d.edited || d.result, '', evMap(d))}</div>`;
+  if (view === 'sprawa' && !d.error) loadCase();
 }
+function loadCase() {
+  fetch(`/api/case/${caseId}`).then(r => r.json()).then(rep => {
+    const st = { ok: '✓', uwaga: '!', 'n/d': '–' };
+    const docsTxt = Object.entries(rep.dokumenty || {}).map(([f, t]) => `${esc(f)} <span class="badge">${esc(t)}</span>`).join(' · ');
+    $('#casebox').innerHTML = `<div class="sub" style="margin:0 12px 8px">Dokumenty sprawy: ${docsTxt || 'brak'}</div>` +
+      (rep.kontrole || []).map(c => `<div class="chk ${c.status === 'n/d' ? 'nd' : c.status}"><span class="ic">${st[c.status] || '?'}</span><div>${esc(c.opis)}<small>${esc(c.szczegoly)}</small></div></div>`).join('') +
+      ((rep.uzupelnienia_krzyzowe || []).length ? `<div class="fixes"><b>Uzupełniono krzyżowo:</b>${rep.uzupelnienia_krzyzowe.map(f => `<div>${esc(f.dokument)} · ${esc(f.pole)} = ${esc(f.wartosc)} (z ${esc(f.zrodlo)})</div>`).join('')}</div>` : '');
+  }).catch(() => { $('#casebox').textContent = 'Nie udało się przeanalizować sprawy.'; });
+}
+function setPath(obj, path, val) {
+  const toks = path.match(/[^.\[\]]+|\[\d+\]/g); let cur = obj;
+  toks.forEach((t, i) => { const k = t[0] === '[' ? +t.slice(1, -1) : t; if (i === toks.length - 1) cur[k] = val; else cur = cur[k]; });
+}
+window.editRow = el => {
+  const d = docs[cur], p = el.dataset.p, span = el.querySelector('.v');
+  if (span.querySelector('input')) return;
+  const old = span.classList.contains('null') ? '' : span.textContent;
+  span.innerHTML = `<input value="${esc(old)}">`; const inp = span.querySelector('input'); inp.focus(); inp.select();
+  const done = () => {
+    const nv = inp.value.trim() === '' ? null : (isNaN(+inp.value) || /^0\d/.test(inp.value) || inp.value.length > 9 ? inp.value.trim() : +inp.value);
+    if (!d.edited) d.edited = JSON.parse(JSON.stringify(d.result));
+    setPath(d.edited, p, nv); renderRes(d);
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') done(); if (e.key === 'Escape') renderRes(d); });
+  inp.addEventListener('blur', done);
+};
+window.approve = () => {
+  const d = docs[cur];
+  fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session: d.session, file: d.file, corrected: d.edited || d.result }) })
+    .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t); }))
+    .then(res => { d.approved = true; if (d.edited) { d.result = d.edited; d.edited = null; } renderRes(d); loadMem();
+      toast(res.corrected_fields ? `Zapisano ${res.corrected_fields} poprawek w pamięci` : 'Zatwierdzono — dokument dodany do pamięci'); })
+    .catch(e => toast('Błąd zapisu: ' + e.message));
+};
 window.setView = v => { view = v; renderRes(docs[cur]); };
 
 function fields(obj, path, ev, depth = 0) {
@@ -259,10 +337,12 @@ function fields(obj, path, ev, depth = 0) {
 }
 function row(p, k, v, ev) {
   const e = ev[p];
-  return `<div class="row" data-p="${esc(p)}" onclick="pick(this)"><span class="k">${KEY[k] || k.replaceAll('_', ' ')}</span>
+  const d0 = docs[cur]; const edited = d0 && d0.edited && JSON.stringify(getP(d0.edited, p)) !== JSON.stringify(getP(d0.result, p));
+  return `<div class="row ${edited ? 'edited' : ''}" data-p="${esc(p)}" onclick="pick(this)" ondblclick="editRow(this)" title="Kliknij dwukrotnie, aby poprawić"><span class="k">${KEY[k] || k.replaceAll('_', ' ')}</span>
     <span class="v ${v === null ? 'null' : ''}">${v === null ? '—' : esc(v)}</span><span class="dot ${e ? 'm-' + e.method : ''}" style="${e ? '' : 'opacity:0'}"></span>
     <div class="ev">${evText(e)}</div></div>`;
 }
+function getP(obj, path) { try { return path.match(/[^.\[\]]+|\[\d+\]/g).reduce((c, t) => c == null ? c : c[t[0] === '[' ? +t.slice(1, -1) : t], obj); } catch { return undefined; } }
 function evText(e) {
   if (!e) return 'Brak w dokumencie.';
   if (e.method === 'derived') return 'Wyznaczone regułą z konfiguracji.';
