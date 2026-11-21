@@ -41,6 +41,10 @@ def openrouter_extra(base_url: str | None, extra: dict | None, model: str | None
     return extra or None
 
 
+class ImageNotSupported(Exception):
+    """The selected model/endpoint does not accept image input."""
+
+
 class LLM:
     def __init__(self, cfg: dict):
         if not cfg.get("base_url") or not cfg.get("model"):
@@ -64,6 +68,8 @@ class LLM:
             except Exception as e:  # noqa: BLE001  (rate limits, timeouts, 5xx)
                 if getattr(e, "status_code", None) in (401, 402, 403):
                     raise RuntimeError(f"LLM API odrzuciło żądanie (klucz/środki): {e}") from e
+                if getattr(e, "status_code", None) == 404 and "image" in str(e).lower():
+                    raise ImageNotSupported(str(e)) from e  # text-only model: no point retrying
                 last = e
                 time.sleep(min(30, 2 ** attempt + random.random()))
         raise last
@@ -92,6 +98,10 @@ class LLM:
                 resp = self._chat(messages, **kw)
             except RuntimeError:
                 raise  # auth / billing
+            except ImageNotSupported:
+                # text-only model: drop attached page images and continue with the text layer / OCR text
+                messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+                resp = self._chat(messages, **kw)
             except Exception:  # noqa: BLE001  provider may not support json_schema -> fall back
                 kw["response_format"] = {"type": "json_object"}
                 resp = self._chat(messages, **kw)
