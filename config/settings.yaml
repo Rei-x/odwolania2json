@@ -73,7 +73,7 @@ providers:
   mistralai/ministral-3b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}
 
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
-profile: standard                  # domyślnie Ministral 8B (średnia parametrów = 8B -> 20 pkt)
+profile: auto                      # domyślnie: reguły + Ministral 3B -> 8B (średnia 5.5B -> 20 pkt)
 profiles:
   deterministyczny:                  # bez LLM: reguły z YAML (najtańszy, w pełni powtarzalny)
     extraction: {mode: deterministic}
@@ -95,4 +95,4 @@ profiles:
   maksymalny:                        # głosowanie małych modeli (średnia <= 8B) + reguły jako głos rozstrzygający
     llm: {model: mistralai/ministral-8b-2512}
     ocr: {model: mistralai/ministral-8b-2512, reasoning: null}
-    voting: {n: 3, models: [mistralai/ministral-8b-2512, mistralai/ministral-3b-2512], temperature: 0.4}
+    voting: {n: 3, models: [mistralai/ministral-8b-2512, mistralai/ministral-3b-2512], temperature: 0.4, include_deterministic: true}

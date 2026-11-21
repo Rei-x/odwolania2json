@@ -106,7 +106,16 @@ class Pipeline:
                 return E.postprocess(spec, r), mt
             with _TPE(max_workers=n_votes) as ex:
                 runs = list(ex.map(_run, range(n_votes)))
-            result, vote_info = vote([r for r, _ in runs], doc)
+            voters = [r for r, _ in runs]
+            if vcfg.get("include_deterministic"):  # YAML rules as an extra (tie-breaking) voter
+                try:
+                    from . import deterministic as D
+                    if D.has_rules(spec):
+                        n = D.pages_to_read(spec)
+                        voters.append(E.postprocess(spec, D.extract(spec, [p.text for p in (doc.pages[:n] if n else doc.pages)])))
+                except Exception as e:  # noqa: BLE001
+                    trace["voting_det_error"] = repr(e)
+            result, vote_info = vote(voters, doc)
             raw, meta = result, runs[0][1]
             vote_info["models"] = [models[i % len(models)] for i in range(n_votes)]
             trace["voting"] = vote_info
