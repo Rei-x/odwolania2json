@@ -1,0 +1,698 @@
+{
+  "pipeline|pdfium|standard|train_subset": {
+    "setup": "pipeline",
+    "parser": "pdfium",
+    "profile": "standard",
+    "set": "train_subset",
+    "f1": 0.9973,
+    "per_doc": {
+      "odwolanie": 0.9955,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 372,
+      "TN": 47,
+      "FP": 2,
+      "FN": 0
+    },
+    "docs": 46,
+    "cost_usd": 0.0388,
+    "llm_calls": 86,
+    "wall_s": 30.3,
+    "pipeline_median_s_per_doc_excl_parse": 3.93,
+    "misclassified": [
+      "negatywne/16_komisja_ds._regulacji_wynagrodzeń.json",
+      "negatywne/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/2025_BZP 00143067_01.json",
+      "negatywne/2025-OJS107-00364525-pl-ts-1.json",
+      "negatywne/2020_03_21-22prowadzenie_postepowania_odwolawczego.json",
+      "negatywne/2025_S 188-641009.json",
+      "negatywne/2025_S 112-383751.json",
+      "negatywne/Broszura_JPK_FA(2).json",
+      "negatywne/KIO_KIO 2617-21.json",
+      "przyklad_10/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/Decyzja-Ministra-Sportu-i-Turystyki1.json",
+      "negatywne/Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r..json",
+      "negatywne/1648041143_1647951357decyzja-ministrasportu-pzn.json"
+    ],
+    "run_dir": "runs/20261121-220409_mistralai_ministral-8b-2512",
+    "missing_text": 0,
+    "e2e_median_s_per_doc": 3.93,
+    "ts": "2026-11-21 22:04:39"
+  },
+  "pipeline|pdfium|standard|blind": {
+    "setup": "pipeline",
+    "parser": "pdfium",
+    "profile": "standard",
+    "set": "blind",
+    "f1": 0.9845,
+    "per_doc": {
+      "odwolanie": 0.9781,
+      "pelnomocnictwo": 0.9882,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "docs": 63,
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0683,
+    "llm_calls": 133,
+    "wall_s": 45.1,
+    "missing_text": 0,
+    "ts": "2026-11-21 22:05:25"
+  },
+  "baseline|pdfium|train_subset": {
+    "setup": "baseline_single_call",
+    "parser": "pdfium",
+    "model": "mistralai/ministral-8b-2512",
+    "set": "train_subset",
+    "docs": 33,
+    "f1": 0.9556,
+    "per_doc": {
+      "odwolanie": 0.9682,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 0.8421
+    },
+    "counts": {
+      "TP": 344,
+      "TN": 45,
+      "FP": 31,
+      "FN": 1
+    },
+    "cost_usd": 0.0094,
+    "llm_calls": 33,
+    "wall_s": 13.3,
+    "llm_median_s_per_doc": 2.68,
+    "e2e_median_s_per_doc": null,
+    "note": "oracle doctype given; in-scope documents only",
+    "ts": "2026-11-21 22:05:40"
+  },
+  "baseline|pdfium|blind": {
+    "setup": "baseline_single_call",
+    "parser": "pdfium",
+    "model": "mistralai/ministral-8b-2512",
+    "set": "blind",
+    "docs": 60,
+    "f1": 0.9331,
+    "per_doc": {
+      "odwolanie": 0.9258,
+      "pelnomocnictwo": 0.9792,
+      "potwierdzenie_przelewu": 0.8879
+    },
+    "counts": {
+      "TP": 628,
+      "FP": 87,
+      "TN": 100,
+      "FN": 3
+    },
+    "cost_usd": 0.0198,
+    "llm_calls": 60,
+    "wall_s": 42.1,
+    "llm_median_s_per_doc": 2.41,
+    "e2e_median_s_per_doc": null,
+    "note": "oracle doctype given; in-scope documents only",
+    "per_field": null,
+    "ts": "2026-11-21 22:06:24"
+  },
+  "deterministic|train_subset|w1": {
+    "setup": "deterministic",
+    "parser": "pdfium",
+    "set": "train_subset",
+    "workers": 1,
+    "f1": 1.0,
+    "per_doc": {
+      "odwolanie": 1.0,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "docs": 46,
+    "wall_s": 0.75,
+    "docs_per_s": 65.71,
+    "median_s_per_doc": 0.005,
+    "pipeline_elapsed_s": 0.7,
+    "cost_usd": 0.0,
+    "ts": "2026-11-21 22:07:21"
+  },
+  "deterministic|train_subset|w8": {
+    "setup": "deterministic",
+    "parser": "pdfium",
+    "set": "train_subset",
+    "workers": 8,
+    "f1": 1.0,
+    "per_doc": {
+      "odwolanie": 1.0,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "docs": 46,
+    "wall_s": 0.69,
+    "docs_per_s": 76.67,
+    "median_s_per_doc": 0.075,
+    "pipeline_elapsed_s": 0.6,
+    "cost_usd": 0.0,
+    "ts": "2026-11-21 22:07:21"
+  },
+  "pipeline|pdfium|deterministyczny|blind": {
+    "setup": "pipeline",
+    "parser": "pdfium",
+    "profile": "deterministyczny",
+    "set": "blind",
+    "f1": 0.8159,
+    "per_doc": {
+      "odwolanie": 0.7603,
+      "pelnomocnictwo": 0.8306,
+      "potwierdzenie_przelewu": 0.9561
+    },
+    "docs": 63,
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.7,
+    "missing_text": 0,
+    "ts": "2026-11-21 22:07:29"
+  },
+  "opus|train": {
+    "setup": "opus_reference",
+    "model": "claude-opus-5-5 (Anthropic API, native PDF, effort=high)",
+    "set": "train",
+    "docs_scored": 33,
+    "docs_total": 33,
+    "f1": 1.0,
+    "per_doc": {
+      "odwolanie": 1.0,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 374,
+      "TN": 47,
+      "FP": 0,
+      "FN": 0
+    },
+    "cost_usd_cumulative": 0.949,
+    "median_s_per_doc": 3.7,
+    "skipped_budget": 0,
+    "note": "oracle doctype given; organiser template only; in-scope documents",
+    "ts": "2026-11-21 22:08:36"
+  },
+  "pipeline|docling|deterministyczny|blind": {
+    "setup": "pipeline",
+    "parser": "docling",
+    "profile": "deterministyczny",
+    "set": "blind",
+    "f1": 0.6299,
+    "per_doc": {
+      "odwolanie": 0.4098,
+      "pelnomocnictwo": 0.786,
+      "potwierdzenie_przelewu": 0.9231,
+      "wyrok_KIO": 0.0
+    },
+    "docs": 63,
+    "negatives_rejected": "2/3",
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.3,
+    "missing_text": 0,
+    "ts": "2026-11-21 22:08:38"
+  },
+  "pipeline|unstructured_fast|deterministyczny|blind": {
+    "setup": "pipeline",
+    "parser": "unstructured_fast",
+    "profile": "deterministyczny",
+    "set": "blind",
+    "f1": 0.8,
+    "per_doc": {
+      "odwolanie": 0.7465,
+      "pelnomocnictwo": 0.7801,
+      "potwierdzenie_przelewu": 0.9829,
+      "wyrok_KIO": 0.0
+    },
+    "docs": 63,
+    "negatives_rejected": "2/3",
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.3,
+    "missing_text": 0,
+    "ts": "2026-11-21 22:09:09"
+  },
+  "opus|blind": {
+    "setup": "opus_reference",
+    "model": "claude-opus-5-5 (Anthropic API, native PDF, effort=high)",
+    "set": "blind",
+    "docs_scored": 60,
+    "docs_total": 60,
+    "f1": 1.0,
+    "per_doc": {
+      "odwolanie": 1.0,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 678,
+      "TN": 124,
+      "FP": 0,
+      "FN": 0
+    },
+    "cost_usd_cumulative": 2.936,
+    "median_s_per_doc": 4.0,
+    "skipped_budget": 0,
+    "note": "oracle doctype given; organiser template only; in-scope documents",
+    "ts": "2026-11-21 22:09:52"
+  },
+  "pipeline|pdfium|deterministyczny|train_subset": {
+    "setup": "pipeline",
+    "parser": "pdfium",
+    "profile": "deterministyczny",
+    "set": "train_subset",
+    "f1": 1.0,
+    "per_doc": {
+      "odwolanie": 1.0,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 374,
+      "TN": 47,
+      "FP": 0,
+      "FN": 0
+    },
+    "docs": 46,
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.6,
+    "pipeline_median_s_per_doc_excl_parse": 0.06,
+    "misclassified": [
+      "negatywne/1648041143_1647951357decyzja-ministrasportu-pzn.json",
+      "negatywne/16_komisja_ds._regulacji_wynagrodzeń.json",
+      "negatywne/2020_03_21-22prowadzenie_postepowania_odwolawczego.json",
+      "negatywne/2025-OJS107-00364525-pl-ts-1.json",
+      "negatywne/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/2025_BZP 00143067_01.json",
+      "negatywne/2025_S 112-383751.json",
+      "negatywne/2025_S 188-641009.json",
+      "negatywne/Broszura_JPK_FA(2).json",
+      "negatywne/Decyzja-Ministra-Sportu-i-Turystyki1.json",
+      "negatywne/KIO_KIO 2617-21.json",
+      "negatywne/Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r..json",
+      "przyklad_10/2025-OJS107-00364525-pl-ts.json"
+    ],
+    "run_dir": "runs/20261121-221030_deterministic",
+    "missing_text": 0,
+    "e2e_median_s_per_doc": 0.06,
+    "ts": "2026-11-21 22:10:31"
+  },
+  "pipeline|docling|deterministyczny|train_subset": {
+    "setup": "pipeline",
+    "parser": "docling",
+    "profile": "deterministyczny",
+    "set": "train_subset",
+    "f1": 0.6595,
+    "per_doc": {
+      "odwolanie": 0.4211,
+      "pelnomocnictwo": 0.8707,
+      "potwierdzenie_przelewu": 0.9524
+    },
+    "counts": {
+      "TP": 184,
+      "FN": 182,
+      "TN": 47,
+      "FP": 8
+    },
+    "docs": 46,
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.2,
+    "pipeline_median_s_per_doc_excl_parse": 0.02,
+    "misclassified": [
+      "negatywne/1648041143_1647951357decyzja-ministrasportu-pzn.json",
+      "negatywne/2025-OJS107-00364525-pl-ts-1.json",
+      "negatywne/2020_03_21-22prowadzenie_postepowania_odwolawczego.json",
+      "negatywne/16_komisja_ds._regulacji_wynagrodzeń.json",
+      "negatywne/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/2025_S 112-383751.json",
+      "negatywne/2025_BZP 00143067_01.json",
+      "negatywne/Broszura_JPK_FA(2).json",
+      "negatywne/2025_S 188-641009.json",
+      "negatywne/KIO_KIO 2617-21.json",
+      "negatywne/Decyzja-Ministra-Sportu-i-Turystyki1.json",
+      "negatywne/Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r..json",
+      "przyklad_10/2025-OJS107-00364525-pl-ts.json"
+    ],
+    "run_dir": "runs/20261121-221031_deterministic",
+    "missing_text": 0,
+    "e2e_median_s_per_doc": 0.7,
+    "ts": "2026-11-21 22:10:31"
+  },
+  "pipeline|unstructured_fast|deterministyczny|train_subset": {
+    "setup": "pipeline",
+    "parser": "unstructured_fast",
+    "profile": "deterministyczny",
+    "set": "train_subset",
+    "f1": 0.9582,
+    "per_doc": {
+      "odwolanie": 0.9726,
+      "pelnomocnictwo": 0.8859,
+      "potwierdzenie_przelewu": 0.9924
+    },
+    "counts": {
+      "TP": 344,
+      "FP": 13,
+      "TN": 47,
+      "FN": 17
+    },
+    "docs": 46,
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.2,
+    "pipeline_median_s_per_doc_excl_parse": 0.02,
+    "misclassified": [
+      "negatywne/16_komisja_ds._regulacji_wynagrodzeń.json",
+      "negatywne/2025_BZP 00143067_01.json",
+      "negatywne/2020_03_21-22prowadzenie_postepowania_odwolawczego.json",
+      "negatywne/1648041143_1647951357decyzja-ministrasportu-pzn.json",
+      "negatywne/2025_S 112-383751.json",
+      "negatywne/2025-OJS107-00364525-pl-ts-1.json",
+      "negatywne/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/2025_S 188-641009.json",
+      "przyklad_10/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/Broszura_JPK_FA(2).json",
+      "negatywne/Decyzja-Ministra-Sportu-i-Turystyki1.json",
+      "negatywne/Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r..json",
+      "negatywne/KIO_KIO 2617-21.json"
+    ],
+    "run_dir": "runs/20261121-221032_deterministic",
+    "missing_text": 0,
+    "e2e_median_s_per_doc": 0.06,
+    "ts": "2026-11-21 22:10:32"
+  },
+  "pipeline|unstructured_hires|deterministyczny|train_subset": {
+    "setup": "pipeline",
+    "parser": "unstructured_hires",
+    "profile": "deterministyczny",
+    "set": "train_subset",
+    "f1": 0.9568,
+    "per_doc": {
+      "odwolanie": 0.9796,
+      "pelnomocnictwo": 0.8859,
+      "potwierdzenie_przelewu": 0.9606
+    },
+    "counts": {
+      "TP": 343,
+      "FP": 13,
+      "TN": 47,
+      "FN": 18
+    },
+    "docs": 46,
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.2,
+    "pipeline_median_s_per_doc_excl_parse": 0.02,
+    "misclassified": [
+      "negatywne/16_komisja_ds._regulacji_wynagrodzeń.json",
+      "negatywne/2025-OJS107-00364525-pl-ts-1.json",
+      "negatywne/2020_03_21-22prowadzenie_postepowania_odwolawczego.json",
+      "negatywne/1648041143_1647951357decyzja-ministrasportu-pzn.json",
+      "negatywne/2025-OJS107-00364525-pl-ts.json",
+      "negatywne/2025_S 188-641009.json",
+      "negatywne/2025_S 112-383751.json",
+      "negatywne/2025_BZP 00143067_01.json",
+      "negatywne/Broszura_JPK_FA(2).json",
+      "negatywne/Decyzja-Ministra-Sportu-i-Turystyki1.json",
+      "negatywne/Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r..json",
+      "negatywne/KIO_KIO 2617-21.json",
+      "przyklad_10/2025-OJS107-00364525-pl-ts.json"
+    ],
+    "run_dir": "runs/20261121-221905_deterministic",
+    "missing_text": 0,
+    "e2e_median_s_per_doc": 1.81,
+    "ts": "2026-11-21 22:19:05"
+  },
+  "pipeline|unstructured_hires|deterministyczny|blind": {
+    "setup": "pipeline",
+    "parser": "unstructured_hires",
+    "profile": "deterministyczny",
+    "set": "blind",
+    "f1": 0.7913,
+    "per_doc": {
+      "odwolanie": 0.7469,
+      "pelnomocnictwo": 0.7845,
+      "potwierdzenie_przelewu": 0.9375,
+      "wyrok_KIO": 0.0
+    },
+    "docs": 63,
+    "negatives_rejected": "2/3",
+    "cost_usd": 0.0,
+    "llm_calls": 0,
+    "wall_s": 0.3,
+    "missing_text": 0,
+    "ts": "2026-11-21 22:19:06"
+  },
+  "_timing": {
+    "docling_hetzner-ccx23": {
+      "parser": "docling",
+      "config": "DocumentConverter defaults (do_ocr=True auto engine, table structure), device=cpu, threads=4, export_to_markdown(page_no=i)",
+      "machine": "hetzner-ccx23",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 5.45,
+      "init_s": 12.61,
+      "first_doc_s": 27.11,
+      "cold_total_s": 45.17,
+      "warm_median_s_per_doc": 2.221,
+      "warm_mean_s_per_doc": 8.279,
+      "warm_s_per_page": 1.796,
+      "warm_median_s_inscope_doc": 1.826,
+      "warm_total_s": 380.83,
+      "process_total_s": 426.0,
+      "slowest": [
+        [
+          110.93,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ],
+        [
+          44.74,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ],
+        [
+          23.55,
+          "1648041143_1647951357decyzja-ministrasportu-pzn.pdf",
+          4
+        ]
+      ]
+    },
+    "docling_m5pro": {
+      "parser": "docling",
+      "config": "DocumentConverter defaults (do_ocr=True auto engine, table structure), device=cpu, threads=4, export_to_markdown(page_no=i)",
+      "machine": "m5pro",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 1.3,
+      "init_s": 2.44,
+      "first_doc_s": 7.09,
+      "cold_total_s": 10.83,
+      "warm_median_s_per_doc": 0.586,
+      "warm_mean_s_per_doc": 1.58,
+      "warm_s_per_page": 0.343,
+      "warm_median_s_inscope_doc": 0.555,
+      "warm_total_s": 72.69,
+      "process_total_s": 83.5,
+      "slowest": [
+        [
+          16.46,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ],
+        [
+          7.13,
+          "1648041143_1647951357decyzja-ministrasportu-pzn.pdf",
+          4
+        ],
+        [
+          6.16,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ]
+      ]
+    },
+    "pdfium_hetzner-ccx23": {
+      "parser": "pdfium",
+      "config": "o2j.pdf.load (pypdfium2 + annotation flattening + mojibake fix), no OCR",
+      "machine": "hetzner-ccx23",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 0.07,
+      "init_s": 0.0,
+      "first_doc_s": 0.0,
+      "cold_total_s": 0.07,
+      "warm_median_s_per_doc": 0.002,
+      "warm_mean_s_per_doc": 0.014,
+      "warm_s_per_page": 0.003,
+      "warm_median_s_inscope_doc": 0.002,
+      "warm_total_s": 0.64,
+      "process_total_s": 0.7,
+      "slowest": [
+        [
+          0.12,
+          "KIO_KIO 2617-21.pdf",
+          10
+        ],
+        [
+          0.09,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ],
+        [
+          0.08,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ]
+      ]
+    },
+    "pdfium_m5pro": {
+      "parser": "pdfium",
+      "config": "o2j.pdf.load (pypdfium2 + annotation flattening + mojibake fix), no OCR",
+      "machine": "m5pro",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 0.02,
+      "init_s": 0.0,
+      "first_doc_s": 0.0,
+      "cold_total_s": 0.02,
+      "warm_median_s_per_doc": 0.001,
+      "warm_mean_s_per_doc": 0.008,
+      "warm_s_per_page": 0.002,
+      "warm_median_s_inscope_doc": 0.001,
+      "warm_total_s": 0.35,
+      "process_total_s": 0.4,
+      "slowest": [
+        [
+          0.07,
+          "KIO_KIO 2617-21.pdf",
+          10
+        ],
+        [
+          0.04,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ],
+        [
+          0.04,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ]
+      ]
+    },
+    "unstructured_fast_hetzner-ccx23": {
+      "parser": "unstructured_fast",
+      "config": "partition_pdf(strategy=fast, languages=['pol']), elements joined per page",
+      "machine": "hetzner-ccx23",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 3.48,
+      "init_s": 0.0,
+      "first_doc_s": 0.35,
+      "cold_total_s": 3.83,
+      "warm_median_s_per_doc": 0.065,
+      "warm_mean_s_per_doc": 0.345,
+      "warm_s_per_page": 0.075,
+      "warm_median_s_inscope_doc": 0.057,
+      "warm_total_s": 15.85,
+      "process_total_s": 19.7,
+      "slowest": [
+        [
+          2.18,
+          "16_komisja_ds._regulacji_wynagrodzeń.pdf",
+          1
+        ],
+        [
+          1.79,
+          "KIO_KIO 2617-21.pdf",
+          10
+        ],
+        [
+          1.47,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ]
+      ]
+    },
+    "unstructured_fast_m5pro": {
+      "parser": "unstructured_fast",
+      "config": "partition_pdf(strategy=fast, languages=['pol']), elements joined per page",
+      "machine": "m5pro",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 2.32,
+      "init_s": 0.0,
+      "first_doc_s": 0.3,
+      "cold_total_s": 2.62,
+      "warm_median_s_per_doc": 0.031,
+      "warm_mean_s_per_doc": 0.143,
+      "warm_s_per_page": 0.031,
+      "warm_median_s_inscope_doc": 0.027,
+      "warm_total_s": 6.58,
+      "process_total_s": 9.2,
+      "slowest": [
+        [
+          0.8,
+          "KIO_KIO 2617-21.pdf",
+          10
+        ],
+        [
+          0.69,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ],
+        [
+          0.68,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ]
+      ]
+    },
+    "unstructured_hires_m5pro": {
+      "parser": "unstructured_hires",
+      "config": "partition_pdf(strategy=hi_res, languages=['pol']), elements joined per page",
+      "machine": "m5pro",
+      "docs": 46,
+      "pages": 212,
+      "import_s": 1.76,
+      "init_s": 0.95,
+      "first_doc_s": 7.12,
+      "cold_total_s": 9.83,
+      "warm_median_s_per_doc": 1.714,
+      "warm_mean_s_per_doc": 7.678,
+      "warm_s_per_page": 1.666,
+      "warm_median_s_inscope_doc": 1.307,
+      "warm_total_s": 353.18,
+      "process_total_s": 363.0,
+      "slowest": [
+        [
+          46.15,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego.pdf",
+          35
+        ],
+        [
+          41.74,
+          "Broszura_JPK_FA(2).pdf",
+          31
+        ],
+        [
+          22.72,
+          "KIO_KIO 2617-21.pdf",
+          10
+        ]
+      ]
+    }
+  },
+  "_meta": {
+    "hardware": {
+      "local": "Apple M5 Pro, 18 cores, 64 GB RAM, macOS 26.6.2; Docling device=cpu (4 threads), Unstructured hi_res onnxruntime CPUExecutionProvider; no GPU/MPS",
+      "hetzner-ccx23": "AMD EPYC-Milan, 4 dedicated vCPU, 16 GB RAM, no GPU; a model sweep (API-bound) was running in tmux"
+    },
+    "openrouter_spend_usd": 0.1363,
+    "opus_spend_usd": 2.936,
+    "pending": "Ministral runs with docling/unstructured text (pipeline + baseline, train + blind) not run: OpenRouter HTTP 402 (account out of credits)"
+  }
+}
