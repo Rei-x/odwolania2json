@@ -101,3 +101,156 @@ fields:
       numer_postepowania: {type: string, description: "Numer referencyjny / znak / nr postępowania, np. 'ZP.039.2025', 'DZP.260.11.2025'."}
       numer_ted: {type: string, normalize: [ted], pattern: '\d{5,7}-\d{4}', description: "Numer ogłoszenia TED, format 'NNNNNN-YYYY' (z 'YYYY/S ###-NNNNNN' zapisz jako 'NNNNNN-YYYY')."}
       tytul: {type: string, description: Tytuł (nazwa) zamówienia/postępowania, bez cudzysłowów.}
+
+# Tryb deterministyczny (extraction.mode: deterministic): reguły bez LLM, składnia w o2j/deterministic.py.
+deterministic:
+  drop_lines: ['^Strona \d+ z \d+$', '^-?\s*\d{1,3}\s*-?$']
+  defs:
+    month: 'stycznia|lutego|marca|kwietnia|maja|czerwca|lipca|sierpnia|września|października|listopada|grudnia'
+    roman: 'XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I'
+    date: '\d{4}-\d{2}-\d{2}|\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{1,2}\s+(?:{month})\s+\d{4}|\d{1,2}\s+(?:{roman})\s+\d{4}|(?i:{day_words})\s+(?:{month})\s+\d{4}'
+    date_rel: '{date}|\d{1,2}\s+(?:{month})(?:\s+(?:br\.?|b\.r\.))?'
+    city: '[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+(?:[ -][A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+){0,2}'
+    city_date: '^\s*(?P<c>{city})\s*,\s*(?:dnia\s+|dn\.\s*)?(?P<v>{date})'
+    tok: '(?:[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+|[A-ZŁŚŻŹĆ]{2,})(?:-[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+)?'
+    name: '{tok}\s+{tok}'
+    title: 'adw\.|adwokat\w*|r\.\s?pr\.|radc\w*\s+prawn\w*|radczyni\s+prawn\w*|apl\.\s?(?:adw|radc)\.?|aplikant\w*\s+\w+|mec\.|dr\.?|Pan[aui]?|Pani'
+    titles: '(?:(?:{title})\s*)*'
+    # etykieta podmiotu: "Odwołujący:", "Odwołujący (Lider):", "Odwołujący Nazwa..." (tabela bez dwukropka)
+    lab_end: '(?:\s*\([^)]*\))?(?:\s*:|[ \t]*[—–-][^:\n]{0,30}:|[ \t]+(?=[A-ZŁŚŻŹĆ„"])|[ \t]*$)'
+    # dwie kolumny obok siebie (tabela "Odwołujący | Zamawiający"): podział linii po formie prawnej / przed adresem
+    col_split: '(?:(?<=S\.A\.)|(?<=sp\. j\.)|(?<=sp\.j\.)|(?<=sp\. k\.)|(?<=sp\.k\.)|(?<=o\.o\.)|(?<=s\.c\.)|(?<=sp\.p\.)|(?<=sp\. p\.))\s+(?=\S)|(?<=\S)\s+(?=(?:ul\.|al\.|pl\.|os\.)\s)'
+    entity_stop: '^(?:Odwołując|Zamawiając)\w*(?:\s+wspólnie)?{lab_end}|^[Dd]otyczy|^Wykonawca wybrany|^Przystępując|^Uczestnik|^\s*ODWOŁANIE\b|^O D W|^Prezes Krajowej|^Krajowa Izba|^Działając|^Wartość zamówienia|^Wpis\b|^{city}\s*,\s*(?:dnia\s+)?\d|^(?:Dane dotyczące postępowania|Postępowanie\b|Przedmiot\b|Nazwa zamówienia|Numer postępowania|Oznaczenie sprawy|Odwołanie dotyczy|Pismo dotyczy|Tryb\b|[IVX]+\.\s|#)'
+    ident_krs: '(?:KRS|Krajow\w+\s+Rejestr\w*\s+Sądow\w*)[^\d]{0,40}(?P<v>\d{10})'
+    ident_nip: 'NIP[^\d]{0,10}(?P<v>\d{3}-?\d{3}-?\d{2}-?\d{2}|\d{3}-?\d{2}-?\d{2}-?\d{3})'
+    ident_regon: 'REGON[^\d]{0,10}(?P<v>\d{9}(?:\d{5})?)'
+    zan: 'zaniecha\w*(?:,[^,]{0,40},|\s+w\s+dniu\s+\S+\s+\S+\s+\d{4}\s*(?:r\.|roku)?)?\s+(?:czynności\s+)?'
+    code: '(?=[\w./\-]*\d)[A-Z][A-Za-z]{0,9}(?:[./\-][A-Za-z0-9]+)+'
+    name_cut: ',\s*(?:ul\.|al\.|pl\.|os\.|KRS|NIP|REGON|przedsiębiorca|z siedzibą|\d{2}-\d{3})|;|\s+prowadząc\w*\s+działalnoś'
+  classify:
+    keywords:
+      'Sygn\. akt|^\s*WYROK\b|^\s*POSTANOWIENIE\b|Izba w składzie': -8
+  scopes:
+    header: {to: ['^Działając', 'wnoszę odwołanie', '^Zarzut', '^ZARZUT', '^UZASADNIENIE', '^[IVX]+\.\s'], pages: [1, 2]}
+    front: {to: ['^Działając', '^Zarzut', '^ZARZUT', '^UZASADNIENIE', '^[IVX]+\.\s', '^#'], pages: [1, 2]}
+    odw: {first_of: [odw_col1, odw_col2, odw_lab]}
+    odw_lab: {from: '^Odwołując\w*{lab_end}', to: ['{entity_stop}']}
+    odw_col1: {column: {header: '^\s*Odwołując\w*:?[ \t]+Zamawiając\w*:?[ \t]*$', index: 0, split: '{col_split}'}}
+    odw_col2: {column: {header: '^\s*Zamawiając\w*:?[ \t]+Odwołując\w*:?[ \t]*$', index: 1, split: '{col_split}'}}
+    odw_rep: {within: odw_lab, from: '(?i)reprezentowan\w*\s+przez|pełnomocnik'}
+    zam: {first_of: [zam_col2, zam_col1, zam_lab]}
+    zam_lab: {from: '^Zamawiając\w*(?:\s+wspólnie)?{lab_end}', to: ['{entity_stop}']}
+    zam_col2: {column: {header: '^\s*Odwołując\w*:?[ \t]+Zamawiając\w*:?[ \t]*$', index: 1, split: '{col_split}'}}
+    zam_col1: {column: {header: '^\s*Zamawiając\w*:?[ \t]+Odwołując\w*:?[ \t]*$', index: 0, split: '{col_split}'}}
+    dotyczy: {from: '(?i)^(?:(?:Pismo|Odwołanie)\s+)?dotyczy\s*:?', to: ['^\s*ODWOŁANIE\b', '^O D W', '^Działając', '^Wartość zamówienia', '^Wpis\b', '^Prezes Krajowej', '^Krajowa Izba', '^{city}\s*,\s*(?:dnia\s+)?\d', '^Odwołując\w*{lab_end}', '^Zamawiając\w*{lab_end}', '^W sprawie', '^[IVX]+\.\s']}
+    first_act: {from: ['polegając\w*\s+na\s*:', 'wnoszę odwołanie\s+(?:od|wobec)\s*:', 'zaskarżam[^:.]{0,80}:'], to: ['^\s*2\s*[).]', '^Zamawiający\s+w\s+dniu', '^Zaskarżon', '^Zarzut', '^W związku', '^Uzasadnienie', '^UZASADNIENIE', '^[IVX]+\.\s']}
+    act_intro: {from: ['(?i)pierwsz\w*\s+zaskarżon\w*', 'Zaskarżam', '(?i)odwołanie obejmuje', '(?i)zaskarżeniu podlega', '(?i)przedmiotem zaskarżenia', 'zaskarżam'], include_from: true, max_chars: 300, to: ['(?<!\br)(?<!\d)\.\s+[A-ZŁŚŻŹĆ]']}
+    act_sentence: {from: 'Zamawiający\s+w\s+dniu', include_from: true, to: ['\.(?!\d)']}
+    act_zarzut: {from: '(?i)Zarzut\s+(?:nr\s*)?1\b', include_from: true, max_chars: 250}
+  fields:
+    OdwolanieKIO:
+      data:
+        - {scope: header, regex: '{city_date}', date_words: true}
+      miejscowosc:
+        - {scope: header, regex: '{city_date}', group: c}
+      czynnosc_dzien:
+        - {scope: first_act, regex: '{date_rel}', year_from: data, date_words: true}
+        - {scope: act_intro, regex: '{date_rel}', year_from: data, date_words: true}
+        - {scope: act_sentence, regex: '{date_rel}', year_from: data, date_words: true}
+        - {scope: act_zarzut, regex: '{date}'}
+      czynnosc_powod_id:
+        - scope: first_act
+          pick: earliest
+          map: &act_map   # kolejność ma znaczenie: zaniechania przed czynnościami, pochodne SWZ przed SWZ
+            - ['(?i){zan}unieważnieni|nie\s*unieważni', 10]
+            - ['(?i)unieważni', 9]
+            - ['(?i){zan}odrzuceni|nie\s*odrzuc', 7]
+            - ['(?i){zan}wykluczeni|nie\s*wyklucz', 8]
+            - ['(?i)odrzuc', 1]
+            - ['(?i)wyklucz', 3]
+            - ['(?i)modyfikac|zmodyfikował|zmian\w*\s+treści\s+(?:SWZ|specyfikacji)', 5]
+            - ['(?i)odpowiedzi|wyjaśnie', 6]
+            - ['(?i)projektowan\w*\s+postanowie|wzor\w*\s+umowy\s+(?:stanowiąc|zawart)', 12]
+            - ['(?i)opis\w*\s+przedmiotu\s+zamówienia|\bOPZ\b', 11]
+            - ['(?i)\bSWZ\b|specyfikacj\w*\s+warunków|ogłoszeni\w*\s+o\s+zamówieniu|warunk\w*\s+udziału', 4]
+            - ['(?i)wyb[oó]r\w*|wybra\w*|najkorzystniejsz', 2]
+        - {scope: act_intro, map: *act_map, pick: earliest}
+        - {scope: act_sentence, map: *act_map, pick: earliest}
+        - {scope: act_zarzut, map: *act_map, pick: earliest}
+    Odwolujacy:
+      scope: odw
+      split: '^\s*(?:\d\s*[).]\s*)?(?:Lider|Partner|Członek|Wykonawca\s+\d)\b[^\n:(]*(?:\([^)]*\))?[^\n:]*:[ \t]*\n?'
+      prefer_header: 'Lider'
+      limit: 1
+      item:
+        nazwa:
+          - {flat: true, regex: 'pod\s+firmą\s*:?\s*(?P<v>[^,;(]+)', cut: '\s+(?:reprezentowan|ul\.|al\.|NIP|REGON|KRS|przedsiębiorca|adres)'}
+          - first_line: true
+            sub: [['^(?:Nazwa(?:\s+wykonawcy)?|Firma|Wykonawca)\s*:\s*', '']]
+            cut: '{name_cut}'
+            exclude: '(?i)^(?:konsorcjum\b|zamawiając)'
+          - {regex: 'Lider\w*[^\n]*:?\s*\n\s*(?P<v>[^\n]+)', cut: '{name_cut}'}
+        krs: {regex: '{ident_krs}'}
+        nip: {regex: '{ident_nip}'}
+        regon: {regex: '{ident_regon}'}
+        przez-pelnomocnika: {scope: odw_lab, present: '(?i)reprezentowan\w*\s+przez|pełnomocnik', then: 1, else: 0}
+        pelnomocnik:
+          imie_nazwisko:
+            - {scope: odw_lab, flat: true, nominative: true, regex: 'reprezentowan\w*\s+przez(?:\s+pełnomocnik\w*)?\s*:?\s*{titles}(?P<v>{name})'}
+            - {scope: odw_lab, flat: true, nominative: true, regex: '(?i:pełnomocnik)\w*[^:]{0,40}?:?\s*(?:(?:{title})\s*)+(?P<v>{name})'}
+            - {scope: odw_lab, flat: true, nominative: true, regex: '(?i:pełnomocnik)\w*(?:\s+Odwołującego)?\s*:?\s*(?P<v>{name})'}
+          nazwa:
+            - scope: odw_lab
+              label: '(?i)adres\w*\s+do\s+korespondencji(?:\s+kancelarii)?\s*:?'
+              lines: 3
+              until: '(?i)^(?:tel|e-mail|faks|fax|mail|telefon|adres)|^\S+@'
+              sub: [['^(?:(?:{title})\s*)+{name}\s*,\s*', '']]
+              cut: ',\s*(?:ul\.|al\.|pl\.|os\.|ulica|\d{2}-\d{3})|;|\s+tel\.'
+              exclude: '(?i)^(?:ul\.|al\.|pl\.|os\.|siedziba)'
+            - {scope: odw_lab, regex: '^Kancelaria\s*:\s*(?P<v>[^\n]+)', cut: ',\s*(?:KRS|NIP|ul\.)'}
+            - {scope: odw_rep, flat: true, regex: '(?:^|[,;]\s*)(?P<v>(?:[A-ZŁŚŻŹĆ][\w-]*\s+){0,3}?Kancelari[^,;]*?)(?=\s*(?:[,;]|\s(?:ul\.|al\.|pl\.|adres|tel\.|e-mail)|$))'}
+            - {scope: odw_rep, regex: '(?:^|[,;]\s*)(?P<v>(?:[A-ZŁŚŻŹĆ][\w-]*\s+){0,3}?Kancelari[^,;\n]*)'}
+          mail:
+            - {scope: odw_rep, regex: '[\w.+-]+@[\w-]+(?:\.[\w-]+)+'}
+    Zamawiajacy:
+      scope: zam
+      split:
+        - '^\s*(?:\d\s*[).]\s*Zamawiając\w*|Zamawiając\w*\s+\d+)[^:\n]*:[ \t]*\n?'
+        - '^(?=[A-ZŁŚŻŹĆ][^\n]*\n\s*(?:ul\.|al\.|pl\.|os\.)\s)'    # kilku zamawiających bez numeracji: nazwa + adres
+      single_null: [prowadzacy_postepowanie]
+      item:
+        nazwa:
+          - first_line: true
+            sub: [['^(?:Nazwa(?:\s+zamawiającego)?|Firma)\s*:\s*', '']]
+            cut: '{name_cut}'
+        krs: {regex: '{ident_krs}'}
+        nip: {regex: '{ident_nip}'}
+        regon: {regex: '{ident_regon}'}
+        prowadzacy_postepowanie: {scope: _header, present: '(?i)lider|prowadząc|pełnomocnik', then: 1, else: 0}
+    ZamowieniePubliczne:
+      tytul:
+        - {scope: dotyczy, flat: true, regex: '(?:pn\.?|pod\s+nazwą|nazwa\s+zamówienia\s*:?)\s*[„"“]\s*(?P<v>[^”"“]+?)\s*[”"“]'}
+        - scope: front
+          label: '(?i)^(?:Nazwa\s+zamówienia|Przedmiot\s+zamówienia|Nazwa\s+postępowania|Tytuł\s+zamówienia)\s*:?'
+          lines: 2
+          until: '^(?:Numer|Nr|Znak|Ogłoszenie|Tryb|Postępowanie|Oznaczenie|Wartość|Odwołując|Zamawiając|Działając|Dotyczy|ODWOŁANIE)'
+          sub: [['[„”"“]', '']]
+          strip: ' ,;:.'
+        - {scope: front, flat: true, regex: '(?:pn\.?|pod\s+nazwą)\s*[„"“]\s*(?P<v>[^”"“]+?)\s*[”"“]'}
+        - {scope: dotyczy, flat: true, regex: '[„"“]\s*(?P<v>[^”"“]{15,}?)\s*[”"“]'}
+      numer_postepowania:
+        - {scope: dotyczy, flat: true, strip: ' ,;:.', regex: '(?i:nr|numer\w*|znak|oznaczon\w*)\s+(?i:referencyjn\w*|sprawy|postępowania)?(?:\s+sprawy)?\s*:?\s*(?P<v>{code})'}
+        - near:
+            label: ['(?i)n(?:ume)?r\.?\s+referencyjn\w*(?:\s+sprawy)?', '(?i)numer\w*\s+referencyjn\w*(?:\s+sprawy)?', '(?i)znak\w*\s+sprawy', '(?i)oznaczeni\w*\s+sprawy', '(?i)n(?:ume)?r\.?\s+postępowania', '(?i)numer\w*\s+postępowania', '(?i)sygnatur\w*\s+postępowania']
+            value: '{code}'
+            window: 40
+          scope: front
+          strip: ' ,;:.'
+      numer_bzp:
+        - {scope: dotyczy, flat: true, regex: '(?P<v>\d{4}\s*/\s*BZP\s*\d{6,8}(?:\s*/\s*\d{1,2})?)'}
+        - {scope: front, flat: true, regex: '(?P<v>\d{4}\s*/\s*BZP\s*\d{6,8}(?:\s*/\s*\d{1,2})?)'}
+      numer_ted:
+        - {scope: dotyczy, flat: true, regex: '(?P<v>\d{4}\s*/\s*S\s*\d{1,3}\s*-\s*\d{5,7})'}
+        - {scope: dotyczy, flat: true, regex: '(?<![\d/])(?P<v>\d{5,7}\s*-\s*\d{4})(?!\d)'}
+        - {scope: front, flat: true, regex: '(?P<v>\d{4}\s*/\s*S\s*\d{1,3}\s*-\s*\d{5,7})'}
+        - {scope: front, flat: true, regex: '(?<![\d/])(?P<v>\d{5,7}\s*-\s*\d{4})(?!\d)'}

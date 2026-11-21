@@ -24,6 +24,9 @@ voting:
   n: 1                               # >1 => kilka niezależnych ekstrakcji i głosowanie per pole
   models: []                         # np. [deepseek/deepseek-v4.1-flash, qwen/...]; puste => model z sekcji llm
   temperature: 0.7                   # dla przebiegów ponad liczbę modeli
+extraction:
+  mode: llm                          # llm (LLM + weryfikacja/naprawa) | deterministic (reguły z sekcji `deterministic:` w YAML typów, zero wywołań LLM)
+  ocr_engine: none                   # tylko dla deterministic: none | paddle (lokalny OCR); vlm wymagałby LLM
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
