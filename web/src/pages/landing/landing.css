@@ -16,6 +16,14 @@
   36% { filter: contrast(.85) saturate(.3) brightness(.92) }
   50%, 100% { transform: none; filter: none }
 }
+/* narrow stages: smaller and nudged right while turning, so the page never leaves the stage */
+@keyframes lp-rot-m {
+  0%, 14% { transform: translateX(10cqw) rotate(90deg) scale(.55) skewX(-4deg); filter: contrast(.85) saturate(.3) brightness(.92); animation-timing-function: cubic-bezier(.45,0,.55,1) }
+  24% { transform: translateX(10cqw) rotate(45deg) scale(.68) skewX(-2deg); filter: contrast(.85) saturate(.3) brightness(.92); animation-timing-function: cubic-bezier(.3,0,.25,1) }
+  33% { transform: translateX(0) rotate(0deg) scale(1) skewX(0); filter: contrast(.85) saturate(.3) brightness(.92) }
+  36% { filter: contrast(.85) saturate(.3) brightness(.92) }
+  50%, 100% { transform: none; filter: none }
+}
 @keyframes lp-noise { 0%, 36% { opacity: .75 } 50%, 100% { opacity: 0 } }
 @keyframes lp-scan2 { 0%, 33% { top: -12%; opacity: 0 } 34% { top: -12%; opacity: 1 } 57% { top: 100%; opacity: 1 } 58%, 100% { top: 100%; opacity: 0 } }
 @keyframes lp-mojout2 { 0%, 48% { opacity: 1; filter: none } 56%, 100% { opacity: 0; filter: blur(2px) } }
@@ -350,6 +358,7 @@
     .rt-lanes { gap: 8cqw }
     .rt-foot { font-size: 2.8cqw; padding: 2.4cqw 3.6cqw; border-radius: 4cqw; text-align: center }
     .slabel em { padding: .8cqw 1.6cqw }
+    .stage.s1.play:not(.s2) .paper { animation-name: lp-rot-m }
   }
   @media (max-width: 900px) {
     .pipe { grid-template-columns: 1fr; gap: 0 }
