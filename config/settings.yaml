@@ -19,6 +19,9 @@ ocr:
   attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
   max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
+extraction:
+  mode: llm                          # llm (LLM + weryfikacja/naprawa) | deterministic (reguły z sekcji `deterministic:` w YAML typów, zero wywołań LLM)
+  ocr_engine: none                   # tylko dla deterministic: none | paddle (lokalny OCR); vlm wymagałby LLM
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:

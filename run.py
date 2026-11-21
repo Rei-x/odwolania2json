@@ -30,11 +30,12 @@ def main(argv=None):
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--cases", type=int, default=0, help="eval: liczba spraw (0 = wszystkie)")
     ap.add_argument("--src", type=Path, default=None, help="eval: katalog z PDF-ami (domyślnie data/train); GT zawsze z data/train")
+    ap.add_argument("--mode", default=None, help="nadpisuje extraction.mode z konfiguracji (llm | deterministic)")
     ap.add_argument("--verbose", "-v", action="store_true")
     a = ap.parse_args(argv)
 
     s = load_settings()
-    pipe = Pipeline(s, model=a.model)
+    pipe = Pipeline(s, model=a.model, mode=a.mode)
 
     if a.command == "run":
         trace = a.trace or s["paths"]["trace"]
@@ -54,7 +55,7 @@ def main(argv=None):
     cases = sorted(p.name for p in src.iterdir() if p.is_dir())
     if a.cases:
         cases = cases[:: max(1, len(cases) // a.cases)][: a.cases]
-    tag = time.strftime("%Y%m%d-%H%M%S") + "_" + pipe.llm.model.replace("/", "_") + ("_" + src.name if a.src else "")
+    tag = time.strftime("%Y%m%d-%H%M%S") + "_" + pipe.model_name.replace("/", "_") + ("_" + src.name if a.src else "")
     run = ROOT / "runs" / tag
     inp, gt = run / "input", run / "gt"
     for c in cases:
@@ -66,7 +67,7 @@ def main(argv=None):
     summary = pipe.run_dir(inp, run / "output", run / "trace", workers=a.workers, exclude_self=True)
     r = score_dirs(run / "output", gt, verbose=a.verbose)
     from o2j.llm import COST
-    r["model"], r["cases"], r["elapsed_s"] = pipe.llm.model, len(cases), round(time.time() - t0, 1)
+    r["model"], r["cases"], r["elapsed_s"] = pipe.model_name, len(cases), round(time.time() - t0, 1)
     r["cost"] = dict(COST)
     r["misclassified"] = [x for x in summary if x["doctype"] not in Path(x["file"]).stem and
                           not (x["doctype"] == "przelew" and "przelew" in x["file"])]

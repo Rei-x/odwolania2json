@@ -37,6 +37,7 @@ def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_sco
     second_s = ranked[1][1] if len(ranked) > 1 else 0
     info = {"method": "rules", "scores": scores}
     confident = best_s >= min_score and best_s - second_s >= 2
+    info["confident"] = confident
     if llm is None or (mode == "rules" and confident):
         return (best if best_s > 0 else "inny"), info
     if not head.strip():

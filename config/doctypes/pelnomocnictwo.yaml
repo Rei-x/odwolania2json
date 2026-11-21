@@ -56,3 +56,64 @@ fields:
       properties:
         imie_nazwisko: {type: string, normalize: [person], single_person: true, description: Imię i nazwisko pełnomocnika w mianowniku.}
         pesel: {type: integer, normalize: [pesel], description: PESEL pełnomocnika (jeśli podany).}
+
+# Tryb deterministyczny (extraction.mode: deterministic): reguły bez LLM, składnia w o2j/deterministic.py.
+deterministic:
+  drop_lines: ['^Strona \d+ z \d+$', '^-?\s*\d{1,3}\s*-?$']
+  defs:
+    tok: '(?:[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+|[A-ZŁŚŻŹĆ]{2,})(?:-[A-ZŁŚŻŹĆ][a-ząćęłńóśźż]+)?'
+    name: '{tok}[ \t]+{tok}'
+    name_flat: '{tok}\s+{tok}'
+    title_pro: 'adw\.|adwokat\w*|r\.\s?pr\.|radc\w*\s+prawn\w*|radczyni\s+prawn\w*|apl\.\s?(?:adw|radc)\.?|aplikant\w*\s+(?:adwokack|radcowsk)\w*|mec\.'
+    title: '{title_pro}|Pan[aui]?|Pani'
+    company: '[A-ZŁŚŻŹĆ][^,;:()„”"\n]{1,80}?\s(?:S\.A\.|S\.K\.A\.|sp\.\s?z\s?o\.\s?o\.(?:\s?sp\.\s?k\.)?|sp\.\s?j\.|sp\.\s?k\.|sp\.\s?p\.|s\.c\.|[Ss]półka\s+(?:z\s+ograniczoną\s+odpowiedzialnością|akcyjna|jawna|komandytowa|cywilna|partnerska))'
+    ident_krs: '(?:KRS|Krajow\w+\s+Rejestr\w*\s+Sądow\w*)[^\d]{0,40}(?P<v>\d{10})'
+    ident_nip: 'NIP[^\d]{0,10}(?P<v>\d{3}-?\d{3}-?\d{2}-?\d{2}|\d{3}-?\d{2}-?\d{2}-?\d{3})'
+    name_cut: '\s*(?:,|\(|\bz\s+siedzibą|\bul\.|\bNIP\b|\bKRS\b|\bREGON\b|\bwpisan|\(dalej)'
+    accept_end: '(?i:^\s*Pełnomocnictwo\s+przyjmuj|^\s*Przyjmuj|^\s*Oświadczam\w*,?\s+że\s+przyjmuj)'
+  scopes:
+    principal: {to: ['(?i)udziela\w*\s+(?:niniejszym\s+)?(?:dalszego\s+)?pełnomocnictwa', '(?i)ustanawia', '(?i)upoważnia', '^§\s*2', '^(?:Pełnomocni(?:cy|k)\b|PEŁNOMOCNI(?:CY|K)\b)', 'Pełnomocnikiem', '(?i)niniejszym\s+udziela']}
+    body: {to: ['{accept_end}', '^\.{5,}', '^(?:Podpis\w*\s+Mocodawc|W imieniu\s|Mocodawca:\s*$|Za\s+[A-ZŁŚŻ])']}
+    signatures: {from: ['^(?:Mocodawca|Podpis\w*(?:\s+Mocodawc\w*)?|W imieniu\s[^\n]*|Za\s[^\n]*)\s*:?\s*$', '^\.{5,}'], include_from: true, to: ['{accept_end}']}
+  fields:
+    mocodawca:
+      scope: principal
+      split: ['(?:^|[;:]\s*|\s)\d\s*\)\s+(?=[A-ZŁŚŻŹĆ„"])']
+      item:
+        data:
+          typ: {present: '(?i)działalnoś\w*\s+gospodarcz|CEIDG|Ewidencji\s+i\s+Informacji', then: osoba_fizyczna, else: osoba_prawna}
+          nazwa:
+            - {flat: true, regex: 'pod\s+firmą\s*:?\s*(?P<v>[^,;(]+)', cut: '\s+(?:ul\.|al\.|NIP|REGON|KRS|wpisan|\(dalej)'}
+            - {flat: true, regex: 'Mocodawc(?:ą|a)\s+jest\s+(?P<v>[^,(]+)', cut: '{name_cut}'}
+            - {flat: true, regex: '(?:Działając\w*\s+w\s+imieniu|reprezentacji)\s+(?P<v>[^,(]+)', cut: '{name_cut}', exclude: '(?i)^(?:wykonawc|mocodawc|spółki|firmy)'}
+            - {regex: '^(?i:MOCODAWCA)\b[ \t]*:?[ \t]*(?P<v>\S[^\n]*)', cut: '{name_cut}'}
+            - {regex: '^(?i:MOCODAWCA)\s*:?\s*\n\s*(?P<v>[^\n]+)', cut: '{name_cut}'}
+            - {flat: true, regex: '^\s*(?P<v>{company})', sub: [['(?i)^.*?p\s?e\s?ł\s?n\s?o\s?m\s?o\s?c\s?n\s?i\s?c\s?t\s?w\s?o(?:\s+procesowe)?\s+', ''], ['^(?:Niniejszym|Mocodawca|Wykonawca|Ja)\s+', '']]}
+            - {flat: true, regex: '(?P<v>{company})', sub: [['(?i)^.*?p\s?e\s?ł\s?n\s?o\s?m\s?o\s?c\s?n\s?i\s?c\s?t\s?w\s?o(?:\s+procesowe)?\s+', ''], ['^(?:Niniejszym|Mocodawca|Wykonawca|Ja)\s+', '']]}
+          imie_nazwisko:
+            - {when: {field: typ, equals: osoba_fizyczna}, flat: true, nominative: true, regex: '(?i:niżej\s+podpisan\w*)(?:\s*\(a\))?\s+(?P<v>{name_flat})'}
+            - {when: {field: typ, equals: osoba_fizyczna}, flat: true, nominative: true, regex: '\bJa,?\s+(?P<v>{name_flat})'}
+            - {when: {field: typ, equals: osoba_fizyczna}, from_field: nazwa, regex: '(?P<v>{name_flat})$'}
+          krs: {flat: true, regex: '{ident_krs}'}
+          nip: {flat: true, regex: '{ident_nip}'}
+        podpisujacy:
+          scope: signatures
+          split: ['^(?:W imieniu|Za)\s[^\n]*\n', '^Podpis\w*\s+Mocodawc\w*\s*:?\s*\n']
+          pick: index
+          findall:
+            - '^(?:\.{3,}[^\n]*|(?:Za|W imieniu)\s[^\n]*)\n(?:\.+[ \t]*\n)?(?:(?:Za|W imieniu)\s[^\n]*\n)?(?:\.{3,}[^\n]*\n)?[ \t]*(?P<imie_nazwisko>{name}(?:[ \t]+{tok})?)(?:[ \t]*,[^\n]*)?[ \t]*$'
+            - '(?i:dokument\s+podpisany\s+przez|podpisany\s+elektronicznie\s+przez|podpisano\s+przez|signed\s+by|elektronicznie\s+podpisany\s+przez)\s*:?\s*(?P<imie_nazwisko>{name_flat})'
+          exclude: '(?i)prezes|zarząd|prokurent|dyrektor|wspólnik|członek|mocodawc|pełnomocni|komplementariusz|właściciel|kierownik'
+          merge_on: imie_nazwisko
+    pelnomocnicy:
+      scope: body
+      flat: true
+      findall:
+        - '(?:{title_pro})\s*(?P<imie_nazwisko>{name_flat})'
+        - '(?i:pełnomocnictwa|pełnomocnikami|pełnomocnikiem|pełnomocnik\w*\s+(?:\w+\s+)?(?:jest|zostaje|został\w*))\s*:?\s*(?:(?:{title})\s*)*(?P<lista>{name_flat}(?:\s*(?:,|\boraz\b|\bi\b)\s*(?:(?:{title})\s*)*{name_flat})*)'
+        - '(?P<imie_nazwisko>{name_flat})[^.;]{0,60}?PESEL\s*:?\s*(?P<pesel>\d{11})'
+      split_group: {group: lista, by: '\s*(?:,|\boraz\b|\bi\b)\s*(?:(?:{title})\s*)*', field: imie_nazwisko}
+      exclude: '(?i)^(?:krajow|izb|prezes|zamawiaj|mocodawc|wykonawc|pełnomocni|spółk)'
+      merge_on: imie_nazwisko
+      item:
+        imie_nazwisko: {from_field: imie_nazwisko, regex: '.+', nominative: true}

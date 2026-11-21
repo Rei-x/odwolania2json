@@ -35,6 +35,7 @@ def main(argv=None):
     ap.add_argument("--only", nargs="*", default=None)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--model", default=None)
+    ap.add_argument("--mode", default=None, help="override extraction.mode (llm | deterministic)")
     ap.add_argument("--score-only", action="store_true")
     a = ap.parse_args(argv)
     vs = sorted(p for p in VAR.iterdir() if p.is_dir() and (not a.only or p.name in a.only))
@@ -51,7 +52,7 @@ def main(argv=None):
             shutil.copy(pdf, inp / v.name / pdf.name)
             jobs.append((inp / v.name / pdf.name, src_case))
     if not a.score_only:
-        pipe = Pipeline(model=a.model)
+        pipe = Pipeline(model=a.model, mode=a.mode)
 
         def job(p, src_case):
             rel = p.relative_to(inp).with_suffix(".json")

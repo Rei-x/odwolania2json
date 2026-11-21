@@ -16,15 +16,26 @@ from .spec import load_specs
 
 
 class Pipeline:
-    def __init__(self, settings: dict | None = None, model: str | None = None):
+    def __init__(self, settings: dict | None = None, model: str | None = None, mode: str | None = None):
         self.s = settings or load_settings()
+        if mode:
+            self.s.setdefault("extraction", {})["mode"] = mode
         if model:
             self.s["llm"]["model"] = model
         self.specs = load_specs(self.s["paths"]["doctypes"])
-        self.llm = LLM(self.s["llm"])
+        ext = self.s.get("extraction") or {}
+        self.mode = ext.get("mode", "llm")
         ocr_cfg = self.s.get("ocr", {})
         from .ocr import make_engine
-        self._ocr = make_engine(ocr_cfg, self.s["llm"])
+        if self.mode == "deterministic":
+            # no LLM client at all; OCR only with an explicitly configured local engine (default: none)
+            self.llm = None
+            self.model_name = "deterministic"
+            self._ocr = make_engine({**ocr_cfg, "engine": ext.get("ocr_engine", "none")}, self.s["llm"])
+        else:
+            self.llm = LLM(self.s["llm"])
+            self.model_name = self.llm.model
+            self._ocr = make_engine(ocr_cfg, self.s["llm"])
 
     def process(self, pdf_path: Path, exclude_cases: set[str] = frozenset()) -> tuple[str, dict, dict]:
         t0 = time.time()
@@ -36,6 +47,8 @@ class Pipeline:
         except Exception as e:  # noqa: BLE001  corrupted / unreadable file
             doc, load_error = P.Document(path=pdf_path), repr(e)
         full = doc.text()
+        if self.mode == "deterministic":
+            return self._process_deterministic(pdf_path, doc, full, load_error, t0)
         doctype, cls_info = classify(full, pdf_path, self.specs, self.llm,
                                      float(self.s.get("classification", {}).get("min_score", 3)),
                                      self.s.get("classification", {}).get("mode", "llm_confirm"))
@@ -96,6 +109,32 @@ class Pipeline:
         trace["verification"] = {"rounds": rounds, "remaining_issues": V.verify(spec, result, evidence, ocr_doc=bool(images))}
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
                      raw_llm_output=raw, evidence=evidence,
+                     page_texts=[{"page": p.number, "source": p.source, "text": p.text} for p in doc.pages],
+                     elapsed_s=round(time.time() - t0, 2))
+        return doctype, result, trace
+
+    def _process_deterministic(self, pdf_path: Path, doc, full: str, load_error, t0: float) -> tuple[str, dict, dict]:
+        """Rules-only classification + YAML-driven extraction (o2j.deterministic); never calls an LLM."""
+        from . import deterministic as D
+        cls = self.s.get("classification", {})
+        doctype, cls_info = D.classify(full, pdf_path.name, self.specs, float(cls.get("min_score", 3)),
+                                       float(cls.get("min_margin", 2)))
+        trace = {"file": str(pdf_path), "doctype": doctype, "classification": cls_info, "load_error": load_error,
+                 "pages": len(doc.pages), "ocr_pages": [p.number for p in doc.pages if p.source == "ocr"],
+                 "mode": "deterministic"}
+        if doctype not in self.specs:
+            trace["elapsed_s"] = round(time.time() - t0, 2)
+            return doctype, {}, trace
+        spec = self.specs[doctype]
+        n = D.pages_to_read(spec)
+        pages = [p.text for p in (doc.pages[:n] if n else doc.pages)]
+        if not "".join(pages).strip() or not D.has_rules(spec):
+            result = spec.skeleton()
+        else:
+            raw = D.extract(spec, pages)
+            result = E.postprocess(spec, raw)
+            trace["raw_output"] = raw
+        trace.update(model="deterministic", evidence=E.ground(doc, result, E.derived_fields(spec)),
                      page_texts=[{"page": p.number, "source": p.source, "text": p.text} for p in doc.pages],
                      elapsed_s=round(time.time() - t0, 2))
         return doctype, result, trace

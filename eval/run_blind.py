@@ -31,6 +31,7 @@ def main(argv=None):
     ap.add_argument("--out", type=Path, default=ROOT / "runs" / ("blind_" + time.strftime("%Y%m%d-%H%M%S")))
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--model", default=None)
+    ap.add_argument("--mode", default=None, help="override extraction.mode (llm | deterministic)")
     ap.add_argument("--details", action="store_true", help="also print/write per-field errors (breaks blindness)")
     a = ap.parse_args(argv)
 
@@ -51,7 +52,7 @@ def main(argv=None):
             shutil.copy(pdf, inp / c.name / pdf.name)
             jobs.append(inp / c.name / pdf.name)
 
-    pipe = Pipeline(model=a.model)
+    pipe = Pipeline(model=a.model, mode=a.mode)
 
     def job(p):
         rel = p.relative_to(inp).with_suffix(".json")
@@ -76,7 +77,7 @@ def main(argv=None):
                  and not json.loads((out / g.relative_to(gt)).read_text()))
     summary = {"f1": round(r["f1"], 4), "per_doc": r["per_doc"], "cases": len(cases), "documents": len(jobs),
                "cost_usd": round(COST["usd"], 4), "llm_calls": COST["calls"], "elapsed_s": round(time.time() - t0, 1),
-               "model": pipe.llm.model, "negatives_rejected": f"{neg_ok}/{len(negs)}"}
+               "model": pipe.model_name, "negatives_rejected": f"{neg_ok}/{len(negs)}"}
     (a.out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2))
     print(f"\nBLIND F1 = {summary['f1']:.4f}   ({len(cases)} cases, {len(jobs)} documents)")
     print("per doctype F1:", {k: f"{v:.4f}" for k, v in sorted(r["per_doc"].items()) if k in ("odwolanie", "pelnomocnictwo", "potwierdzenie_przelewu")})
