@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -12,6 +14,8 @@ from . import tracing as T
 from . import verify as V
 from .classify import classify
 from .config import load_settings
+from . import api
+from .api import FatalAPIError
 from .llm import LLM
 from .spec import load_specs
 
@@ -39,6 +43,7 @@ class Pipeline:
             self.model_name = "deterministic"
             self._ocr = make_engine({**ocr_cfg, "engine": ext.get("ocr_engine", "none")}, self.s["llm"])
         else:
+            api.configure(self.s["llm"])  # global request cap + retry policy, shared by LLM and OCR clients
             self.llm = LLM(self.s["llm"])
             self.model_name = self.llm.model
             self._ocr = make_engine(ocr_cfg, self.s["llm"])
@@ -64,6 +69,8 @@ class Pipeline:
                              dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)),
                              prep=ocr_cfg.get("preprocess"), garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1)))
                 load_error = None
+            except FatalAPIError:
+                raise  # bad key / no credits (OCR): not a property of this file
             except Exception as e:  # noqa: BLE001  corrupted / unreadable file
                 doc, load_error = P.Document(path=pdf_path), repr(e)
             page_notes = {n["page"]: n for n in notes if n["kind"] == "page"}
@@ -243,6 +250,8 @@ class Pipeline:
                 before = json.dumps(result, sort_keys=True, ensure_ascii=False)
                 try:
                     result, changes = V.repair(self.llm, spec, text, result, issues, images=images, model=xmodel)
+                except FatalAPIError:
+                    raise
                 except Exception as e:  # noqa: BLE001
                     rounds.append({"issues": issues, "error": repr(e)})
                     break
@@ -371,31 +380,117 @@ class Pipeline:
         confident = score >= min_score and score - second >= 2  # only a confident class gets a skeleton
         return (name, self.specs[name].skeleton()) if confident else ("inny", {})
 
+    def _previous(self, output_dir: Path, trace_dir: Path | None, rel: Path) -> dict | None:
+        """Result of an earlier (interrupted) run for `rel`, or None if the document must be processed:
+        output missing or not a JSON object, or its trace records a failure."""
+        out = output_dir / rel
+        try:
+            result = json.loads(out.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        if not isinstance(result, dict):
+            return None
+        trace = {}
+        if trace_dir:
+            try:
+                trace = json.loads((trace_dir / rel.with_suffix(".trace.json")).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                trace = {}
+        if not isinstance(trace, dict) or trace.get("error") or trace.get("fatal_error"):
+            return None  # the earlier attempt failed (fallback output): try again
+        doctype = trace.get("doctype") or "?"
+        matched = bool(result) and doctype in self.specs
+        return {"rel": rel, "doctype": doctype, "result": result, "trace": trace, "error": None,
+                "matched": matched, "resumed": True}
+
+    @staticmethod
+    def _write_atomic(path: Path, text: str) -> None:
+        """Write via a temporary file + rename: an interrupted run never leaves a half-written JSON."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(f".{path.name}.tmp")
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+
+    def _write(self, r: dict, output_dir: Path, trace_dir: Path | None) -> None:
+        if r["matched"]:
+            self._write_atomic(output_dir / r["rel"], E.dumps(r["result"]))
+        else:  # per UZP: out-of-scope document -> file containing only {}
+            self._write_atomic(output_dir / r["rel"], "{}")
+            r["trace"]["unmatched"] = "Nie udało się dopasować typu dokumentu — zapisano pusty JSON {}."
+        if trace_dir:
+            self._write_atomic(trace_dir / r["rel"].with_suffix(".trace.json"), E.dumps(r["trace"]))
+
     def run_dir(self, input_dir: Path, output_dir: Path, trace_dir: Path | None = None, workers: int = 8,
-                exclude_self: bool = False, log=print) -> list[dict]:
+                exclude_self: bool = False, log=print, resume: bool = False) -> list[dict]:
+        """Process every PDF/image under input_dir into output_dir/<same relative path>.json.
+
+        - each document's JSON (and trace) is written as soon as it is done, so an interrupted run keeps them;
+        - resume=True skips documents whose output already holds a valid JSON object from a successful run;
+        - one failing document never stops the batch: it gets a best-effort output (skeleton of the class
+          recognised by rules, else {}) and the error is recorded in the trace and the returned summary;
+        - FatalAPIError (bad key / no credits) stops the batch: finished documents stay written, the
+          unprocessed ones get no output (a rerun after fixing the key resumes them), then it is re-raised."""
+        input_dir, output_dir = Path(input_dir), Path(output_dir)
         pdfs = sorted(p for p in input_dir.rglob("*") if p.is_file() and p.suffix.lower() in P.SUPPORTED_EXT
                       and not p.name.startswith("."))
         done: list[dict] = []
+        todo: list[Path] = []
+        for p in pdfs:
+            prev = self._previous(output_dir, trace_dir, p.relative_to(input_dir).with_suffix(".json")) if resume else None
+            if prev is not None:
+                done.append(prev)
+            else:
+                todo.append(p)
+        if done:
+            log(f"Wznowienie: {len(done)} z {len(pdfs)} dokumentów ma już wynik — pomijam je (--force przetwarza wszystko od nowa).")
+        abort = threading.Event()
+        fatal: list[BaseException] = []
 
         def job(p: Path):
+            if abort.is_set():
+                return None
             rel = p.relative_to(input_dir).with_suffix(".json")
             excl = {p.parent.name} if exclude_self else set()
             try:
                 doctype, result, trace = self.process(p, excl)
                 err = None
+            except FatalAPIError as e:
+                fatal.append(e)
+                abort.set()
+                return None
             except Exception as e:  # noqa: BLE001  never leave a document without output
-                doctype, result = self.fallback(p)
+                try:
+                    doctype, result = self.fallback(p)
+                except Exception:  # noqa: BLE001
+                    doctype, result = "inny", {}
                 trace, err = {"file": str(p), "error": repr(e), "doctype": doctype}, repr(e)
+                for k in ("trace_steps", "trace_steps_summary"):
+                    if hasattr(e, k):
+                        trace[k.removeprefix("trace_")] = getattr(e, k)
             return {"rel": rel, "doctype": doctype, "result": result, "trace": trace, "error": err,
                     "matched": doctype in self.specs}
 
-        with ThreadPoolExecutor(max_workers=workers) as ex:
-            futs = [ex.submit(job, p) for p in pdfs]
+        n_new = 0
+        ex = ThreadPoolExecutor(max_workers=max(1, int(workers)), thread_name_prefix="o2j-doc")
+        try:
+            futs = [ex.submit(job, p) for p in todo]
             for f in as_completed(futs):
                 r = f.result()
+                if r is None:
+                    if abort.is_set():
+                        for g in futs:
+                            g.cancel()
+                    continue
                 done.append(r)
-                log(f"[{len(done)}/{len(pdfs)}] {r['rel']} -> {r['doctype'] if r['matched'] else 'NIEDOPASOWANY'}"
-                    + (f"  ERROR {r['error']}" if r["error"] else f"  ({r['trace'].get('elapsed_s')}s)"))
+                n_new += 1
+                self._write(r, output_dir, trace_dir)  # at once: an interrupted run keeps finished documents
+                log(f"[{n_new}/{len(todo)}] {r['rel']} -> {r['doctype'] if r['matched'] else 'NIEDOPASOWANY'}"
+                    + (f"  BŁĄD {r['error']}"[:300] if r["error"] else f"  ({r['trace'].get('elapsed_s')}s)"))
+        except BaseException:  # Ctrl+C: stop scheduling, do not wait for documents in flight
+            abort.set()
+            ex.shutdown(wait=False, cancel_futures=True)
+            raise
+        ex.shutdown(wait=True)
 
         # case level: documents in the same folder form one case (cross-checks + safe cross-fill)
         from .case import analyze_case, load_case_rules
@@ -405,35 +500,32 @@ class Pipeline:
             cases.setdefault(r["rel"].parent, []).append(r)
         for case_rel, docs in cases.items():
             matched = [d for d in docs if d["matched"]]
-            if rules and len({d["doctype"] for d in matched}) > 1:
+            if not (rules and len({d["doctype"] for d in matched}) > 1) or not any(not d.get("resumed") for d in matched):
+                continue  # one doctype, or nothing new in this case since the earlier run
+            try:
                 case_docs = {d["rel"].name: {"doctype": d["doctype"], "result": d["result"],
                                              "text": "\n".join(p.get("text", "") for p in d["trace"].get("page_texts", []))}
                              for d in matched}
                 report = analyze_case(case_docs, rules)
-                for ch in report["uzupelnienia_krzyzowe"]:
-                    d = next(x for x in matched if x["rel"].name == ch["dokument"])
-                    d["trace"].setdefault("cross_fill", []).append(ch)
-                if trace_dir:
-                    cp = trace_dir / case_rel / "_sprawa.json"
-                    cp.parent.mkdir(parents=True, exist_ok=True)
-                    cp.write_text(E.dumps(report), encoding="utf-8")
-
-        summary = []
-        for r in done:
-            out = output_dir / r["rel"]
-            out.parent.mkdir(parents=True, exist_ok=True)
-            if r["matched"]:
-                out.write_text(E.dumps(r["result"]), encoding="utf-8")
-            else:  # per UZP: out-of-scope document -> file containing only {}
-                out.write_text("{}", encoding="utf-8")
-                r["trace"]["unmatched"] = "Nie udało się dopasować typu dokumentu — zapisano pusty JSON {}."
+            except Exception as e:  # noqa: BLE001  case checks are a bonus: never lose the documents over them
+                log(f"Analiza sprawy {case_rel} nieudana: {e!r}")
+                continue
+            touched = set()
+            for ch in report["uzupelnienia_krzyzowe"]:
+                d = next(x for x in matched if x["rel"].name == ch["dokument"])
+                d["trace"].setdefault("cross_fill", []).append(ch)
+                touched.add(d["rel"])
+            for d in matched:
+                if d["rel"] in touched:
+                    self._write(d, output_dir, trace_dir)
             if trace_dir:
-                tr = trace_dir / r["rel"].with_suffix(".trace.json")
-                tr.parent.mkdir(parents=True, exist_ok=True)
-                tr.write_text(E.dumps(r["trace"]), encoding="utf-8")
-            summary.append({"file": str(r["rel"]), "doctype": r["doctype"] if r["matched"] else "NIEDOPASOWANY",
-                            "error": r["error"], "elapsed_s": r["trace"].get("elapsed_s")})
-        return summary
+                self._write_atomic(trace_dir / case_rel / "_sprawa.json", E.dumps(report))
+
+        if fatal:
+            raise fatal[0]
+        return [{"file": str(r["rel"]), "doctype": r["doctype"] if r["matched"] else "NIEDOPASOWANY",
+                 "error": r["error"], "elapsed_s": r["trace"].get("elapsed_s"), "resumed": bool(r.get("resumed"))}
+                for r in sorted(done, key=lambda r: str(r["rel"]))]
 
 
 def build_gt(train_dir: Path, specs, gt_dir: Path, cases: list[str] | None = None):

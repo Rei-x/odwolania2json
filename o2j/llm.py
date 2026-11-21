@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import json
 import re
-import random
-import time
 
 from openai import OpenAI
 
+from . import api
+from .api import FatalAPIError  # noqa: F401  (re-export)
 from .pdf import png_data_url
 
 
@@ -98,26 +98,24 @@ class LLM:
                              timeout=float(cfg.get("timeout", 180)), max_retries=0)  # retries: _chat (backoff)
 
     def _chat(self, messages, **kw):
-        last = None
-        for attempt in range(int(self.cfg.get("retries", 2)) + 1):
-            try:
-                extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"),
-                                         kw.get("model", self.model))
-                def call(extra=extra):
-                    r = self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
-                                                            extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
-                    track(r)  # also the losing hedge request: it is billed
-                    return r
-                return hedged(call, None if "timeout" in kw else self.cfg.get("hedge_after"))
-            except Exception as e:  # noqa: BLE001  (rate limits, timeouts, 5xx)
-                if getattr(e, "status_code", None) in (401, 402, 403):
-                    raise RuntimeError(f"LLM API odrzuciło żądanie (klucz/środki): {e}") from e
-                if getattr(e, "status_code", None) == 404 and "image" in str(e).lower():
-                    raise ImageNotSupported(str(e)) from e  # text-only model: no point retrying
-                last = e
-                if attempt < int(self.cfg.get("retries", 2)):
-                    time.sleep(min(10, 2 ** attempt + random.random()))
-        raise last
+        """One chat completion through o2j.api: global concurrency cap, backoff on 429/5xx/timeouts,
+        FatalAPIError on a bad key / no credits."""
+        model = kw.get("model", self.model)
+        extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"), model)
+
+        def call():
+            r = self.client.chat.completions.create(model=model, messages=messages, extra_body=extra,
+                                                    **{k: v for k, v in kw.items() if k != "model"})
+            track(r)  # also the losing hedge request: it is billed
+            return r
+        try:
+            return api.request(call, label=model, hedge_after=None if "timeout" in kw else self.cfg.get("hedge_after"))
+        except api.FatalAPIError:
+            raise
+        except Exception as e:  # noqa: BLE001
+            if api.status_of(e) in (400, 404) and "image" in str(e).lower():
+                raise ImageNotSupported(str(e)) from e  # text-only model: no point retrying
+            raise
 
     def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction",
                      images: list[bytes] | None = None, model: str | None = None,
@@ -144,13 +142,15 @@ class LLM:
         for attempt in range(3):  # empty / truncated / invalid JSON -> retry
             try:
                 resp = self._chat(messages, **kw)
-            except RuntimeError:
-                raise  # auth / billing
+            except api.FatalAPIError:
+                raise  # auth / billing: stops the batch
             except ImageNotSupported:
                 # text-only model: drop attached page images and continue with the text layer / OCR text
                 messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
                 resp = self._chat(messages, **kw)
-            except Exception:  # noqa: BLE001  provider may not support json_schema -> fall back
+            except Exception as e:  # noqa: BLE001  provider may not support json_schema -> fall back
+                if api.status_of(e) not in (400, 422) or kw.get("response_format", {}).get("type") == "json_object":
+                    raise  # transient errors were already retried in api.request; do not double the load
                 kw["response_format"] = {"type": "json_object"}
                 resp = self._chat(messages, **kw)
             content = resp.choices[0].message.content or ""

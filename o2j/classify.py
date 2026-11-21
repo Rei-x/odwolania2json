@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .api import FatalAPIError
 from .spec import DocSpec
 
 
@@ -71,6 +72,8 @@ def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_sco
         try:
             out, _ = llm.extract_json(system, user, schema, name="classification", model=m)
             return out.get("typ") if out.get("typ") in names else None, None
+        except FatalAPIError:
+            raise  # bad key / no credits: stop, do not silently fall back to rules for every document
         except Exception as e:  # noqa: BLE001
             return None, str(e)[:200]
     # small models disagree sometimes -> vote of rules + models; the models are asked concurrently

@@ -1,10 +1,12 @@
 """Document orientation (0/90/180/270) with PP-LCNet_x1_0_doc_ori (PaddleOCR, Apache-2.0, 7 MB ONNX, CPU).
 
 Weights: models/PP-LCNet_x1_0_doc_ori.onnx (downloaded on first use from the Hugging Face mirror
-monkt/paddleocr-onnx if missing).
+monkt/paddleocr-onnx only if missing, with a message).
 """
 from __future__ import annotations
 
+import os
+import sys
 import threading
 import urllib.request
 from pathlib import Path
@@ -26,10 +28,17 @@ def _session():
     with _LOCK:
         if _SESSION is None:
             import onnxruntime as ort
-            if not MODEL.exists():
+            if not MODEL.exists():  # shipped in the repo; only a stripped copy needs the one-time download
+                print(f"[orientacja] brak {MODEL.name} — jednorazowe pobieranie (7 MB) z {URL}",
+                      file=sys.stderr, flush=True)
                 MODEL.parent.mkdir(parents=True, exist_ok=True)
-                urllib.request.urlretrieve(URL, MODEL)
-            _SESSION = ort.InferenceSession(str(MODEL), providers=["CPUExecutionProvider"])
+                tmp = MODEL.with_suffix(".part")
+                urllib.request.urlretrieve(URL, tmp)
+                tmp.replace(MODEL)
+            so = ort.SessionOptions()  # one shared session for all workers; few threads (2-CPU boxes, containers)
+            so.intra_op_num_threads = min(2, os.cpu_count() or 1)
+            so.inter_op_num_threads = 1
+            _SESSION = ort.InferenceSession(str(MODEL), sess_options=so, providers=["CPUExecutionProvider"])
     return _SESSION
 
 

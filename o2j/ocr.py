@@ -7,15 +7,15 @@
 from __future__ import annotations
 
 import io
-import random
 import re
 import sys
 import threading
-import time
 
 from openai import OpenAI
 
-from .llm import hedged, openrouter_extra, track
+from . import api
+from .api import FatalAPIError  # noqa: F401  (re-export)
+from .llm import openrouter_extra, track
 from .pdf import png_data_url
 
 OCR_PROMPT = ("Przepisz dokładnie cały tekst z tej strony dokumentu (język polski), od pierwszej do ostatniej linii, "
@@ -36,15 +36,6 @@ def collapse(text: str) -> str:
 def degenerate(text: str) -> bool:
     c = collapse(text)
     return len(text) - len(c) > 1500 or (len(text) > 200 and len(c) < 0.7 * len(text))
-
-
-class FatalAPIError(RuntimeError):
-    """Auth / billing errors: retrying cannot help, surface them."""
-
-
-def _fatal(e: Exception) -> bool:
-    code = getattr(e, "status_code", None)
-    return code in (401, 402, 403)
 
 
 class VlmOCR:
@@ -87,13 +78,12 @@ class VlmOCR:
                 track(resp)  # also the losing hedge request: it is billed
                 return resp
             try:
-                with VlmOCR._slots:
-                    r = hedged(call, self.hedge_after)
+                with VlmOCR._slots:  # 429/5xx: backoff inside api.request; a timeout moves on to the next attempt
+                    r = api.request(call, label=f"OCR {self.model}", hedge_after=self.hedge_after, timeout_retries=0)
+            except api.FatalAPIError:
+                raise
             except Exception as e:  # noqa: BLE001
-                if _fatal(e):
-                    raise FatalAPIError(f"OCR API: {e}") from e
-                print(f"[ocr] attempt {attempt + 1} failed: {e!r}", file=sys.stderr)
-                time.sleep(min(8.0, 2 ** attempt + random.random()))  # rate limit / 5xx: short backoff
+                print(f"[ocr] próba {attempt + 1}/{self.attempts} nieudana: {e!r}"[:300], file=sys.stderr)
                 continue
             c = r.choices[0]
             text = c.message.content or ""

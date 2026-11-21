@@ -80,8 +80,13 @@ class Document:
         return any(p.source == "ocr" for p in self.pages)
 
 
+MAX_RENDER_SIDE = 2500  # px; A4 at 200 dpi is 2339 px, so this only caps oversized pages (plans, A3/A0 scans)
+
+
 def render_png(page: pdfium.PdfPage, dpi: int = 200) -> bytes:
-    img = page.render(scale=dpi / 72).to_pil()
+    w, h = page.get_size()  # PDF points (1/72 in)
+    scale = min(dpi / 72, MAX_RENDER_SIDE / max(w, h, 1))
+    img = page.render(scale=scale).to_pil()
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
@@ -97,7 +102,10 @@ def _load_image(path: Path, ocr, ocr_max_pages: int, prep=None) -> Document:
     im = Image.open(path)
     for i, frame in enumerate(ImageSequence.Iterator(im)):
         buf = io.BytesIO()
-        frame.convert("RGB").save(buf, format="PNG")
+        frame = frame.convert("RGB")
+        if max(frame.size) > MAX_RENDER_SIDE:  # phone photos: bounded memory and request size
+            frame.thumbnail((MAX_RENDER_SIDE, MAX_RENDER_SIDE), Image.LANCZOS)
+        frame.save(buf, format="PNG")
         png = buf.getvalue()
         if prep:
             from .preprocess import png_steps

@@ -7,7 +7,11 @@ llm:
   max_tokens: 32000                  # modele reasoningowe zużywają część limitu na myślenie
   structured_output: json_schema     # json_schema | json_object
   timeout: 90                        # s na wywołanie: pojedynczy dokument <= ~30 s (ekstrakcja 8B), zapas na kolejkę u dostawcy w trybie wsadowym
-  retries: 2                         # z krótkim backoffem (o2j/llm.py)
+  retries: 5                         # 429 / 5xx / zerwane połączenie: backoff wykładniczy z jitterem, z respektowaniem Retry-After (o2j/api.py)
+  timeout_retries: 1                 # przekroczenie czasu: jedno ponowienie (plus duplikat po hedge_after)
+  backoff_base: 1.0                  # s; kolejne czekania ~1, 2, 4, 8, 16 s (maks. backoff_cap)
+  backoff_cap: 30
+  max_concurrency: 16                # zapytań API w locie naraz, łącznie dla wszystkich dokumentów (LLM + OCR)
   hedge_after: 40                    # brak odpowiedzi po 40 s => równoległe drugie zapytanie, wygrywa pierwsze
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
@@ -25,6 +29,8 @@ ocr:
   attempts: 3
   max_concurrency: 12                # stron OCR jednocześnie (wszystkie dokumenty); reszta czeka lokalnie
   hedge_after: 30                    # strona bez odpowiedzi po 30 s => drugie zapytanie (ogon opóźnień dostawcy)
+run:
+  workers: 8                         # dokumenty przetwarzane równolegle (CLI --workers / O2J_WORKERS)
 postprocess:
   snap_to_text: true                 # popraw drobne błędy przepisywania wg tekstu dokumentu
   rules_fill: true                   # puste pola uzupełnij regułami YAML (gdy wartość jest w tekście)
