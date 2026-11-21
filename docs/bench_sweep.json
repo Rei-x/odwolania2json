@@ -1,0 +1,225 @@
+{
+  "runs": [
+    {
+      "model": "mistralai/ministral-8b-2512",
+      "name": "Mistral: Ministral 3 8B 2512",
+      "params_b": 8,
+      "points": 20,
+      "eu_providers": [
+        "mistral"
+      ],
+      "providers": [
+        "mistral"
+      ],
+      "ts": 1795285506.4955587,
+      "train": {
+        "f1": 0.9946,
+        "cost": 0.04,
+        "seconds": 32,
+        "per_doc": {
+          "odwolanie": 0.991,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.9815,
+        "cost": 0.068,
+        "seconds": 39,
+        "negatives_ok": "3/3",
+        "per_doc": {
+          "odwolanie": "0.9728",
+          "pelnomocnictwo": "0.9882",
+          "potwierdzenie_przelewu": "1.0000"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "mistralai/ministral-3b-2512",
+      "name": "Mistral: Ministral 3 3B 2512",
+      "params_b": 3,
+      "points": 20,
+      "eu_providers": [
+        "mistral"
+      ],
+      "providers": [
+        "mistral"
+      ],
+      "ts": 1795285577.748531,
+      "train": {
+        "f1": 0.9759,
+        "cost": 0.029,
+        "seconds": 61,
+        "per_doc": {
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 1.0,
+          "KIO_KIO 2617-21": 0.0,
+          "odwolanie": 0.9751,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.9747,
+        "cost": 0.044,
+        "seconds": 39,
+        "negatives_ok": "3/3",
+        "per_doc": {
+          "odwolanie": "0.9663",
+          "pelnomocnictwo": "0.9822",
+          "potwierdzenie_przelewu": "0.9915"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "ibm-granite/granite-4.2-8b",
+      "name": "IBM: Granite 4.2 8B",
+      "params_b": 8.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "coreweave",
+        "deepinfra"
+      ],
+      "ts": 1795285677.2948444,
+      "train": {
+        "f1": null,
+        "cost": null,
+        "seconds": 1200,
+        "per_doc": null,
+        "error": "timeout"
+      },
+      "blind": {
+        "f1": null,
+        "cost": null,
+        "seconds": 1200,
+        "negatives_ok": null,
+        "per_doc": null,
+        "error": "timeout"
+      }
+    },
+    {
+      "model": "meta-llama/llama-3.1-8b-instruct",
+      "name": "Meta: Llama 3.1 8B Instruct",
+      "params_b": 8.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "amazon-bedrock",
+        "coreweave",
+        "deepinfra",
+        "groq"
+      ],
+      "ts": 1795288077.6600287,
+      "train": {
+        "f1": 0.955,
+        "cost": 0.077,
+        "seconds": 97,
+        "per_doc": {
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 1.0,
+          "KIO_KIO 2617-21": 0.0,
+          "Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r.": 0.0,
+          "odwolanie": 0.9703,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 0.9091
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.9292,
+        "cost": 0.119,
+        "seconds": 30,
+        "negatives_ok": "2/3",
+        "per_doc": {
+          "odwolanie": "0.9116",
+          "pelnomocnictwo": "0.9942",
+          "potwierdzenie_przelewu": "0.9375"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "meta-llama/llama-3.2-3b-instruct",
+      "name": "Meta: Llama 3.2 3B Instruct",
+      "params_b": 3.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "parasail"
+      ],
+      "ts": 1795288204.3972788,
+      "train": {
+        "f1": 0.762,
+        "cost": 0.096,
+        "seconds": 455,
+        "per_doc": {
+          "1648041143_1647951357decyzja-ministrasportu-pzn": 0.0,
+          "16_komisja_ds._regulacji_wynagrodzeń": 0.0,
+          "2025-OJS107-00364525-pl-ts-1": 0.0,
+          "2025-OJS107-00364525-pl-ts": 0.0,
+          "2025_S 112-383751": 0.0,
+          "2025_S 188-641009": 0.0,
+          "Decyzja-Ministra-Sportu-i-Turystyki1": 0.0,
+          "KIO_KIO 2617-21": 0.0,
+          "Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r.": 0.0,
+          "odwolanie": 0.8904,
+          "pelnomocnictwo": 0.8052,
+          "potwierdzenie_przelewu": 0.8814
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.7631,
+        "cost": 0.083,
+        "seconds": 301,
+        "negatives_ok": "1/3",
+        "per_doc": {
+          "odwolanie": "0.7406",
+          "pelnomocnictwo": "0.8333",
+          "potwierdzenie_przelewu": "0.8612"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "google/gemma-3-4b-it",
+      "name": "Google: Gemma 3 4B",
+      "params_b": 4.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "deepinfra",
+        "parasail"
+      ],
+      "ts": 1795288960.8369434,
+      "train": {
+        "f1": 0.8755,
+        "cost": 0.017,
+        "seconds": 89,
+        "per_doc": {
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 0.0,
+          "KIO_KIO 2617-21": 0.0,
+          "odwolanie": 0.8952,
+          "pelnomocnictwo": 0.9756,
+          "potwierdzenie_przelewu": 0.944
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.7267,
+        "cost": 0.028,
+        "seconds": 243,
+        "negatives_ok": "1/3",
+        "per_doc": {
+          "odwolanie": "0.6066",
+          "pelnomocnictwo": "0.9322",
+          "potwierdzenie_przelewu": "0.8966"
+        },
+        "error": null
+      }
+    }
+  ]
+}
