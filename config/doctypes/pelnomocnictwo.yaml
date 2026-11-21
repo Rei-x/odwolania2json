@@ -15,6 +15,8 @@ few_shot: 2
 page_images: [last]   # obraz ostatniej strony (podpisy graficzne/elektroniczne)
 examples: {pdf: pelnomocnictwo.pdf, json: pelnomocnictwo.json}   # pliki w każdym folderze data/train/<sprawa>/
 instructions: |
+  - Dane mocodawcy (nazwa, KRS, NIP) bierz z treści pełnomocnictwa — ze zdania, w którym mocodawca go udziela —
+    dokładnie w tym brzmieniu (np. "spółka akcyjna" bez skracania), a nie z nagłówka / papieru firmowego / stopki.
   - Mocodawców może być kilku (np. konsorcjum udzielające pełnomocnictwa wspólnie) — każdy osobno.
   - Dla osoby prawnej imie_nazwisko = null; dla przedsiębiorcy będącego osobą fizyczną (np. "DUDEK-TECH Jarosław Dudek")
     typ = "osoba_fizyczna", imie_nazwisko = imię i nazwisko, nazwa = pełna nazwa firmy
