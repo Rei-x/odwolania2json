@@ -121,6 +121,19 @@ class Pipeline:
             if E.fill_ratio(cand) > E.fill_ratio(result):
                 result = cand
         trace["extraction_retries"] = retries
+        # small-model safety net: snap copy errors to the document text, let rules fill empty fields
+        pcfg = self.s.get("postprocess") or {}
+        if pcfg.get("snap_to_text", True):
+            trace["snap_to_text"] = E.snap_to_text(spec, result, doc)
+        if pcfg.get("rules_fill", True):
+            try:
+                from . import deterministic as D
+                if D.has_rules(spec):
+                    n = D.pages_to_read(spec)
+                    det0 = E.postprocess(spec, D.extract(spec, [p.text for p in (doc.pages[:n] if n else doc.pages)]))
+                    trace["rules_fill"] = E.rules_fill(spec, result, det0, doc)
+            except Exception as e:  # noqa: BLE001
+                trace["rules_fill_error"] = repr(e)
         # agentic verify -> repair loop
         derived = E.derived_fields(spec)
         evidence = E.ground(doc, result, derived)

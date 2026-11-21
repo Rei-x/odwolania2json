@@ -124,10 +124,32 @@ class PaddleOCRVL:
         return "\n".join(parts)
 
 
+class RapidOCREngine:
+    """Local CPU OCR (RapidOCR / PP-OCRv5 latin, ONNX) — no API, not an LLM. Weaker on Polish diacritics
+    than a VLM, but free, offline and fast enough for a laptop (~3-7 s/page on 4 cores)."""
+    _lock = threading.Lock()
+    _eng = None
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+
+    def __call__(self, png: bytes) -> str:
+        from PIL import Image
+        with RapidOCREngine._lock:
+            if RapidOCREngine._eng is None:
+                from rapidocr import LangRec, ModelType, OCRVersion, RapidOCR  # optional: pip install rapidocr
+                RapidOCREngine._eng = RapidOCR(params={"Rec.lang_type": LangRec.LATIN, "Rec.ocr_version": OCRVersion.PPOCRV5,
+                                                       "Rec.model_type": ModelType.MOBILE})
+            r = RapidOCREngine._eng(Image.open(io.BytesIO(png)).convert("RGB"))
+        return "\n".join(r.txts) if r and r.txts else ""
+
+
 def make_engine(cfg: dict, llm_cfg: dict):
     eng = (cfg or {}).get("engine", "vlm")
     if eng == "vlm":
         return VlmOCR(cfg, llm_cfg)
     if eng == "paddle":
         return PaddleOCRVL(cfg)
+    if eng == "rapidocr":
+        return RapidOCREngine(cfg)
     return None

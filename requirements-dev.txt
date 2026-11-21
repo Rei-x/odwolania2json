@@ -2,3 +2,4 @@
 pytest>=8.0
 ruff>=0.6
 anthropic>=2.0   # tylko skrypty ewaluacji (eval/opus_reference.py, eval/adjudicate.py)
+rapidocr>=3.0      # opcjonalny lokalny OCR (ocr.engine: rapidocr)

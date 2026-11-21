@@ -249,3 +249,103 @@ def derived_fields(spec: DocSpec) -> set[str]:
 
 def dumps(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, indent=2)
+
+
+# ---------------------------------------------------------------- snap-to-text (small-model copy errors)
+def _walk_leaves(props: dict, value, path=""):
+    value = value if isinstance(value, dict) else {}
+    for k, node in props.items():
+        p = f"{path}.{k}" if path else k
+        v = value.get(k)
+        if node["type"] == "object":
+            yield from _walk_leaves(node["properties"], v, p)
+        elif node["type"] == "array" and node["items"]["type"] == "object":
+            for i, it in enumerate(v or []):
+                yield from _walk_leaves(node["items"]["properties"], it, f"{p}[{i}]")
+        else:
+            yield p, node, v
+
+
+def _set_leaf(result, path, value):
+    toks = re.findall(r"[^.\[\]]+|\[\d+\]", path)
+    cur = result
+    for t in toks[:-1]:
+        cur = cur[int(t[1:-1])] if t.startswith("[") else cur[t]
+    last = toks[-1]
+    if last.startswith("["):
+        cur[int(last[1:-1])] = value
+    else:
+        cur[last] = value
+
+
+def snap_to_text(spec: DocSpec, result: dict, doc: P.Document) -> list[dict]:
+    """Correct small copy errors of the LLM using the document text (generic, no dataset knowledge):
+    * identifiers: model digits are a fragment of a longer digit run in the text that satisfies the field
+      pattern (e.g. 24 of 26 account digits) -> take the full run;
+    * strings (e-mail, names, numbers with letters): value not found verbatim, but a near-identical span
+      (similarity >= 92, same length +-2) exists -> take the exact span from the document.
+    Returns the list of changes (logged in the trace for transparency)."""
+    text = " ".join(" ".join(p.text.split()) for p in doc.pages)
+    if not text:
+        return []
+    low = text.lower()
+    digit_runs = re.findall(r"\d[\d ]{5,40}\d", text)
+    changes = []
+    for path, node, v in _walk_leaves(spec.fields, result):
+        if v is None or node.get("derive") or node["type"] in ("enum", "integer", "number", "date"):
+            continue
+        if "person" in (node.get("normalize") or []):
+            continue  # names are legitimately in nominative while the text declines them
+        s = str(v)
+        pat = node.get("pattern")
+        if re.fullmatch(r"\d{6,}", s):
+            if pat and re.fullmatch(pat, s):
+                continue
+            for run in digit_runs:
+                d = re.sub(r"\D", "", run)
+                if s in d and d != s and (not pat or re.fullmatch(pat, d)):
+                    changes.append({"field": path, "before": s, "after": d, "rule": "digits-extended"})
+                    _set_leaf(result, path, N.apply(d, node))
+                    break
+            continue
+        if s.lower() in low or len(s) < 5:
+            continue
+        al = fuzz.partial_ratio_alignment(s.lower(), low)
+        if not al or al.score < 92:
+            continue
+        a, b = al.dest_start, al.dest_end
+        # extend to token boundaries
+        while a > 0 and not text[a - 1].isspace() and text[a - 1] not in "(:;,„\"":
+            a -= 1
+        while b < len(text) and not text[b].isspace() and text[b] not in "),;”\"":
+            b += 1
+        span = text[a:b].strip(" .,;:")
+        if abs(len(span) - len(s)) > 2 or span == s:
+            continue
+        fixed = N.apply(span, node)
+        if pat and fixed and not re.fullmatch(pat, str(fixed)):
+            continue
+        changes.append({"field": path, "before": s, "after": fixed, "rule": "snapped-to-text"})
+        _set_leaf(result, path, fixed)
+    return changes
+
+
+def rules_fill(spec: DocSpec, result: dict, det: dict | None, doc: P.Document) -> list[dict]:
+    """Fill fields the LLM left empty with deterministic-rule values that are literally present in the text."""
+    if not det:
+        return []
+    text = " ".join(" ".join(p.text.split()) for p in doc.pages).lower()
+    detv = {p: v for p, _, v in _walk_leaves(spec.fields, det)}
+    changes = []
+    for path, node, v in _walk_leaves(spec.fields, result):
+        dv = detv.get(path)
+        if v is not None or dv is None or node.get("derive"):
+            continue
+        pat = node.get("pattern")
+        if pat and not re.fullmatch(pat, str(dv)):
+            continue
+        if str(dv).lower() not in text and re.sub(r"\D", "", str(dv)) not in re.sub(r"\D", "", text):
+            continue
+        _set_leaf(result, path, dv)
+        changes.append({"field": path, "before": None, "after": dv, "rule": "rules-fill"})
+    return changes
