@@ -1,6 +1,7 @@
 import { lazy, Suspense, useRef, useState, type DragEvent, type Ref } from "react"
 import { useNavigate } from "react-router-dom"
 import { Flock } from "@/components/brand/flock"
+import { SparrowMark } from "@/components/brand/logo"
 
 const HeroScene = lazy(() => import("./HeroScene"))
 
@@ -45,7 +46,7 @@ export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
     <section className="hero" id="hero" ref={ref}>
       <div className="hcopy">
         <h1>
-          <span className="l">Wróbelek</span>
+          <span className="l l1"><SparrowMark className="hero-mark" />Wróbelek</span>
           <span className="l l3">opus-like quality for pennies</span>
         </h1>
         <p className="lede">Akta KIO → JSON zgodny ze schematem UZP, każda wartość ze stroną i cytatem.</p>

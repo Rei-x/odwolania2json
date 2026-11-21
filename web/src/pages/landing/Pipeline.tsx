@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { cn } from "@/lib/utils"
+import { prefersReducedMotion } from "./hooks"
 import { SectionHead } from "./Reveal"
 import { ModelName } from "./VendorLogo"
 
@@ -47,6 +48,33 @@ export function Pipeline() {
   const qNipRef = useRef<HTMLSpanElement>(null)
   const jNipRef = useRef<HTMLDivElement>(null)
   const stepRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [play, setPlay] = useState(false)
+  const [stageVisible, setStageVisible] = useState(false)
+
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => setStageVisible(e.isIntersecting), { threshold: 0.35 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  // step 1 (Odczyt): replay the rotate-and-clean timeline when it becomes active, then every 5.2 s
+  useEffect(() => {
+    if (step !== 1 || !stageVisible || prefersReducedMotion()) return
+    let raf = 0
+    // drop the animations for a couple of frames so they start over
+    const restart = () => {
+      raf = requestAnimationFrame(() => {
+        setPlay(false)
+        raf = requestAnimationFrame(() => { raf = requestAnimationFrame(() => setPlay(true)) })
+      })
+    }
+    restart()
+    const id = window.setInterval(restart, 5200)
+    return () => { clearInterval(id); cancelAnimationFrame(raf) }
+  }, [step, stageVisible])
+  const playing = play && step === 1 && stageVisible
 
   // the step crossing the middle of the viewport drives the stage
   useEffect(() => {
@@ -82,7 +110,7 @@ export function Pipeline() {
   }, [step])
 
   const cur = STEPS[step - 1]
-  const stageCls = cn("stage", Array.from({ length: step }, (_, i) => `s${i + 1}`).join(" "), cur.focus && "focus", cur.kind === "LLM" && "is-llm")
+  const stageCls = cn("stage", Array.from({ length: step }, (_, i) => `s${i + 1}`).join(" "), cur.focus && "focus", cur.kind === "LLM" && "is-llm", playing && "play")
 
   return (
     <section className="sec pipeline" id="pipeline">
@@ -111,7 +139,7 @@ export function Pipeline() {
                   <div className="scan" />
                 </div>
               </div>
-              <div className="badge b-rot"><span className="d" />90° → 0° <small>orientacja + OCR</small></div>
+              <div className="badge b-rot"><span className="d" />↻ 90° <small>orientacja</small></div>
               <div className="badge b-fix"><span className="d" />tekst + data podpisu <small>gotowe</small></div>
               <div className="badge b-cls"><span className="d" />odwołanie ✓ <small>reguły</small></div>
               <div className="ghost"><span className="pg" /><span>wyrok_KIO.pdf<br /><small>spoza zakresu</small></span><b>{"{}"}</b></div>

@@ -9,6 +9,21 @@
 @keyframes lp-scan { 0% { top: -12%; opacity: 1 } 90% { opacity: 1 } 100% { top: 100%; opacity: 0 } }
 @keyframes lp-blink { 50% { box-shadow: 0 0 0 .8cqw color-mix(in oklab, var(--wheat) 0%, transparent) } }
 @keyframes lp-cb { 50% { opacity: 0 } }
+/* step 1 timeline (4.2 s): hold sideways 0-0.6 s, rotate 0.6-1.4 s, clean 1.5-2.1 s, scan 1.4-2.4 s, boxes 2.4-3.1 s, date 3.4 s */
+@keyframes lp-rot {
+  0%, 14% { transform: rotate(90deg) scale(.7) skewX(-4deg); filter: contrast(.85) saturate(.3) brightness(.92); animation-timing-function: cubic-bezier(.65,0,.25,1) }
+  33% { transform: rotate(0deg) scale(1) skewX(0); filter: contrast(.85) saturate(.3) brightness(.92) }
+  36% { filter: contrast(.85) saturate(.3) brightness(.92) }
+  50%, 100% { transform: none; filter: none }
+}
+@keyframes lp-noise { 0%, 36% { opacity: .75 } 50%, 100% { opacity: 0 } }
+@keyframes lp-scan2 { 0%, 33% { top: -12%; opacity: 0 } 34% { top: -12%; opacity: 1 } 57% { top: 100%; opacity: 1 } 58%, 100% { top: 100%; opacity: 0 } }
+@keyframes lp-mojout2 { 0%, 48% { opacity: 1; filter: none } 56%, 100% { opacity: 0; filter: blur(2px) } }
+@keyframes lp-mojin2 { 0%, 48% { opacity: 0 } 56%, 100% { opacity: 1 } }
+@keyframes lp-rotbadge { 0%, 8% { opacity: 0; transform: translateY(1cqw) scale(.9) } 12%, 40% { opacity: 1; transform: none } 46%, 100% { opacity: 0; transform: none } }
+@keyframes lp-box { 0%, 57% { box-shadow: 0 0 0 0 transparent; background: transparent } 61%, 100% { box-shadow: 0 0 0 .14cqw color-mix(in oklab, var(--teal) 55%, transparent); background: color-mix(in oklab, var(--teal-l) 9%, transparent) } }
+@keyframes lp-date { 0%, 78% { background: transparent; box-shadow: 0 0 0 0 transparent } 84%, 100% { background: color-mix(in oklab, var(--teal-l) 35%, transparent); box-shadow: 0 0 0 .2cqw var(--teal) } }
+@keyframes lp-late { 0%, 78% { opacity: 0; transform: translateY(1cqw) scale(.9) } 86%, 100% { opacity: 1; transform: none } }
 @keyframes lp-blip { 0% { opacity: 0; transform: translateY(1cqw) scale(.9) } 15%, 80% { opacity: 1; transform: none } 100% { opacity: 0; transform: none } }
 
 .lp {
@@ -244,17 +259,28 @@
   .jr { position: relative }
   .jr .flag { position: absolute; right: 3cqw; top: 50%; transform: translateY(-50%); padding: .2cqw .8cqw; border-radius: 99px; background: var(--wheat); color: var(--bark); font: 700 1.1cqw/1.4 var(--font-mono); opacity: 0; transition: opacity .4s }
 
-  /* 1 odczyt: rotate, scan, fix text, find the signature date */
-  .stage.s1 .paper { transform: none; filter: none; transition-delay: .15s, 1.3s }
+  /* 1 odczyt: sideways grey scan -> rotates upright -> cleans up -> OCR line boxes -> signature date.
+     Final state is static (s1 and later); while step 1 is on screen, .play replays a 4.2 s timeline. */
+  .stage.s1 .paper { transform: none; filter: none }
   .stage.s1 .esig { transform: none; box-shadow: 0 0 0 transparent; transition-delay: .2s }
-  .stage.s1:not(.s2) .b-rot { animation: lp-blip 1.6s .2s both }
-  .stage.s1 .scan { animation: lp-scan 1.2s cubic-bezier(.5,0,.5,1) 1s 1 forwards }
-  .stage.s1 .noise { opacity: 0; transition-delay: 1.4s }
-  .stage.s1 .moj .bad { animation: lp-mojout .5s 1.6s forwards }
-  .stage.s1 .moj .good { animation: lp-mojin .5s 1.6s forwards }
-  .stage.s1:not(.s2) .dl { box-shadow: 0 0 0 .14cqw color-mix(in oklab, var(--teal) 55%, transparent); background: color-mix(in oklab, var(--teal-l) 9%, transparent); border-radius: .25cqw; transition-delay: 1.4s }
-  .stage.s1:not(.s2) .qq.dt { background: color-mix(in oklab, var(--teal-l) 35%, transparent); box-shadow: 0 0 0 .2cqw var(--teal); transition-delay: 2s }
-  .stage.s1:not(.s2) .b-fix { opacity: 1; transform: none; transition-delay: 2s }
+  .stage.s1 .noise { opacity: 0 }
+  .stage.s1 .moj .bad { opacity: 0 }
+  .stage.s1 .moj .good { opacity: 1 }
+  .stage.s1:not(.s2) .dl { box-shadow: 0 0 0 .14cqw color-mix(in oklab, var(--teal) 55%, transparent); background: color-mix(in oklab, var(--teal-l) 9%, transparent); border-radius: .25cqw }
+  .stage.s1:not(.s2) .qq.dt { background: color-mix(in oklab, var(--teal-l) 35%, transparent); box-shadow: 0 0 0 .2cqw var(--teal) }
+  .stage.s1:not(.s2) .b-fix { opacity: 1; transform: none }
+  .stage.s1.play:not(.s2) .paper { animation: lp-rot 4.2s both }
+  .stage.s1.play:not(.s2) .noise { animation: lp-noise 4.2s both }
+  .stage.s1.play:not(.s2) .scan { animation: lp-scan2 4.2s both }
+  .stage.s1.play:not(.s2) .moj .bad { animation: lp-mojout2 4.2s both }
+  .stage.s1.play:not(.s2) .moj .good { animation: lp-mojin2 4.2s both }
+  .stage.s1.play:not(.s2) .b-rot { animation: lp-rotbadge 4.2s both }
+  .stage.s1.play:not(.s2) .dl { animation: lp-box 4.2s both }
+  .stage.s1.play:not(.s2) .dl:nth-child(2) { animation-delay: .1s } .stage.s1.play:not(.s2) .dl:nth-child(3) { animation-delay: .2s }
+  .stage.s1.play:not(.s2) .dl:nth-child(4) { animation-delay: .3s } .stage.s1.play:not(.s2) .dl:nth-child(5) { animation-delay: .4s }
+  .stage.s1.play:not(.s2) .dl:nth-child(6) { animation-delay: .5s } .stage.s1.play:not(.s2) .dl:nth-child(7) { animation-delay: .6s }
+  .stage.s1.play:not(.s2) .qq.dt { animation: lp-date 4.2s both }
+  .stage.s1.play:not(.s2) .b-fix { animation: lp-late 4.2s both }
   /* 2 klasyfikacja */
   .stage.s2:not(.s3) .b-cls, .stage.s2:not(.s3) .ghost { opacity: 1; transform: none }
   /* 3 ekstrakcja: rows arrive raw */
@@ -477,3 +503,5 @@
 .lp .drop:hover, .lp .drop.over { border-color: var(--acc-l); background: color-mix(in oklab, var(--acc) 14%, transparent) }
 .lp .drop:focus-visible { outline: 3px solid var(--acc-l); outline-offset: 3px }
 @media (max-width: 520px) { .lp .drop { padding: 18px; column-gap: 14px } .lp .drop-t { font-size: 18px } }
+.lp .hcopy h1 .l1 { display: flex; align-items: center; gap: .16em }
+.lp .hero-mark { width: .92em; height: .92em; margin-top: -.06em }
