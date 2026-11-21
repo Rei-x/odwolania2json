@@ -6,7 +6,7 @@ llm:
   temperature: 0
   max_tokens: 32000                  # modele reasoningowe zużywają część limitu na myślenie
   structured_output: json_schema     # json_schema | json_object
-  timeout: 60                        # s na wywołanie; najdłuższe zmierzone: ~30 s (ekstrakcja 8B), zastój => ponowienie
+  timeout: 90                        # s na wywołanie: pojedynczy dokument <= ~30 s (ekstrakcja 8B), zapas na kolejkę u dostawcy w trybie wsadowym
   retries: 2                         # z krótkim backoffem (o2j/llm.py)
   hedge_after: 40                    # brak odpowiedzi po 40 s => równoległe drugie zapytanie, wygrywa pierwsze
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
@@ -21,8 +21,9 @@ ocr:
   attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
   max_pages: 3                       # OCR tylko pierwszych N stron: w skanach UZP i danych treningowych wszystkie pola są na str. 1-2
-  timeout: 60                        # s na stronę (gęsta strona: ~1400 tokenów, do ~42 s u wolnego dostawcy)
+  timeout: 120                       # s na stronę: pojedynczy dokument <= ~42 s; w trybie wsadowym kolejka u dostawcy (60 s gubiło strony)
   attempts: 3
+  max_concurrency: 12                # stron OCR jednocześnie (wszystkie dokumenty); reszta czeka lokalnie
   hedge_after: 30                    # strona bez odpowiedzi po 30 s => drugie zapytanie (ogon opóźnień dostawcy)
 postprocess:
   snap_to_text: true                 # popraw drobne błędy przepisywania wg tekstu dokumentu

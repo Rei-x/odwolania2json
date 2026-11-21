@@ -1,4 +1,6 @@
-"""Classification benchmark: 180 training PDFs (filename hidden) + out-of-scope negatives."""
+"""Classification benchmark: training PDFs + blind set (filename hidden) + out-of-scope negatives.
+
+Uses classification settings of the active profile, incl. skip_llm_margin (--no-skip: always ask the LLM)."""
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -14,9 +16,11 @@ TRUTH = {"odwolanie.pdf": "odwolanie", "pelnomocnictwo.pdf": "pelnomocnictwo", "
          "przelew.pdf": "przelew"}
 
 
-def main(neg_dir: str | None = None):
+def main(neg_dir: str | None = None, skip: bool = True):
     pipe = Pipeline()
     items = [(f, TRUTH.get(f.name, "inny")) for f in sorted((ROOT / "data/train").glob("*/*.pdf"))]  # others = negatives
+    items += [(f, "inny" if "negatyw" in f.parent.name else TRUTH.get(f.name, "inny"))
+              for f in sorted((ROOT / "data/blind").glob("*/*.pdf"))]
     if neg_dir:
         items += [(f, "inny") for f in sorted(Path(neg_dir).glob("*")) if f.suffix.lower() in P.SUPPORTED_EXT]
 
@@ -25,15 +29,18 @@ def main(neg_dir: str | None = None):
         doc = P.load(f, ocr=pipe._ocr, ocr_max_pages=1)
         c = pipe.s.get("classification", {})
         typ, info = classify(doc.text(), Path("dokument.pdf"), pipe.specs, pipe.llm, 3,
-                             c.get("mode", "llm_confirm"), model=c.get("model"), vote_models=c.get("vote_models"))
-        return f, t, typ
+                             c.get("mode", "llm_confirm"), model=c.get("model"), vote_models=c.get("vote_models"),
+                             skip_llm_margin=c.get("skip_llm_margin") if skip else None)
+        return f, t, typ, bool(info.get("llm_skipped"))
 
     res = list(ThreadPoolExecutor(16).map(one, items))
-    bad = [(str(f.relative_to(ROOT)) if ROOT in f.parents else f.name, t, typ) for f, t, typ in res if t != typ]
-    print(f"model={pipe.llm.model} total={len(res)} wrong={len(bad)} cost=${COST['usd']:.4f}")
+    bad = [(str(f.relative_to(ROOT)) if ROOT in f.parents else f.name, t, typ) for f, t, typ, _ in res if t != typ]
+    print(f"model={pipe.llm.model} total={len(res)} wrong={len(bad)} llm_skipped={sum(r[3] for r in res)} "
+          f"cost=${COST['usd']:.4f}")
     for b in bad:
         print("  WRONG", *b)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else None)
+    args = [a for a in sys.argv[1:] if a != "--no-skip"]
+    main(args[0] if args else None, skip="--no-skip" not in sys.argv)

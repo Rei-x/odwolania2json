@@ -145,3 +145,14 @@ def test_ground_locates_values(doc):
 def test_ground_list_paths(doc):
     ev = E.ground(doc, {"Odwolujacy": [{"krs": "0000405188"}]})
     assert ev[0]["field"] == "Odwolujacy[0].krs" and ev[0]["method"] == "located"
+
+
+def test_restore_diacritics_only_adds_document_letters():
+    from o2j.extract import restore_diacritics as r
+    assert r("Zaneta Olszewska", "pełnomocnik: r. pr. Żaneta Olszewska, ul.") == "Żaneta Olszewska"
+    assert r("Lódź", "Miasto Łódź, dnia") == "Łódź"
+    assert r("ZANETA", "ŻANETA") == "ŻANETA"
+    assert r("Szymanski", "Jan Szymanski") is None      # already verbatim
+    assert r("Żaneta", "Zaneta") is None                # never strips diacritics
+    assert r("Olszewska", "Olszewskiej") is None        # whole words only (declined form untouched)
+    assert r("Lodz", "Łodzianka") is None

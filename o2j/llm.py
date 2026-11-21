@@ -14,7 +14,7 @@ from .pdf import png_data_url
 import threading
 
 _COST_LOCK = threading.Lock()
-COST = {"usd": 0.0, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+COST = {"usd": 0.0, "calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "hedged": 0}
 
 
 def track(resp):
@@ -31,10 +31,15 @@ def track(resp):
         COST["completion_tokens"] += int(d.get("completion_tokens") or 0)
 
 
+_HEDGE_SLOTS = threading.BoundedSemaphore(3)  # duplicates in flight at once (batch runs: no load amplification)
+
+
 def hedged(fn, after: float | None):
     """fn() with a hedge against provider tail latency: if there is no answer after `after` seconds, one
     duplicate request is started and whichever succeeds first wins (the other is left to finish in the
-    background). after = None/0 -> plain call. Errors surface only when every started request failed."""
+    background). At most a few duplicates run at a time: when the provider is slow for everyone (large
+    batch), extra requests would only add load. after = None/0 -> plain call. Errors surface only when
+    every started request failed."""
     if not after or float(after) <= 0:
         return fn()
     from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
@@ -44,8 +49,16 @@ def hedged(fn, after: float | None):
     try:
         pending = {ex.submit(bind(fn))}
         done, _ = wait(pending, timeout=float(after))
-        if not done:
-            pending.add(ex.submit(bind(fn)))
+        if not done and _HEDGE_SLOTS.acquire(blocking=False):
+            with _COST_LOCK:
+                COST["hedged"] += 1
+
+            def dup():
+                try:
+                    return fn()
+                finally:
+                    _HEDGE_SLOTS.release()
+            pending.add(ex.submit(bind(dup)))
         err = None
         while pending:
             done, pending = wait(pending, return_when=FIRST_COMPLETED)

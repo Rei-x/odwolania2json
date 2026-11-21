@@ -83,7 +83,8 @@ def main(argv=None):
     summary = {"profile": pipe.s.get("active_profile"), "docs": len(rows),
                "total_seconds": round(sum(r["seconds"] for r in rows), 1),
                "mean_seconds": round(sum(r["seconds"] for r in rows) / max(1, len(rows)), 1),
-               "f1": round(f1(tot), 4), "counts": tot, "cost_usd": round(COST["usd"], 4)}
+               "f1": round(f1(tot), 4), "counts": tot, "cost_usd": round(COST["usd"], 4),
+               "hedged_requests": COST.get("hedged", 0)}
     print("SUMMARY", json.dumps(summary))
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=1))
