@@ -1,0 +1,404 @@
+{
+  "_readme": "Dane strony /benchmarks (o2j/static/benchmarks.html). Edytuj liczby tutaj — strona renderuje się z tego pliku. null = pomiar w toku (strona pokaże 'w trakcie pomiaru'). f1: miara organizatora (mikro-F1 po polach). cost_usd: koszt API całego przebiegu danego zbioru (OpenRouter, USD). params_b: łączna liczba parametrów w mld (MoE liczone łącznie, zgodnie z regulaminem).",
+  "updated": "2026-11-21",
+  "scoring": {
+    "title": "Punkty UZP za rozmiar modelu",
+    "rule": "Średnia ważona rozmiarów użytych modeli; MoE liczone łącznymi parametrami; OCR przez API też się liczy.",
+    "bands": [
+      {
+        "max_b": 8,
+        "points": 20,
+        "label": "≤ 8B"
+      },
+      {
+        "max_b": 14,
+        "points": 18,
+        "label": "8–14B"
+      },
+      {
+        "max_b": 32,
+        "points": 12,
+        "label": "14–32B"
+      },
+      {
+        "max_b": 70,
+        "points": 8,
+        "label": "32–70B"
+      },
+      {
+        "max_b": 150,
+        "points": 4,
+        "label": "70–150B"
+      },
+      {
+        "max_b": null,
+        "points": 0,
+        "label": "> 150B"
+      }
+    ]
+  },
+  "datasets": [
+    {
+      "id": "train",
+      "name": "Dane treningowe UZP",
+      "docs": 36,
+      "desc": "Próbka 36 dokumentów (odwołania, pełnomocnictwa, przelewy, dokumenty spoza zakresu) do porównania modeli. Pełny zbiór: 60 spraw."
+    },
+    {
+      "id": "blind",
+      "name": "Zamrożony ślepy zbiór",
+      "docs": null,
+      "desc": "20 nowych syntetycznych spraw, nieużywanych przy strojeniu promptów ani reguł."
+    },
+    {
+      "id": "variants",
+      "name": "Trudne warianty treści",
+      "docs": 45,
+      "desc": "15 wariantów: konsorcja, JDG, odmiana nazwisk, kilku zamawiających."
+    },
+    {
+      "id": "ocr",
+      "name": "Skany UZP",
+      "docs": 9,
+      "desc": "9 skanów bez warstwy tekstowej; F1 po OCR + ekstrakcji."
+    },
+    {
+      "id": "real",
+      "name": "Prawdziwe dokumenty KIO",
+      "docs": 487,
+      "desc": "Publiczne dokumenty; Opus 5.5 jako niezależny anotator + rozstrzyganie rozbieżności."
+    }
+  ],
+  "models": [
+    {
+      "id": "deterministic",
+      "name": "Reguły YAML (bez LLM)",
+      "vendor": "własne",
+      "params_b": 0,
+      "active_b": 0,
+      "arch": "rules",
+      "f1": {
+        "train": 1.0,
+        "variants": 0.998,
+        "blind": 0.816
+      },
+      "cost_usd": {
+        "train": 0
+      },
+      "note": "Zero parametrów i zero kosztu; świetne na znanych układach, słabsze na nowych (ślepy zbiór) — dlatego w profilu Auto są pierwszym krokiem, a niepewne dokumenty idą do małego modelu."
+    },
+    {
+      "id": "mistralai/ministral-3b-2512",
+      "name": "Ministral 3B",
+      "vendor": "Mistral AI (UE)",
+      "params_b": 3,
+      "active_b": 3,
+      "arch": "dense",
+      "f1": {
+        "train": 0.9759,
+        "blind": 0.9716
+      },
+      "cost_usd": {
+        "train": 0.031
+      },
+      "chosen": true,
+      "placeholder": false,
+      "note": "Surowy model (36 dok. treningowych / 63 dok. zbioru ślepego). W profilu Auto: pierwszy przebieg ekstrakcji + głos w klasyfikacji."
+    },
+    {
+      "id": "mistralai/ministral-8b-2512",
+      "name": "Ministral 8B",
+      "vendor": "Mistral AI (UE)",
+      "params_b": 8,
+      "active_b": 8,
+      "arch": "dense",
+      "f1": {
+        "train": 0.9973,
+        "blind": 0.9815
+      },
+      "cost_usd": {
+        "train": 0.02
+      },
+      "chosen": true,
+      "placeholder": false,
+      "note": "Z mechanizmami snap-to-text i rules-fill (surowy: 0.9892 / 0.9806). Klasyfikacja i eskalacja w profilu Auto."
+    },
+    {
+      "id": "mistralai/ministral-14b-2512",
+      "name": "Ministral 14B",
+      "vendor": "Mistral AI (UE)",
+      "params_b": 14,
+      "active_b": 14,
+      "arch": "dense",
+      "f1": {
+        "train": 0.9987
+      },
+      "cost_usd": {
+        "train": 0.062
+      }
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it",
+      "name": "Gemma 4 26B A4B",
+      "vendor": "Google",
+      "params_b": 25.8,
+      "active_b": 3.8,
+      "arch": "moe",
+      "f1": {
+        "train": 0.9906,
+        "blind": 0.9948
+      },
+      "cost_usd": {
+        "train": 0.024
+      },
+      "note": "Tylko 3.8B aktywnych, ale regulamin liczy łącznie 25.8B → 12 pkt."
+    },
+    {
+      "id": "inkling-2-mini",
+      "name": "Inkling 2 Mini",
+      "vendor": "",
+      "params_b": 26.4,
+      "active_b": null,
+      "arch": "moe",
+      "f1": {
+        "train": 0.996
+      },
+      "cost_usd": {
+        "train": 0.043
+      }
+    },
+    {
+      "id": "qwen/qwen3.8-27b",
+      "name": "Qwen3.8 27B",
+      "vendor": "Alibaba",
+      "params_b": 27,
+      "active_b": 27,
+      "arch": "dense",
+      "f1": {
+        "train": 1.0
+      },
+      "cost_usd": {
+        "train": 0.081
+      }
+    },
+    {
+      "id": "nvidia/nemotron-3.5-lightning",
+      "name": "Nemotron 3.5 Lightning",
+      "vendor": "NVIDIA",
+      "params_b": 30,
+      "active_b": null,
+      "arch": "dense",
+      "f1": {
+        "train": 0.868
+      },
+      "cost_usd": {
+        "train": null
+      }
+    },
+    {
+      "id": "xiaomi/mimo-v2.6-flash",
+      "name": "MiMo v2.6 Flash",
+      "vendor": "Xiaomi",
+      "params_b": 309,
+      "active_b": null,
+      "arch": null,
+      "f1": {
+        "train": 1.0
+      },
+      "cost_usd": {
+        "train": 0.052
+      }
+    },
+    {
+      "id": "z-ai/glm-5.3-flash",
+      "name": "GLM 5.3 Flash",
+      "vendor": "Z.ai",
+      "params_b": 320,
+      "active_b": 18,
+      "arch": "moe",
+      "f1": {
+        "train": 1.0
+      },
+      "cost_usd": {
+        "train": 0.023
+      }
+    },
+    {
+      "id": "deepseek/deepseek-v4.1-flash",
+      "name": "DeepSeek V4.1 Flash",
+      "vendor": "DeepSeek",
+      "params_b": 763,
+      "active_b": 16,
+      "arch": "moe",
+      "f1": {
+        "train": 1.0
+      },
+      "cost_usd": {
+        "train": 0.017
+      },
+      "note": "Najtańszy przebieg i F1 = 1,000 — ale 763B łącznie = 0 pkt."
+    },
+    {
+      "id": "moonshotai/kimi-k3.1-pro",
+      "name": "Kimi K3.1 Pro",
+      "vendor": "Moonshot AI",
+      "params_b": 2800,
+      "active_b": 104,
+      "arch": "moe",
+      "f1": {
+        "train": 1.0
+      },
+      "cost_usd": {
+        "train": null
+      },
+      "early": true,
+      "note": "Punkt startowy projektu (pierwsze wersje promptów i referencja jakości)."
+    },
+    {
+      "id": "openrouter/auto",
+      "name": "OpenRouter Auto (router)",
+      "vendor": "OpenRouter",
+      "params_b": null,
+      "active_b": null,
+      "arch": "router",
+      "f1": {
+        "train": 0.9906
+      },
+      "cost_usd": {
+        "train": null
+      },
+      "note": "Router wybiera model sam — rozmiar nieznany, więc nie da się go punktować."
+    }
+  ],
+  "ocr": {
+    "dataset": "9 skanów UZP (F1 po OCR + ekstrakcji)",
+    "models": [
+      {
+        "id": "z-ai/glm-5.3-flash",
+        "name": "GLM 5.3 Flash",
+        "params_b": 320,
+        "f1": 0.9943,
+        "cost_usd": 0.012
+      },
+      {
+        "id": "mistralai/ministral-14b-2512",
+        "name": "Ministral 14B",
+        "params_b": 14,
+        "f1": 0.9943,
+        "cost_usd": 0.017
+      },
+      {
+        "id": "deepseek/deepseek-v4.1-flash",
+        "name": "DeepSeek V4.1 Flash",
+        "params_b": 763,
+        "f1": 0.9943,
+        "cost_usd": 0.034
+      },
+      {
+        "id": "google/gemma-4-26b-a4b-it",
+        "name": "Gemma 4 26B A4B",
+        "params_b": 25.8,
+        "f1": 0.9767,
+        "cost_usd": null
+      },
+      {
+        "id": "qwen/qwen3-vl-8b",
+        "name": "Qwen3-VL 8B",
+        "params_b": 8,
+        "f1": null,
+        "cost_usd": null,
+        "status": "timeout",
+        "note": "przekroczenie czasu u dostawcy"
+      },
+      {
+        "id": "mistralai/ministral-8b-2512",
+        "name": "Ministral 8B",
+        "params_b": 8,
+        "f1": 0.9886,
+        "cost_usd": null,
+        "placeholder": false,
+        "note": "pełny zestaw 30 skanów UZP (OCR + ekstrakcja w profilu Auto); 2 z 7 błędów to niespójność GT (prefiks PL)"
+      },
+      {
+        "id": "mistralai/ministral-3b-2512",
+        "name": "Ministral 3B",
+        "params_b": 3,
+        "f1": null,
+        "cost_usd": null,
+        "placeholder": false,
+        "note": "nie mierzony osobno — w profilu Auto OCR wykonuje Ministral 8B"
+      }
+    ],
+    "local": [
+      {
+        "name": "PaddleOCR-VL 1.6",
+        "where": "lokalnie, CPU",
+        "cer": 0.16,
+        "sec_per_page": 64
+      },
+      {
+        "name": "Kimi K3.1 Pro (VLM przez API)",
+        "where": "API",
+        "cer": 0.034,
+        "sec_per_page": 26
+      },
+      {
+        "name": "RapidOCR (PP-OCRv5 latin, ONNX)",
+        "where": "lokalnie, CPU",
+        "sec_per_page": 5,
+        "note": "gubi część polskich znaków; opcja offline (ocr.engine: rapidocr), nie liczy się do średniej LLM"
+      }
+    ]
+  },
+  "real_corpus": {
+    "docs": 487,
+    "agreement_low": 0.95,
+    "agreement_high": 0.96,
+    "desc": "487 publicznych dokumentów KIO; Opus 5.5 jako niezależny anotator, rozbieżności rozstrzygane ręcznie. Zgodność systemu ~0,95–0,96."
+  },
+  "decision": {
+    "headline": "Wybraliśmy modele ≤ 8B",
+    "points": [
+      "Na danych UZP prawie każdy sensowny model dochodzi do F1 0,99–1,00. Różnica jakości to ułamki procenta, a różnica punktów za rozmiar to aż 20 pkt (≤ 8B) wobec 0 pkt (> 150B).",
+      "Jakość dowozi architektura, nie rozmiar modelu: JSON Schema z YAML, few-shot z danych treningowych, normalizacja deterministyczna, grounding i pętla weryfikacja → naprawa.",
+      "Profil Auto: najpierw reguły (0 parametrów), mały model tylko dla niepewnych dokumentów — średnia ważona rozmiaru zostaje w paśmie ≤ 8B.",
+      "Ministral 3B / 8B: open-weight, hostowane przez Mistral AI w UE, bez zbierania danych przez dostawcę.",
+      "Duże modele (DeepSeek, GLM, Kimi) posłużyły jako referencja jakości i do budowy promptów — nie są potrzebne w produkcji."
+    ]
+  },
+  "profiles_8b": [
+    {
+      "profile": "Auto (domyślny): reguły + Ministral 3B → 8B",
+      "avg_params_b": 5.5,
+      "points": 20,
+      "blind": 0.9844,
+      "variants": 0.9971,
+      "train_sample": 0.9984,
+      "uzp_scans": 0.9886,
+      "latency": "mediana 2.7 s / dok., max 13.7 s"
+    },
+    {
+      "profile": "Standard: Ministral 8B",
+      "avg_params_b": 8,
+      "points": 20,
+      "blind": 0.9815,
+      "variants": 0.9951,
+      "train": 0.9965
+    },
+    {
+      "profile": "Maksymalny: głosowanie 8B+3B+reguły",
+      "avg_params_b": 5.5,
+      "points": 20,
+      "blind": 0.9815,
+      "variants": 0.9961
+    },
+    {
+      "profile": "Reguły (bez LLM)",
+      "avg_params_b": 0,
+      "points": 20,
+      "blind": 0.816,
+      "variants": 0.998,
+      "train": 1.0
+    }
+  ]
+}

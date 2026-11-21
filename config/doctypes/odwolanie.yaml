@@ -7,6 +7,10 @@ classify:
   keywords:
     '^\s*ODWOŁANIE\s*$': 5
     'Prezes Krajowej Izby Odwoławczej|Krajowa Izba Odwoławcza': 1
+    # cechy orzeczeń / pism KIO, które cytują odwołanie, ale nim nie są (ujemne wagi)
+    '^\s*WYROK\b|^\s*POSTANOWIENIE\b': -8
+    'Sygn\.\s*akt\s*:?\s*KIO': -6
+    '\b(orzeka|po rozpoznaniu na rozprawie|w składzie\s*:?\s*Przewodnicząc)': -6
     'Odwołując[yaey]': 3
     'Krajow[aej]+ Izb[ayi] Odwoławcz': 2
     'Zarzut nr': 2

@@ -426,6 +426,10 @@ nav.top.solid{color:var(--ink);background:rgba(246,247,244,.78);backdrop-filter:
 .chipsrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .chipsrow span{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:99px;background:#fff;box-shadow:var(--sh);font-size:14px;font-weight:500}
 .chipsrow svg{width:16px;height:16px;color:var(--teal)}
+.lnkchip{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:99px;background:var(--ink);color:#fff;box-shadow:var(--sh);font-size:14px;font-weight:600;text-decoration:none;transition:transform .2s}
+.lnkchip:hover{transform:translateY(-2px)}
+.lnkchip svg{width:16px;height:16px;color:var(--accent)}
+.lnkchip.light{background:#fff;color:var(--ink)}
 @media (max-width:760px){.rrow{grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;padding:18px 18px}.rbar{grid-column:1/-1;grid-row:2}.rval{grid-row:1;grid-column:2;font-size:21px}.rscale{padding:12px 18px}}
 
 /* ---------- for UZP ---------- */
@@ -492,6 +496,7 @@ nav.top.solid{color:var(--ink);background:rgba(246,247,244,.78);backdrop-filter:
     <a href="#uczenie">Uczenie</a>
     <a href="#rozszerzalnosc">Rozszerzalność</a>
     <a href="#wyniki">Wyniki</a>
+    <a href="/benchmarks">Benchmarki</a>
     <a href="#wyprobuj">Przykłady</a>
   </div>
   <a class="btn btn-p" href="/app">Wypróbuj <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -705,7 +710,8 @@ Propozycje reguł dla pelnomocnictwo:
 <section id="rozszerzalnosc">
   <div class="wrap">
     <div class="shead rv"><span class="eyebrow">Rozszerzalność</span><h2>Nowy typ dokumentu = jeden plik YAML.</h2>
-      <p class="lede">Bez zmian w kodzie. Pola, typy, normalizatory, reguły promptu i opcjonalne reguły deterministyczne.</p></div>
+      <p class="lede">Bez zmian w kodzie. Pola, typy, normalizatory, reguły promptu i opcjonalne reguły deterministyczne.</p>
+      <div class="chipsrow" style="margin-top:20px"><a class="lnkchip" href="/app#nowy-typ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Kreator w GUI: szablon JSON → YAML → test na PDF → zapis</a></div></div>
     <div class="ext">
       <div class="editor rv" id="editor">
         <div class="ebar"><i></i><i></i><i></i><span>config/doctypes/<b>przystapienie.yaml</b></span></div>
@@ -745,6 +751,7 @@ Propozycje reguł dla pelnomocnictwo:
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>tylko CPU</span>
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg>model open-weight w UE</span>
     </div>
+    <div class="chipsrow rv" style="margin-top:14px"><a class="lnkchip light" href="/benchmarks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Benchmarki modeli: rozmiar, F1, koszt i dlaczego ≤ 8B →</a></div>
   </div>
 </section>
 

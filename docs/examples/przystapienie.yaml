@@ -1,0 +1,46 @@
+# Przykład typu dokumentu utworzonego kreatorem 'Nowy typ dokumentu' (GUI /app#nowy-typ).
+# Aby włączyć: skopiuj do config/doctypes/ albo wczytaj w kreatorze.
+name: przystapienie
+description: 'Przystąpienie do postępowania odwoławczego. Pismo wykonawcy zgłaszające przystąpienie do toczącego się postępowania odwoławczego przed KIO po stronie zamawiającego albo odwołującego. Nie jest nim wyrok ani postanowienie KIO, odwołanie ani pismo jedynie wspominające o przystąpieniu.'
+classify:
+  keywords:
+    '^\s*(?-i:PRZYSTĄPIENIE)\b': 5
+    'przystąpie\w*\s+(?:\w+\s+){0,2}odwoławcz\w*': 2
+    \bpostanowie\w*: 1
+    \bjedyn\w*: 1
+    \bwspominaj\w*: 1
+  filename: [przystapie]
+pages: 3
+few_shot: 0
+instructions: |
+  - Wartości przepisuj wiernie z dokumentu; brak informacji = null.
+  - Daty w formacie YYYY-MM-DD, kwoty jako liczby, numery identyfikacyjne bez spacji.
+fields:
+  Przystapienie:
+    type: object
+    properties:
+      data: {type: date, normalize: [date], description: Data pisma z nagłówka (YYYY-MM-DD).}
+      miejscowosc: {type: string, normalize: [city], description: Miejscowość z nagłówka pisma.}
+      sygnatura: {type: string, description: 'Sygnatura akt KIO, jeśli podana (np. ''KIO 1234/25'').'}
+      strona: {type: enum, values: [zamawiajacy, odwolujacy], description: 'Po której stronie zgłoszono przystąpienie: "zamawiajacy" lub "odwolujacy".'}
+      data_odwolania: {type: date, normalize: [date], description: 'Data wniesienia odwołania, którego dotyczy przystąpienie.'}
+  Przystepujacy:
+    type: array
+    items:
+      type: object
+      properties:
+        nazwa: {type: string, description: Pełna nazwa wykonawcy zgłaszającego przystąpienie.}
+        krs: {type: string, normalize: [krs], pattern: '\d{10}', description: KRS przystępującego.}
+        nip: {type: string, normalize: [nip], pattern: '\d{10}', description: NIP przystępującego.}
+        regon: {type: string, normalize: [regon], pattern: '\d{9}(\d{5})?', description: REGON przystępującego.}
+        pelnomocnik:
+          type: object
+          properties:
+            imie_nazwisko: {type: string, normalize: [person], single_person: true, description: 'Imię i nazwisko pełnomocnika w mianowniku, bez tytułów.'}
+            mail: {type: string, description: Adres e-mail pełnomocnika.}
+  ZamowieniePubliczne:
+    type: object
+    properties:
+      numer_bzp: {type: string, normalize: [bzp], description: 'Numer ogłoszenia w BZP, format ''YYYY/BZP ########''.'}
+      numer_postepowania: {type: string, description: Numer referencyjny postępowania nadany przez zamawiającego.}
+      tytul: {type: string, description: Nazwa (tytuł) zamówienia.}

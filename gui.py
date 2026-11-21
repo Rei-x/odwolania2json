@@ -280,6 +280,201 @@ def files(sid: str, name: str):
     return FileResponse(path, media_type=media, headers={"Content-Disposition": f'inline; filename="{path.name}"'})
 
 
+# ---------------------------------------------------------------- kreator nowego typu dokumentu
+def _doctypes_dir() -> Path:
+    from o2j.config import load_settings
+    return Path(load_settings()["paths"]["doctypes"])
+
+
+def _doctype_file(name: str) -> Path:
+    from o2j.wizard import NAME_RE
+    if not NAME_RE.match(name or ""):
+        raise HTTPException(400, "Nazwa typu: małe litery, cyfry i _, zaczyna się literą (np. faktura)")
+    return _doctypes_dir() / f"{name}.yaml"
+
+
+@app.get("/api/doctypes/list")
+def doctypes_list():
+    """Wszystkie typy z config/doctypes/ z informacją, czy są wbudowane (tylko do odczytu w kreatorze)."""
+    import yaml as _yaml
+
+    from o2j.wizard import BUILTIN, _count
+    out = []
+    for p in sorted(_doctypes_dir().glob("*.yaml")):
+        try:
+            d = _yaml.safe_load(p.read_text(encoding="utf-8"))
+            n_fields = _count(d.get("fields") or {})
+        except Exception as e:  # noqa: BLE001
+            out.append({"name": p.stem, "file": p.name, "error": str(e), "builtin": p.stem in BUILTIN})
+            continue
+        out.append({"name": d.get("name", p.stem), "file": p.name, "description": d.get("description", ""),
+                    "builtin": d.get("name", p.stem) in BUILTIN, "fields": n_fields,
+                    "keywords": len((d.get("classify") or {}).get("keywords") or {}),
+                    "deterministic": bool(d.get("deterministic"))})
+    return out
+
+
+@app.get("/api/doctypes/meta")
+def doctypes_meta():
+    """Słowniki dla edytora pól: typy, normalizatory (o2j.normalize.NORMALIZERS), typy wbudowane."""
+    from o2j.normalize import NORMALIZERS
+    from o2j.wizard import BUILTIN, TYPES
+    return {"types": sorted(TYPES), "normalizers": list(NORMALIZERS), "builtin": sorted(BUILTIN)}
+
+
+@app.get("/api/doctypes/{name}/yaml")
+def doctype_yaml(name: str):
+    from o2j.wizard import BUILTIN
+    p = _doctype_file(name)
+    if not p.is_file():
+        raise HTTPException(404, "Nie ma takiego typu")
+    return {"name": name, "yaml": p.read_text(encoding="utf-8"), "builtin": name in BUILTIN}
+
+
+@app.post("/api/doctypes/draft")
+def doctype_draft(payload: dict = Body(...)):
+    """Szablon JSON z komentarzami // (styl organizatora) albo tabela pól -> szkic YAML + sparsowana specyfikacja."""
+    from o2j import wizard as W
+    try:
+        spec = W.draft(payload.get("name") or "", payload.get("title") or "", payload.get("description") or "",
+                       template=payload.get("template"), rows=payload.get("fields"))
+    except W.TemplateError as e:
+        raise HTTPException(422, {"msg": f"Szablon JSON: {e}", "line": e.line}) from e
+    if not spec["fields"]:
+        raise HTTPException(422, {"msg": "Brak pól — dodaj co najmniej jedno pole.", "line": None})
+    text = W.to_yaml(spec)
+    return {"yaml": text, "spec": spec, "validation": W.validate(text)}
+
+
+@app.post("/api/doctypes/validate")
+def doctype_validate(payload: dict = Body(...)):
+    from o2j import wizard as W
+    res = W.validate(payload.get("yaml") or "")
+    if res.get("name") in W.BUILTIN:
+        res["warnings"].insert(0, {"line": 1, "path": "name", "msg": f"'{res['name']}' to typ wbudowany — zapis go nadpisze."})
+    elif res.get("name") and (_doctypes_dir() / f"{res['name']}.yaml").exists():
+        res["warnings"].insert(0, {"line": 1, "path": "name", "msg": f"Typ '{res['name']}' już istnieje — zapis zaktualizuje plik."})
+    return res
+
+
+@app.post("/api/doctypes/test")
+async def doctype_test(file: UploadFile = File(...), yaml_text: str = Form(..., alias="yaml"),
+                       profile: str | None = Form(None)):
+    """Ekstrakcja przykładowego PDF szkicem specyfikacji, bez zapisywania typu (nic nie trafia do config/)."""
+    from o2j import wizard as W
+    v = W.validate(yaml_text)
+    if not v["ok"]:
+        raise HTTPException(422, {"msg": "Specyfikacja zawiera błędy — popraw YAML przed testem.", "errors": v["errors"]})
+    name = Path(file.filename or "dokument.pdf").name
+    if not name.lower().endswith(".pdf"):
+        raise HTTPException(400, "Wgraj plik PDF")
+    sid = "wiz" + uuid.uuid4().hex[:8]
+    d = DATA / sid
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / name
+    path.write_bytes(await file.read())
+    return await run_in_threadpool(_test_draft, sid, path, yaml_text, profile)
+
+
+def _test_draft(sid: str, path: Path, yaml_text: str, profile: str | None) -> dict:
+    import time
+
+    from o2j import extract as E
+    from o2j import pdf as P
+    from o2j import verify as V
+    from o2j import wizard as W
+    from o2j.classify import rule_scores
+    from o2j.llm import COST
+    t0 = time.time()
+    spec = W.load_spec_text(yaml_text)
+    pipe = get_pipe(profile)
+    if pipe.llm is None:  # profil Reguły nie ma LLM; nowy typ nie ma jeszcze reguł deterministycznych
+        pipe = get_pipe(None)
+    if pipe.llm is None:
+        raise HTTPException(400, "Test wymaga profilu z modelem LLM")
+    ocr_cfg = pipe.s.get("ocr", {})
+    doc = P.load(path, ocr=pipe._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)), dpi=int(ocr_cfg.get("dpi", 200)),
+                 ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"),
+                 garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1)))
+    full = doc.text()
+    # podgląd klasyfikacji regułami: szkic na tle aktualnie aktywnych typów (bez LLM)
+    specs = {**{k: s for k, s in pipe.specs.items() if k != spec.name}, spec.name: spec}
+    use_fn = bool(pipe.s.get("classification", {}).get("use_filename", False))  # same as the pipeline
+    scores = rule_scores(full[:6000], path.name if use_fn else "", specs)
+    ranked = sorted(scores.items(), key=lambda x: -x[1])
+    min_score = float(pipe.s.get("classification", {}).get("min_score", 3))
+    second = ranked[1][1] if len(ranked) > 1 else 0
+    cls = {"scores": dict(ranked), "best": ranked[0][0], "min_score": min_score,
+           "confident": ranked[0][0] == spec.name and scores[spec.name] >= min_score and scores[spec.name] - second >= 2}
+    text = doc.text(spec.pages)
+    if not text.strip():
+        raise HTTPException(422, "Dokument nie zawiera czytelnego tekstu")
+    examples = E.few_shot_examples(spec, pipe.s["paths"].get("train"), text, set(), spec.few_shot)
+    system, user = E.build_prompt(spec, text, examples)
+    images = [p.image for p in doc.pages[: spec.pages or len(doc.pages)] if p.source == "ocr" and p.image] or None
+    if images:
+        user += "\n\nUWAGA: tekst pochodzi z OCR skanu; dołączono obrazy stron — w razie wątpliwości rozstrzygaj na podstawie obrazu."
+    usd0 = COST["usd"]
+    raw, meta = pipe.llm.extract_json(system, user, spec.json_schema(), name=spec.name, images=images)
+    result = E.postprocess(spec, raw)
+    evidence = E.ground(doc, result, E.derived_fields(spec))
+    issues = V.verify(spec, result, evidence, ocr_doc=bool(images))
+    try:
+        highlight_rects(path, evidence)
+    except Exception:  # noqa: BLE001
+        pass
+    return {"session": sid, "file": path.name, "doctype": spec.name, "result": result,
+            "trace": {"pages": len(doc.pages), "ocr_pages": [p.number for p in doc.pages if p.source == "ocr"],
+                      "model": meta.get("model"), "usage": meta.get("usage"), "cost_usd": round(COST["usd"] - usd0, 5),
+                      "elapsed_s": round(time.time() - t0, 2), "few_shot": len(examples), "classification": cls,
+                      "issues": issues, "evidence": evidence, "active_profile": pipe.s.get("active_profile")}}
+
+
+@app.post("/api/doctypes")
+def doctype_save(payload: dict = Body(...)):
+    """Zapis config/doctypes/<nazwa>.yaml; typ jest od razu aktywny (klasyfikacja + ekstrakcja), bez restartu."""
+    from o2j import wizard as W
+    text = payload.get("yaml") or ""
+    v = W.validate(text)
+    if not v["ok"]:
+        raise HTTPException(422, {"msg": "Specyfikacja zawiera błędy.", "errors": v["errors"]})
+    name = v["name"]
+    path = _doctype_file(name)
+    if name in W.BUILTIN and not payload.get("overwrite_builtin"):
+        raise HTTPException(409, f"'{name}' to typ wbudowany — nadpisanie wymaga jawnej zgody (overwrite_builtin).")
+    if path.exists() and name not in W.BUILTIN and not payload.get("overwrite"):
+        raise HTTPException(409, f"Typ '{name}' już istnieje — potwierdź aktualizację (overwrite).")
+    existed = path.exists()
+    path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+    _pipes.clear()  # nowe Pipeline wczyta specyfikacje od nowa
+    return {"saved": True, "name": name, "file": str(path.relative_to(ROOT)), "updated": existed,
+            "active": name in get_pipe().specs}
+
+
+@app.delete("/api/doctypes/{name}")
+def doctype_delete(name: str):
+    from o2j.wizard import BUILTIN
+    p = _doctype_file(name)
+    if name in BUILTIN:
+        raise HTTPException(403, "Typów wbudowanych nie można usunąć z GUI")
+    if not p.is_file():
+        raise HTTPException(404, "Nie ma takiego typu")
+    p.unlink()
+    _pipes.clear()
+    return {"deleted": name}
+
+
+# ---------------------------------------------------------------- benchmarki
+@app.get("/benchmarks", response_class=HTMLResponse)
+def benchmarks_page():
+    return (STATIC / "benchmarks.html").read_text(encoding="utf-8")
+
+
+@app.get("/api/benchmarks")
+def benchmarks_data():
+    return json.loads((ROOT / "docs" / "benchmarks.json").read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()

@@ -138,6 +138,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 #dragcover.on{display:grid}
 @media (max-width:900px){main{grid-template-columns:1fr}#doc{max-height:45vh}}
 </style>
+<link rel="stylesheet" href="/static/wizard.css">
 </head>
 <body>
 <input id="file" type="file" accept=".pdf" multiple hidden>
@@ -163,6 +164,10 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
       <span class="pill t-przelew"><span class="dot"></span>przelew</span>
       <button class="pill" data-ex title="Wczytaj przykładowy trudny dokument">Przykłady</button>
     </div>
+    <div class="links2">
+      <a class="hbtn new" href="#nowy-typ" data-wizard title="Dodaj klasę dokumentu bez zmian w kodzie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nowy typ dokumentu</a>
+      <a class="hbtn" href="/benchmarks" title="Jakie modele, jakie wyniki i dlaczego"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Benchmarki</a>
+    </div>
   </div>
 </section>
 
@@ -173,6 +178,8 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
     <span id="ndocs"></span>
     <div id="qual" title="Dokładność / koszt"><span>koszt</span><input id="qslider" type="range" min="0" max="3" step="1" value="2"><span>jakość</span><b id="qlabel">standard</b></div>
     <button id="mem" title="Pamięć systemu — uczenie w czasie">Pamięć: —</button>
+    <a class="hbtn new" href="#nowy-typ" data-wizard title="Nowy typ dokumentu — bez zmian w kodzie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nowy typ</a>
+    <a class="hbtn" href="/benchmarks" title="Benchmarki modeli">Benchmarki</a>
     <button id="ex" data-ex title="Przykładowe trudne dokumenty" style="font-size:12px;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--ink2)">Przykłady</button>
     <button class="iconbtn" id="add" title="Dodaj PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="iconbtn" id="dl" title="Pobierz JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg></button>
@@ -448,5 +455,6 @@ const qs = new URLSearchParams(location.search).get('sample');
 if (qs) { history.replaceState(null, '', location.pathname); getSamples().then(l => { const s = l.find(x => x.name === qs); if (s) loadSample(s); }); }
 addEventListener('keydown', e => { if (!docs.length) return; if (e.key === 'ArrowRight') select(Math.min(docs.length - 1, cur + 1)); if (e.key === 'ArrowLeft') select(Math.max(0, cur - 1)); });
 </script>
+<script src="/static/wizard.js"></script>
 </body>
 </html>

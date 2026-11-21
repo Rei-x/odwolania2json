@@ -51,11 +51,7 @@ def test_reference_docs_classified_by_text(specs, path):
     assert _confident(scores), scores
 
 
-@pytest.mark.parametrize("path", [
-    pytest.param(p, marks=pytest.mark.xfail(reason="rule-confident 'odwolanie' on a non-appeal doc; only the LLM "
-                                                   "path (llm_confirm) rejects it"))
-    if p.name in NEG_RULE_CONFIDENT else p for p in NEGATIVES
-], ids=lambda p: p.name)
+@pytest.mark.parametrize("path", NEGATIVES, ids=lambda p: p.name)
 def test_negatives_not_rule_confident(specs, path):
     scores = rule_scores(_head(path), "dokument.pdf", specs)
     assert not _confident(scores), scores

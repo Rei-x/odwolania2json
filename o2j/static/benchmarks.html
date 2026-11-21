@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmarki modeli · odwołania → json</title>
+<meta name="description" content="Jakie modele testowaliśmy, jakie wyniki osiągnęły i dlaczego wybraliśmy modele do 8B parametrów.">
+<style>
+@font-face{font-family:"InterV";font-style:normal;font-display:swap;font-weight:100 900;src:url(/static/vendor/inter-latin-wght-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"InterV";font-style:normal;font-display:swap;font-weight:100 900;src:url(/static/vendor/inter-latin-ext-wght-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"MonoV";font-style:normal;font-display:swap;font-weight:100 800;src:url(/static/vendor/jetbrains-mono-latin-wght-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{
+  --ink:#0b1a20; --ink2:#41525a; --mute:#7d8b91; --line:#e3e6e3; --card:#fff; --bg:#f3f4f1;
+  --accent:#e8004f; --teal:#0f7f86; --amber:#c27803; --ok:#16a34a;
+  --r:22px; --sh:0 1px 2px rgba(11,26,32,.04),0 10px 34px rgba(11,26,32,.08);
+  --sans:"InterV",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"MonoV",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --gut:clamp(16px,5vw,80px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;font:15px/1.55 var(--sans);color:var(--ink);background:radial-gradient(1200px 600px at 10% -10%,#fde7ef 0,transparent 60%),radial-gradient(900px 500px at 110% 40%,#dff3f3 0,transparent 55%),var(--bg);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.mark{font-weight:800;letter-spacing:-.03em;text-decoration:none}
+.mark i{font-style:normal;color:var(--accent)}
+nav.top{position:fixed;top:10px;left:10px;right:10px;z-index:50;height:60px;display:flex;align-items:center;gap:24px;padding:0 12px 0 calc(var(--gut) - 10px);border-radius:18px;
+  background:rgba(246,247,244,.8);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);box-shadow:0 1px 0 rgba(11,26,32,.06),0 10px 30px rgba(11,26,32,.06)}
+nav.top .mark{font-size:19px}
+nav.top .links{display:flex;gap:2px;margin-left:auto}
+nav.top .links a{font-size:14px;font-weight:500;text-decoration:none;padding:8px 12px;border-radius:99px;opacity:.78}
+nav.top .links a:hover{opacity:1;background:rgba(127,127,127,.12)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:99px;background:var(--ink);color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+.btn svg{width:16px;height:16px}
+@media (max-width:980px){nav.top .links{display:none}nav.top .btn{margin-left:auto}}
+main{max-width:1180px;margin:0 auto;padding:110px var(--gut) 80px}
+@media (min-width:1181px){main,footer{padding-left:24px;padding-right:24px}}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(34px,5vw,56px);line-height:1.04;letter-spacing:-.035em;margin:10px 0 14px;max-width:820px}
+h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.03em;margin:0 0 6px;line-height:1.15}
+.lead{font-size:17px;color:var(--ink2);max-width:720px;margin:0}
+section{margin-top:64px}
+.sub{color:var(--ink2);max-width:760px;margin:0 0 20px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+.kpi{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:18px 20px}
+.kpi b{display:block;font-size:30px;letter-spacing:-.03em;line-height:1.1}
+.kpi b small{font-size:15px;color:var(--mute);font-weight:600;letter-spacing:0}
+.kpi span{display:block;color:var(--ink2);font-size:13px;margin-top:6px}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px;min-width:0}
+.chart{position:relative;width:100%;overflow-x:auto;overflow-y:hidden}
+.chart svg{display:block;max-width:none;overflow:visible}
+.chart text{font-family:var(--sans)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink2);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.45;padding:9px 12px;border-radius:10px;box-shadow:var(--sh);opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5}
+.tip b{font-size:13px}
+.tip .m{color:#9fb1b8}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);padding:10px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--ink)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+th .ar{opacity:.5;margin-left:3px}
+td{padding:11px 10px;border-bottom:1px solid #f0f2f1;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.chosen td{background:#fff5f8}
+td .nm{font-weight:600}
+td .vd{display:block;font-size:12px;color:var(--mute)}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:#eef0ef;color:var(--ink2);margin-left:6px;vertical-align:1px}
+.tag.ch{background:var(--accent);color:#fff}
+.tag.pl{background:#fff1f5;color:var(--accent);border:1px dashed var(--accent)}
+.pts{display:inline-block;min-width:44px;text-align:center;font-weight:700;padding:3px 9px;border-radius:99px;font-size:12.5px}
+.pend{font-style:italic;color:var(--accent);font-size:12.5px;white-space:nowrap}
+.dash{color:#b6bfbb}
+.tablewrap{overflow-x:auto;margin:0 -8px}
+.note{font-size:12.5px;color:var(--mute);margin-top:12px}
+.why{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+@media (max-width:900px){.why{grid-template-columns:1fr}}
+.why ol{margin:0;padding:0;list-style:none;counter-reset:w}
+.why li{counter-increment:w;display:grid;grid-template-columns:34px 1fr;gap:12px;padding:12px 0;border-top:1px solid #f0f2f1;color:var(--ink2)}
+.why li:first-child{border-top:0}
+.why li::before{content:counter(w);width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.ds{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.ds .card{padding:16px 18px}
+.ds b{display:block;font-size:14.5px}
+.ds .n{font-size:26px;font-weight:800;letter-spacing:-.03em;display:block;margin:2px 0}
+.ds small{color:var(--ink2);font-size:12.5px;line-height:1.45;display:block}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.vs .c{background:#f8f9f8;border-radius:14px;padding:14px 16px}
+.vs .c b{display:block;font-size:13.5px}
+.vs .c small{color:var(--mute);font-size:12px}
+.meter{height:8px;border-radius:99px;background:#eef0ef;margin:8px 0 3px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px}
+.mrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2)}
+.mrow b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.rules div{background:#f8f9f8;border-radius:14px;padding:12px 14px}
+.rules b{display:block;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rules small{color:var(--ink2);font-size:12px}
+footer{max-width:1180px;margin:0 auto;padding:30px var(--gut) 60px;border-top:1px solid var(--line);color:var(--mute);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--ink2)}
+.mobonly{display:none}@media (max-width:800px){.mobonly{display:block}}
+.err{padding:40px;text-align:center;color:#b91c1c}
+</style>
+</head>
+<body>
+<nav class="top">
+  <a class="mark" href="/">odwołania <i>→</i> json</a>
+  <div class="links">
+    <a href="#rozmiar">Rozmiar a F1</a>
+    <a href="#tabela">Wszystkie modele</a>
+    <a href="#koszt">Koszt</a>
+    <a href="#ocr">OCR</a>
+    <a href="#decyzja">Dlaczego ≤ 8B</a>
+  </div>
+  <a class="btn" href="/app">Wypróbuj <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</nav>
+
+<main id="main">
+  <div class="eyebrow">Benchmarki</div>
+  <h1>Który model, jakie wyniki i dlaczego wybraliśmy modele do 8B</h1>
+  <p class="lead" id="lead">Każdy wynik to F1 liczone według reguł organizatora na tych samych dokumentach. Liczby pochodzą z pliku <code>docs/benchmarks.json</code>.</p>
+  <div class="kpis" id="kpis"></div>
+
+  <section id="rozmiar">
+    <h2>Rozmiar modelu a jakość</h2>
+    <p class="sub">Tło pokazuje punkty UZP za rozmiar (MoE liczone łącznie). Oś F1 jest powiększona do 0,985–1,000, bo prawie wszystkie modele mieszczą się w tym paśmie. O punktach decyduje rozmiar, nie jakość.</p>
+    <div class="card"><div class="chart" id="scatter"></div><div class="note mobonly">Przesuń wykres w bok, aby zobaczyć duże modele.</div>
+      <div class="legend" id="slegend"></div></div>
+  </section>
+
+  <section id="tabela">
+    <h2>Wszystkie przetestowane modele</h2>
+    <p class="sub">Kliknij nagłówek, aby posortować. Koszt to cały przebieg 36 dokumentów treningowych przez API (OpenRouter, USD).</p>
+    <div class="card"><div class="tablewrap"><table id="tbl"></table></div><p class="note" id="tnote"></p></div>
+  </section>
+
+  <section id="koszt">
+    <h2>Koszt przebiegu</h2>
+    <p class="sub">Koszt 36 dokumentów. Najtańsze przebiegi mają duże modele MoE, ale za ich rozmiar jest 0 punktów. Reguły YAML kosztują 0 USD.</p>
+    <div class="card"><div class="chart" id="cost"></div></div>
+  </section>
+
+  <section id="ocr">
+    <h2>OCR skanów</h2>
+    <p class="sub" id="ocrsub"></p>
+    <div class="grid2">
+      <div class="card"><h3 style="margin:0 0 4px;font-size:15px">F1 po OCR + ekstrakcji</h3><div class="note" style="margin:0 0 6px">Oś od 0,95. Oś jest przycięta, żeby było widać różnice.</div><div class="chart" id="ocrchart"></div></div>
+      <div class="card"><h3 style="margin:0 0 4px;font-size:15px">Lokalny OCR a VLM przez API</h3><div class="note" style="margin:0">CER (odsetek błędnych znaków) i czas na stronę. Mniej znaczy lepiej.</div><div class="vs" id="ocrlocal"></div>
+        <p class="note">Lokalny PaddleOCR-VL działa bez sieci (tryb Reguły + OCR offline), ale na CPU jest wolniejszy i robi więcej błędów. Domyślnie OCR robi mały model wizyjny przez API.</p></div>
+    </div>
+  </section>
+
+  <section id="zbiory">
+    <h2>Zbiory testowe</h2>
+    <p class="sub">Wyniki tylko na danych treningowych mogłyby być przeuczone. Dlatego mamy zamrożony ślepy zbiór, trudne warianty i prawdziwe dokumenty KIO.</p>
+    <div class="ds" id="ds"></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><h3 style="margin:0;font-size:15px">Reguły YAML: 0 parametrów</h3><p class="note" style="margin:4px 0 0" id="rulesnote"></p><div class="rules" id="rules"></div></div>
+      <div class="card"><h3 style="margin:0;font-size:15px">Prawdziwe dokumenty KIO</h3><p class="note" style="margin:4px 0 0" id="realnote"></p>
+        <div style="margin-top:14px"><div class="mrow"><span>Zgodność z niezależną adnotacją</span><b id="realval"></b></div><div class="meter"><i id="realbar" style="background:var(--teal)"></i></div></div></div>
+    </div>
+  </section>
+
+  <section id="decyzja">
+    <h2 id="dhead">Dlaczego ≤ 8B</h2>
+    <div class="why"><div class="card"><ol id="why"></ol></div>
+      <div class="card"><h3 style="margin:0 0 10px;font-size:15px">Punkty UZP za rozmiar</h3><div class="chart" id="bands"></div><p class="note" id="rule"></p></div></div>
+  </section>
+</main>
+<footer><span id="upd"></span><a href="/">Strona główna</a><a href="/app">Aplikacja</a><a href="/api/benchmarks">Dane (JSON)</a></footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (v, d = 3) => v == null ? null : v.toFixed(d).replace('.', ',');
+const f1s = v => v == null ? null : (v === 1 ? '1,000' : fmt(v, v * 1000 % 1 ? 4 : 3));
+const usd = v => v == null ? null : v === 0 ? '0 $' : v.toFixed(3).replace('.', ',') + ' $';
+const pb = v => v == null ? '?' : v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + 'T' : String(v).replace('.', ',') + 'B';
+const PEND = '<span class="pend">w trakcie pomiaru</span>';
+const TEAL = [15, 127, 134];
+let D, BANDS;
+const points = b => { if (b == null) return null; for (const x of BANDS) if (x.max_b == null || b <= x.max_b) return x.points; return 0; };
+const bandAlpha = p => ({ 20: .26, 18: .19, 12: .12, 8: .075, 4: .04, 0: 0 })[p] ?? 0;
+const ptsPill = p => p == null ? '<span class="dash">—</span>' : `<span class="pts" style="background:rgba(${TEAL},${Math.max(.08, bandAlpha(p) + .04)});color:${p >= 12 ? '#0b4d52' : 'var(--ink2)'}">${p} pkt</span>`;
+const svgEl = (w, h, inner) => `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img">${inner}</svg>`;
+function tipFor(container) {
+  let t = container.querySelector('.tip'); if (!t) { t = document.createElement('div'); t.className = 'tip'; container.appendChild(t); }
+  return { show(html, x, y) { t.innerHTML = html; t.style.opacity = 1; const w = t.offsetWidth, cw = container.clientWidth;
+      t.style.left = Math.min(Math.max(0, x - w / 2), cw - w) + 'px'; t.style.top = (y - t.offsetHeight - 14) + 'px'; },
+    hide() { t.style.opacity = 0; } };
+}
+function modelTip(m) {
+  const p = points(m.params_b);
+  return `<b>${esc(m.name)}</b>${m.vendor ? ` <span class="m">· ${esc(m.vendor)}</span>` : ''}<br>
+    <span class="m">parametry</span> ${m.params_b == null ? 'nieznane' : pb(m.params_b)}${m.active_b != null && m.active_b !== m.params_b ? ` <span class="m">(aktywne ${pb(m.active_b)})</span>` : ''}${m.arch === 'moe' ? ' <span class="m">MoE</span>' : ''}<br>
+    <span class="m">F1 trening</span> ${f1s(m.f1.train) ?? 'w trakcie pomiaru'}${m.f1.blind != null ? ` <span class="m">· ślepy</span> ${f1s(m.f1.blind)}` : ''}<br>
+    <span class="m">koszt 36 dok.</span> ${usd((m.cost_usd || {}).train) ?? '—'} <span class="m">· punkty</span> ${p ?? '—'}`;
+}
+
+// ---------------------------------------------------------------- scatter: params (log) x F1
+function scatter() {
+  const box = $('#scatter'), W = Math.max(760, box.clientWidth), H = Math.max(360, Math.min(460, W * .48));
+  const L = 56, R = 18, T = 44, B = 46, zeroW = 64;
+  const x0 = L + zeroW, x1 = W - R, lmin = Math.log10(1.5), lmax = Math.log10(4000);
+  const X = b => b === 0 ? L + zeroW / 2 - 6 : x0 + (Math.log10(b) - lmin) / (lmax - lmin) * (x1 - x0);
+  const ymin = .984, ymax = 1.0025, Yr = f => T + (ymax - f) / (ymax - ymin) * (H - T - B), Y = f => Math.min(Yr(ymin) - 10, Yr(f));
+  let s = '';
+  // bands
+  let prev = 1.5;
+  BANDS.forEach(b => {
+    const hi = b.max_b ?? 4000, xa = X(prev), xb = X(Math.min(hi, 4000));
+    s += `<rect x="${xa}" y="${T - 34}" width="${xb - xa}" height="${H - B - T + 34}" fill="rgba(${TEAL},${bandAlpha(b.points)})"/>`;
+    s += `<text x="${(xa + xb) / 2}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${b.points ? '#0b4d52' : '#7d8b91'}">${b.points} pkt</text>`;
+    prev = hi;
+  });
+  s += `<rect x="${L}" y="${T - 34}" width="${zeroW - 12}" height="${H - B - T + 34}" rx="8" fill="rgba(${TEAL},.3)"/>
+    <text x="${L + zeroW / 2 - 6}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0b4d52">20 pkt</text>`;
+  // grid + axes
+  [.99, .995, 1].forEach(f => { s += `<line x1="${L}" x2="${x1}" y1="${Y(f)}" y2="${Y(f)}" stroke="#0b1a20" stroke-opacity=".07"/>
+    <text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#7d8b91">${fmt(f, 3)}</text>`; });
+  s += `<line x1="${L}" x2="${x1}" y1="${Yr(ymin) - 10}" y2="${Yr(ymin) - 10}" stroke="#0b1a20" stroke-opacity=".18" stroke-dasharray="2 4"/>
+    <text x="${L - 10}" y="${Yr(ymin) - 6}" text-anchor="end" font-size="11" fill="#7d8b91">niżej</text>`;
+  [2, 3, 8, 14, 32, 70, 150, 300, 1000, 3000].forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">${pb(b)}</text>`; });
+  s += `<text x="${L + zeroW / 2 - 6}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">0</text>`;
+  s += `<text x="${(x0 + x1) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#41525a">Łączna liczba parametrów (skala logarytmiczna)</text>`;
+  s += `<text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#41525a">F1 (dane treningowe)</text>`;
+  // placeholders: dashed column marker in the ≤8B band
+  const ms = D.models.filter(m => m.params_b != null);
+  ms.filter(m => m.f1.train == null).forEach(m => {
+    const x = X(m.params_b);
+    const ya = Y(1.0), yb = Y(.9875);
+    s += `<line x1="${x}" x2="${x}" y1="${ya}" y2="${yb}" stroke="#e8004f" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>
+      <circle cx="${x}" cy="${(ya + yb) / 2}" r="7" fill="#fff" stroke="#e8004f" stroke-width="2" stroke-dasharray="3 2.5" data-i="${D.models.indexOf(m)}" class="pt"/>
+      <text x="${x}" y="${yb + 16}" text-anchor="middle" font-size="11" font-weight="600" fill="#e8004f">${esc(m.name)}</text>
+      <text x="${x}" y="${yb + 30}" text-anchor="middle" font-size="10.5" font-style="italic" fill="#e8004f">w trakcie pomiaru</text>`;
+  });
+  // measured points; labels alternate above/below where neighbours at the same F1 are close
+  const meas = ms.filter(m => m.f1.train != null).sort((a, b) => a.params_b - b.params_b);
+  let lastAt = {};
+  meas.forEach(m => {
+    const x = X(m.params_b), y = Y(m.f1.train), key = m.f1.train.toFixed(3);
+    const near = lastAt[key] != null && x - lastAt[key].x < 92;
+    const below = near ? !lastAt[key].below : false;
+    lastAt[key] = { x, below };
+    const fill = m.arch === 'rules' ? '#0f7f86' : '#0b1a20';
+    s += `<circle cx="${x}" cy="${y}" r="7" fill="${fill}" stroke="#fff" stroke-width="2"/>
+      <circle cx="${x}" cy="${y}" r="15" fill="transparent" class="pt" data-i="${D.models.indexOf(m)}" style="cursor:pointer"/>
+      <text x="${x}" y="${below ? y + 22 : y - 13}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0b1a20">${esc(m.name.replace(/ \(.*\)/, ''))}${m.f1.train < ymin ? ` · ${f1s(m.f1.train)} ↓` : ''}</text>`;
+  });
+  box.innerHTML = svgEl(W, H, s);
+  const tip = tipFor(box);
+  box.querySelectorAll('.pt').forEach(c => {
+    c.addEventListener('mouseenter', () => { const m = D.models[+c.dataset.i]; tip.show(modelTip(m), +c.getAttribute('cx'), +c.getAttribute('cy')); });
+    c.addEventListener('mouseleave', tip.hide);
+  });
+  const unk = D.models.filter(m => m.params_b == null);
+  $('#slegend').innerHTML = `<span><i style="background:#0b1a20"></i>model LLM</span><span><i style="background:#0f7f86"></i>reguły YAML (0 parametrów)</span>
+    <span><i style="background:#fff;border:2px dashed #e8004f;width:9px;height:9px"></i>w trakcie pomiaru</span>
+    ${unk.length ? `<span style="color:var(--mute)">Bez rozmiaru (nie da się umieścić na osi): ${unk.map(m => `${esc(m.name)}: F1 ${f1s(m.f1.train)}`).join(', ')}</span>` : ''}`;
+}
+
+// ---------------------------------------------------------------- table
+let sortKey = 'params', sortDir = 1;
+function table() {
+  const cols = [
+    ['name', 'Model', m => m.name],
+    ['params', 'Parametry', m => m.params_b ?? 1e9, 'num'],
+    ['arch', 'Architektura', m => m.arch || ''],
+    ['train', 'F1 trening', m => m.f1.train ?? -1, 'num'],
+    ['blind', 'F1 ślepy', m => m.f1.blind ?? -1, 'num'],
+    ['cost', 'Koszt 36 dok.', m => (m.cost_usd || {}).train ?? 1e9, 'num'],
+    ['pts', 'Punkty UZP', m => points(m.params_b) ?? -1, 'num'],
+  ];
+  const getter = cols.find(c => c[0] === sortKey)[2];
+  const rows = [...D.models].sort((a, b) => { const x = getter(a), y = getter(b); return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
+  const ARCH = { dense: 'gęsty', moe: 'MoE', rules: 'reguły', router: 'router' };
+  $('#tbl').innerHTML = `<thead><tr>${cols.map(c => `<th class="${c[3] || ''}" data-k="${c[0]}">${c[1]}<span class="ar">${sortKey === c[0] ? (sortDir > 0 ? '↑' : '↓') : ''}</span></th>`).join('')}</tr></thead><tbody>` +
+    rows.map(m => {
+      const pend = m.placeholder;
+      return `<tr class="${m.chosen ? 'chosen' : ''}"><td><span class="nm">${esc(m.name)}</span>${m.chosen ? '<span class="tag ch">wybrany</span>' : ''}${m.early ? '<span class="tag">start projektu</span>' : ''}<span class="vd">${esc(m.id)}${m.vendor ? ' · ' + esc(m.vendor) : ''}</span></td>
+        <td class="num">${m.params_b == null ? '<span class="dash">nieznane</span>' : pb(m.params_b)}${m.active_b != null && m.active_b !== m.params_b ? `<span class="vd">aktywne ${pb(m.active_b)}</span>` : ''}</td>
+        <td>${ARCH[m.arch] || '<span class="dash">—</span>'}</td>
+        <td class="num">${f1s(m.f1.train) ?? (pend ? PEND : '<span class="dash">—</span>')}</td>
+        <td class="num">${f1s(m.f1.blind) ?? (pend ? PEND : '<span class="dash">—</span>')}</td>
+        <td class="num">${usd((m.cost_usd || {}).train) ?? (pend ? PEND : '<span class="dash">—</span>')}</td>
+        <td class="num">${ptsPill(points(m.params_b))}</td></tr>`;
+    }).join('') + '</tbody>';
+  $('#tbl').querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; table(); });
+  const noted = D.models.filter(m => m.note && !m.placeholder);
+  $('#tnote').innerHTML = noted.map(m => `<b>${esc(m.name)}</b>: ${esc(m.note)}`).join('<br>');
+}
+
+// ---------------------------------------------------------------- cost bars
+function cost() {
+  const box = $('#cost'), W = Math.max(560, box.clientWidth);
+  const items = D.models.filter(m => m.params_b != null && m.arch !== 'router').map(m => ({ m, v: (m.cost_usd || {}).train }))
+    .sort((a, b) => (a.v ?? 1e9) - (b.v ?? 1e9));
+  const rowH = 30, L = Math.min(210, W * .36), R = 130, H = items.length * rowH + 10;
+  const max = Math.max(...items.map(i => i.v || 0));
+  let s = '';
+  items.forEach((it, k) => {
+    const y = k * rowH + 6, w = it.v ? (it.v / max) * (W - L - R) : 0, p = points(it.m.params_b);
+    const col = it.m.chosen ? '#e8004f' : it.m.arch === 'rules' ? '#0f7f86' : '#0b1a20';
+    s += `<text x="${L - 12}" y="${y + 15}" text-anchor="end" font-size="12.5" fill="#0b1a20" font-weight="${it.m.chosen ? 700 : 500}">${esc(it.m.name)}</text>`;
+    if (it.v) s += `<rect x="${L}" y="${y + 4}" width="${Math.max(4, w)}" height="16" rx="4" fill="${col}" opacity="${it.m.chosen ? 1 : .85}"/><text x="${L + w + 8}" y="${y + 16}" font-size="12" fill="#41525a" style="font-variant-numeric:tabular-nums">${usd(it.v)}</text>`;
+    else if (it.v === 0) s += `<rect x="${L}" y="${y + 4}" width="3" height="16" rx="1.5" fill="${col}"/><text x="${L + 10}" y="${y + 16}" font-size="12" fill="#41525a">0 $ (bez API)</text>`;
+    else s += `<text x="${L}" y="${y + 16}" font-size="12" font-style="italic" fill="${it.m.placeholder ? '#e8004f' : '#b6bfbb'}">${it.m.placeholder ? 'w trakcie pomiaru' : 'brak pomiaru kosztu'}</text>`;
+    s += `<text x="${W - 4}" y="${y + 16}" text-anchor="end" font-size="11.5" font-weight="700" fill="${p >= 12 ? '#0b4d52' : '#7d8b91'}">${p} pkt</text>`;
+  });
+  box.innerHTML = svgEl(W, H, s);
+}
+
+// ---------------------------------------------------------------- OCR
+function ocr() {
+  const o = D.ocr; $('#ocrsub').textContent = `${o.dataset}. Na tych skanach średnie modele osiągają ten sam wynik co największe.`;
+  const box = $('#ocrchart'), W = Math.max(440, box.clientWidth), rowH = 30, L = Math.min(150, W * .38), R = 70, H = o.models.length * rowH + 30;
+  const lo = .95, X = v => L + (v - lo) / (1 - lo) * (W - L - R);
+  let s = '';
+  [.95, .96, .97, .98, .99, 1].forEach(v => { s += `<line x1="${X(v)}" x2="${X(v)}" y1="0" y2="${H - 24}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${X(v)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#7d8b91">${fmt(v, 2)}</text>`; });
+  o.models.forEach((m, k) => {
+    const y = k * rowH + 14;
+    s += `<text x="${L - 12}" y="${y + 4}" text-anchor="end" font-size="12.5" fill="#0b1a20">${esc(m.name)}</text>`;
+    if (m.f1 != null) s += `<line x1="${X(lo)}" x2="${X(m.f1)}" y1="${y}" y2="${y}" stroke="#0b1a20" stroke-opacity=".15" stroke-width="2"/><circle cx="${X(m.f1)}" cy="${y}" r="6.5" fill="#0b1a20" stroke="#fff" stroke-width="2"/>
+      <text x="${X(m.f1) + 12}" y="${y + 4}" font-size="11.5" fill="#41525a">${f1s(m.f1)}${m.cost_usd != null ? ` · ${usd(m.cost_usd)}` : ''}</text>`;
+    else s += `<text x="${X(lo)}" y="${y + 4}" font-size="11.5" font-style="italic" fill="${m.placeholder ? '#e8004f' : '#b45309'}">${m.placeholder ? 'w trakcie pomiaru' : esc(m.note || m.status || '—')}</text>`;
+  });
+  box.innerHTML = svgEl(W, H, s);
+  const maxCer = Math.max(...o.local.map(l => l.cer)), maxS = Math.max(...o.local.map(l => l.sec_per_page));
+  $('#ocrlocal').innerHTML = o.local.map(l => `<div class="c"><b>${esc(l.name)}</b><small>${esc(l.where)}</small>
+    <div style="margin-top:10px"><div class="mrow"><span>CER</span><b>${(l.cer * 100).toFixed(1).replace('.', ',')}%</b></div><div class="meter"><i style="width:${l.cer / maxCer * 100}%;background:#0b1a20"></i></div></div>
+    <div style="margin-top:8px"><div class="mrow"><span>czas / strona</span><b>${l.sec_per_page} s</b></div><div class="meter"><i style="width:${l.sec_per_page / maxS * 100}%;background:#0b1a20"></i></div></div></div>`).join('');
+}
+
+// ---------------------------------------------------------------- bands (step chart)
+function bands() {
+  const box = $('#bands'), W = box.clientWidth, H = 190, L = 34, R = 10, T = 14, B = 34, n = BANDS.length, bw = (W - L - R) / n;
+  const Y = p => T + (20 - p) / 20 * (H - T - B);
+  let s = '';
+  [0, 10, 20].forEach(p => { s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${L - 8}" y="${Y(p) + 4}" text-anchor="end" font-size="11" fill="#7d8b91">${p}</text>`; });
+  BANDS.forEach((b, k) => {
+    const x = L + k * bw + 4, w = bw - 8, y = Y(b.points);
+    s += `<rect x="${x}" y="${y}" width="${w}" height="${Math.max(2, H - B - y)}" rx="4" fill="rgba(${TEAL},${Math.max(.12, bandAlpha(b.points) * 2.6)})"/>
+      <text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" font-size="12" font-weight="700" fill="#0b1a20">${b.points}</text>
+      <text x="${x + w / 2}" y="${H - B + 17}" text-anchor="middle" font-size="11" fill="#41525a">${esc(b.label)}</text>`;
+  });
+  box.innerHTML = svgEl(W, H, s);
+}
+
+function render() {
+  const ms = D.models, measured = ms.filter(m => m.f1.train != null && m.arch !== 'rules' && m.arch !== 'router');
+  const top = measured.filter(m => m.f1.train >= .99).length;
+  const chosen = ms.filter(m => m.chosen), avg = chosen.length ? chosen.reduce((a, m) => a + m.params_b, 0) / chosen.length : null;
+  $('#kpis').innerHTML = `
+    <div class="kpi"><b>${ms.length}</b><span>modeli i konfiguracji porównanych na tych samych dokumentach</span></div>
+    <div class="kpi"><b>${top}<small> / ${measured.length}</small></b><span>modeli LLM z F1 ≥ 0,99 na danych treningowych</span></div>
+    <div class="kpi"><b>${avg != null ? points(avg) : '—'}<small> pkt</small></b><span>za rozmiar w profilu Auto: reguły → ${chosen.map(m => esc(m.name.replace('Ministral ', ''))).join(' / ')} (średnio ${avg != null ? String(avg).replace('.', ',') : '—'}B)</span></div>
+    <div class="kpi"><b>~${fmt(D.real_corpus.agreement_low, 2)}</b><span>zgodność na ${D.real_corpus.docs} prawdziwych dokumentach KIO</span></div>`;
+  scatter(); table(); cost(); ocr(); bands();
+  $('#ds').innerHTML = D.datasets.map(d => `<div class="card"><b>${esc(d.name)}</b><span class="n">${d.docs ?? '20 spraw'}</span><small>${esc(d.desc)}</small></div>`).join('');
+  const r = ms.find(m => m.arch === 'rules');
+  if (r) { $('#rulesnote').textContent = r.note || '';
+    $('#rules').innerHTML = [['train', 'trening'], ['variants', 'warianty'], ['blind', 'ślepy zbiór']].map(([k, l]) => `<div><b>${f1s(r.f1[k]) ?? '—'}</b><small>F1 · ${l}</small></div>`).join(''); }
+  const rc = D.real_corpus; $('#realnote').textContent = rc.desc;
+  $('#realval').textContent = `${fmt(rc.agreement_low, 2)}–${fmt(rc.agreement_high, 2)}`; $('#realbar').style.width = (rc.agreement_low * 100) + '%';
+  $('#dhead').textContent = D.decision.headline;
+  $('#why').innerHTML = D.decision.points.map(p => `<li><span>${esc(p)}</span></li>`).join('');
+  $('#rule').textContent = D.scoring.rule;
+  $('#upd').textContent = `Dane: docs/benchmarks.json · aktualizacja ${D.updated}`;
+}
+fetch('/api/benchmarks').then(r => r.json()).then(d => { D = d; BANDS = d.scoring.bands; render(); let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(render, 120); }); })
+  .catch(e => { $('#main').insertAdjacentHTML('beforeend', `<p class="err">Nie udało się wczytać docs/benchmarks.json: ${esc(e.message)}</p>`); });
+</script>
+</body>
+</html>
