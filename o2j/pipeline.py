@@ -21,6 +21,9 @@ class Pipeline:
         if model:
             self.s["llm"]["model"] = model
         self.specs = load_specs(self.s["paths"]["doctypes"])
+        from .memory import LearningStore
+        lp = self.s["paths"].get("learned")
+        self.memory = LearningStore(lp) if lp else None
         self.llm = LLM(self.s["llm"])
         ocr_cfg = self.s.get("ocr", {})
         from .ocr import make_engine
@@ -50,7 +53,10 @@ class Pipeline:
         if not text.strip():  # nothing readable -> schema-valid skeleton (nulls still score as TN)
             trace["elapsed_s"] = round(time.time() - t0, 2)
             return doctype, spec.skeleton(), trace
-        examples = E.few_shot_examples(spec, self.s["paths"].get("train"), text, set(exclude_cases), spec.few_shot)
+        learned = self.memory.example_dirs(doctype) if self.memory else []
+        examples = E.few_shot_examples(spec, self.s["paths"].get("train"), text, set(exclude_cases), spec.few_shot,
+                                       learned=learned)
+        trace["learned_examples_available"] = len(learned)
         system, user = E.build_prompt(spec, text, examples)
         images = None
         if ocr_cfg.get("attach_images", True):

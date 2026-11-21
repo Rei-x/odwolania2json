@@ -37,23 +37,33 @@ def _example_text(pdf_path: str, pages: int | None) -> str:
     return P.load(Path(pdf_path), max_pages=pages).text(pages)
 
 
-def few_shot_examples(spec: DocSpec, train_dir: Path, query_text: str, exclude: set[str], k: int) -> list[tuple[str, str]]:
+def few_shot_examples(spec: DocSpec, train_dir: Path, query_text: str, exclude: set[str], k: int,
+                      learned: list[tuple[Path, Path]] | None = None) -> list[tuple[str, str]]:
+    """Most similar verified examples: organiser training data + documents verified by users (memory)."""
     ex = spec.raw.get("examples") or {}
-    if not k or not ex or not train_dir or not train_dir.exists():
+    if not k:
         return []
     cands = []
-    names = ex["pdf"] if isinstance(ex["pdf"], list) else [ex["pdf"]]
-    for case in sorted(p for p in train_dir.iterdir() if p.is_dir()):
+    if not ex or not train_dir or not train_dir.exists():
+        train_dir = None
+    names = (ex.get("pdf") if isinstance(ex.get("pdf"), list) else [ex.get("pdf")]) if ex else []
+    for case in (sorted(p for p in train_dir.iterdir() if p.is_dir()) if train_dir else []):
         pdf = next((case / n for n in names if (case / n).exists()), None)
         js = case / ex["json"]
         if case.name in exclude or pdf is None or not js.exists():
             continue
         cands.append((case.name, pdf, js))
+    LEARNED_BONUS = 5.0  # human-verified examples (often real-world layouts) are slightly preferred
+    for pdf, js in (learned or []):
+        cands.append(("learned:" + pdf.parent.name, pdf, js))
     q = query_text[:3000]
     scored = []
     for name, pdf, js in cands:
         t = _example_text(str(pdf), spec.pages)
-        scored.append((fuzz.ratio(q, t[:3000]), name, t, js))
+        bonus = LEARNED_BONUS if name.startswith("learned:") else 0.0
+        if name.startswith("learned:") and t[:3000] == q:  # never use the very same document as its own example
+            continue
+        scored.append((fuzz.ratio(q, t[:3000]) + bonus, name, t, js))
     scored.sort(key=lambda x: -x[0])
     return [(t, js.read_text(encoding="utf-8")) for _, _, t, js in scored[:k]]
 

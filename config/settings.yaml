@@ -33,6 +33,7 @@ paths:
   doctypes: config/doctypes
   train: data/train                  # źródło przykładów few-shot
   trace: trace                       # ślady ekstrakcji (dowody, strony, cytaty)
+  learned: data/learned              # pamięć: dokumenty zweryfikowane przez użytkowników (uczenie w czasie)
 
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
 profile: standard

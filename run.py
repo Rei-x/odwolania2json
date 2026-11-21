@@ -22,7 +22,7 @@ from o2j.pipeline import Pipeline, build_gt  # noqa: E402
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Odwołania2JSON — PDF -> JSON")
-    ap.add_argument("command", nargs="?", default="run", choices=["run", "eval"])
+    ap.add_argument("command", nargs="?", default="run", choices=["run", "eval", "learn"])
     ap.add_argument("--input", type=Path, default=ROOT / "input")
     ap.add_argument("--output", type=Path, default=ROOT / "output")
     ap.add_argument("--trace", type=Path, default=None)
@@ -37,6 +37,15 @@ def main(argv=None):
     s = load_settings(profile=a.profile)
     print(f"Profil: {s.get('active_profile', '-')}")
     pipe = Pipeline(s, model=a.model)
+
+    if a.command == "learn":  # rule suggestions from accumulated human corrections (for review)
+        st = pipe.memory.stats()
+        print(f"Recenzje: {st['reviews']}, pól: {st['fields']}, poprawionych: {st['corrected']}, "
+              f"trafność: {st['accuracy']}")
+        print("Najczęściej poprawiane:", st["most_corrected"])
+        for dt, path in pipe.memory.suggest_rules(pipe.llm, pipe.specs).items():
+            print(f"Propozycje reguł dla {dt}: {path}")
+        return
 
     if a.command == "run":
         trace = a.trace or s["paths"]["trace"]
