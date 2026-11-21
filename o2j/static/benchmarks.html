@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benchmarki modeli · odwołania → json</title>
+<title>Benchmarki modeli · Wróbelek</title>
 <meta name="description" content="Jakie modele testowaliśmy, jakie wyniki osiągnęły i dlaczego wybraliśmy modele do 8B parametrów.">
 <style>
 @font-face{font-family:"InterV";font-style:normal;font-display:swap;font-weight:100 900;src:url(/static/vendor/inter-latin-wght-normal.woff2) format("woff2");
@@ -13,21 +13,21 @@
 @font-face{font-family:"MonoV";font-style:normal;font-display:swap;font-weight:100 800;src:url(/static/vendor/jetbrains-mono-latin-wght-normal.woff2) format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
-  --ink:#0b1a20; --ink2:#41525a; --mute:#7d8b91; --line:#e3e6e3; --card:#fff; --bg:#f3f4f1;
-  --accent:#e8004f; --teal:#0f7f86; --amber:#c27803; --ok:#16a34a;
-  --r:22px; --sh:0 1px 2px rgba(11,26,32,.04),0 10px 34px rgba(11,26,32,.08);
+  --ink:#2b211b; --ink2:#5e4c40; --mute:#8e7d70; --line:#e8e4e1; --card:#fff; --bg:#f3f4f1;
+  --accent:#c4551f; --teal:#5b7d47; --amber:#b07a24; --ok:#16a34a;
+  --r:22px; --sh:0 1px 2px rgba(43,33,27,.04),0 10px 34px rgba(43,33,27,.08);
   --sans:"InterV",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"MonoV",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --gut:clamp(16px,5vw,80px);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:90px}
-body{margin:0;font:15px/1.55 var(--sans);color:var(--ink);background:radial-gradient(1200px 600px at 10% -10%,#fde7ef 0,transparent 60%),radial-gradient(900px 500px at 110% 40%,#dff3f3 0,transparent 55%),var(--bg);-webkit-font-smoothing:antialiased}
+body{margin:0;font:15px/1.55 var(--sans);color:var(--ink);background:radial-gradient(1200px 600px at 10% -10%,#f7e3d1 0,transparent 60%),radial-gradient(900px 500px at 110% 40%,#e7efdc 0,transparent 55%),var(--bg);-webkit-font-smoothing:antialiased}
 a{color:inherit}
 .mark{font-weight:800;letter-spacing:-.03em;text-decoration:none}
 .mark i{font-style:normal;color:var(--accent)}
 nav.top{position:fixed;top:10px;left:10px;right:10px;z-index:50;height:60px;display:flex;align-items:center;gap:24px;padding:0 12px 0 calc(var(--gut) - 10px);border-radius:18px;
-  background:rgba(246,247,244,.8);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);box-shadow:0 1px 0 rgba(11,26,32,.06),0 10px 30px rgba(11,26,32,.06)}
+  background:rgba(250,245,238,.8);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);box-shadow:0 1px 0 rgba(43,33,27,.06),0 10px 30px rgba(43,33,27,.06)}
 nav.top .mark{font-size:19px}
 nav.top .links{display:flex;gap:2px;margin-left:auto}
 nav.top .links a{font-size:14px;font-weight:500;text-decoration:none;padding:8px 12px;border-radius:99px;opacity:.78}
@@ -58,7 +58,7 @@ section{margin-top:64px}
 .legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
 .tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.45;padding:9px 12px;border-radius:10px;box-shadow:var(--sh);opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5}
 .tip b{font-size:13px}
-.tip .m{color:#9fb1b8}
+.tip .m{color:#b8ac9f}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:900px){.grid2{grid-template-columns:1fr}}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -66,23 +66,23 @@ th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-tran
 th:hover{color:var(--ink)}
 th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
 th .ar{opacity:.5;margin-left:3px}
-td{padding:11px 10px;border-bottom:1px solid #f0f2f1;vertical-align:middle}
+td{padding:11px 10px;border-bottom:1px solid #f3f1ef;vertical-align:middle}
 tr:last-child td{border-bottom:0}
-tr.chosen td{background:#fff5f8}
+tr.chosen td{background:#fdf4ec}
 td .nm{font-weight:600}
 td .vd{display:block;font-size:12px;color:var(--mute)}
-.tag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:#eef0ef;color:var(--ink2);margin-left:6px;vertical-align:1px}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:#f1efed;color:var(--ink2);margin-left:6px;vertical-align:1px}
 .tag.ch{background:var(--accent);color:#fff}
-.tag.pl{background:#fff1f5;color:var(--accent);border:1px dashed var(--accent)}
+.tag.pl{background:#fbefe4;color:var(--accent);border:1px dashed var(--accent)}
 .pts{display:inline-block;min-width:44px;text-align:center;font-weight:700;padding:3px 9px;border-radius:99px;font-size:12.5px}
 .pend{font-style:italic;color:var(--accent);font-size:12.5px;white-space:nowrap}
-.dash{color:#b6bfbb}
+.dash{color:#c2bbb3}
 .tablewrap{overflow-x:auto;margin:0 -8px}
 .note{font-size:12.5px;color:var(--mute);margin-top:12px}
 .why{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
 @media (max-width:900px){.why{grid-template-columns:1fr}}
 .why ol{margin:0;padding:0;list-style:none;counter-reset:w}
-.why li{counter-increment:w;display:grid;grid-template-columns:34px 1fr;gap:12px;padding:12px 0;border-top:1px solid #f0f2f1;color:var(--ink2)}
+.why li{counter-increment:w;display:grid;grid-template-columns:34px 1fr;gap:12px;padding:12px 0;border-top:1px solid #f3f1ef;color:var(--ink2)}
 .why li:first-child{border-top:0}
 .why li::before{content:counter(w);width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
 .ds{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
@@ -91,15 +91,15 @@ td .vd{display:block;font-size:12px;color:var(--mute)}
 .ds .n{font-size:26px;font-weight:800;letter-spacing:-.03em;display:block;margin:2px 0}
 .ds small{color:var(--ink2);font-size:12.5px;line-height:1.45;display:block}
 .vs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.vs .c{background:#f8f9f8;border-radius:14px;padding:14px 16px}
+.vs .c{background:#f9f8f8;border-radius:14px;padding:14px 16px}
 .vs .c b{display:block;font-size:13.5px}
 .vs .c small{color:var(--mute);font-size:12px}
-.meter{height:8px;border-radius:99px;background:#eef0ef;margin:8px 0 3px;overflow:hidden}
+.meter{height:8px;border-radius:99px;background:#f1efed;margin:8px 0 3px;overflow:hidden}
 .meter i{display:block;height:100%;border-radius:99px}
 .mrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2)}
 .mrow b{font-variant-numeric:tabular-nums;color:var(--ink)}
 .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-.rules div{background:#f8f9f8;border-radius:14px;padding:12px 14px}
+.rules div{background:#f9f8f8;border-radius:14px;padding:12px 14px}
 .rules b{display:block;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .rules small{color:var(--ink2);font-size:12px}
 footer{max-width:1180px;margin:0 auto;padding:30px var(--gut) 60px;border-top:1px solid var(--line);color:var(--mute);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
@@ -109,20 +109,20 @@ footer a{color:var(--ink2)}
 .swhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .swctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
 .pbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:99px;background:#fff;box-shadow:var(--sh);font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);border:0;cursor:pointer}
-.pbtn:hover{background:#f8f9f8}
+.pbtn:hover{background:#f9f8f8}
 .pbtn.on{background:var(--ink);color:#fff}
 .pbtn svg{width:14px;height:14px}
 .pbtn.spin svg{animation:rot .8s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 .live{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
-.live.off{background:#b6bfbb;box-shadow:none}
+.live.off{background:#c2bbb3;box-shadow:none}
 .callouts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:16px}
 .callouts .card{padding:16px 18px}
 .callouts .k{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .callouts b{display:block;font-size:15px;margin:4px 0 2px}
 .callouts .v{font-size:24px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .callouts small{display:block;color:var(--ink2);font-size:12.5px;line-height:1.45;margin-top:4px}
-.bdg{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:#eef0ef;color:var(--ink2);margin-left:5px;vertical-align:1px;white-space:nowrap}
+.bdg{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:#f1efed;color:var(--ink2);margin-left:5px;vertical-align:1px;white-space:nowrap}
 .bdg.eu{background:#e6edfb;color:#1e40af}.bdg.noeu{background:#fdf1dc;color:#92400e}.bdg.par{background:var(--accent);color:#fff}
 .nores{font-style:italic;color:#b45309;font-size:12.5px;white-space:nowrap;cursor:help;border-bottom:1px dotted #d6a35c}
 #swtbl td.pd{font-size:12.5px;color:var(--ink2)}
@@ -134,16 +134,17 @@ footer a{color:var(--ink2)}
 #swtbl tr.par td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #swtbl tr.new td{animation:flash 2.4s ease-out}
 @keyframes flash{from{background:#fff3c4}to{background:transparent}}
-.seg{display:inline-flex;background:#f1f3f2;border-radius:99px;padding:3px}
+.seg{display:inline-flex;background:#f4f2f0;border-radius:99px;padding:3px}
 .seg button{border:0;background:none;font:inherit;font-size:12px;padding:4px 11px;border-radius:99px;color:var(--ink2);cursor:pointer}
 .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .empty{padding:28px;text-align:center;color:var(--mute)}
 .err{padding:40px;text-align:center;color:#b91c1c}
+.mark{display:inline-flex;align-items:center}.mark .logo{width:1.45em;height:1.45em;margin-right:.32em;flex:none}
 </style>
 </head>
 <body>
 <nav class="top">
-  <a class="mark" href="/">odwołania <i>→</i> json</a>
+  <a class="mark" href="/"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M27 15l4-1-4 3z" fill="#6b4a33"/><ellipse cx="18" cy="18" rx="10" ry="8" fill="#a8703f"/><path d="M9 19q3 8 11 7-7-2-8-8z" fill="#efe3cf"/><path d="M15 14q7-4 12 3-5 5-11 2z" fill="#7a4f2e"/><circle cx="11" cy="12" r="6" fill="#9c9389"/><path d="M6 11q3-6 9-3-1 3-3 2z" fill="#8a4a25"/><path d="M6 14q2 3 5 3l-1-3z" fill="#2b211b"/><circle cx="9.5" cy="11.5" r="1.1" fill="#1a1310"/><path d="M5.5 12.5L3 13.5l2.8.8z" fill="#3a2b22"/></svg>Wróbel<i>ek</i></a>
   <div class="links">
     <a href="#rozmiar">Rozmiar a F1</a>
     <a href="#tabela">Wszystkie modele</a>
@@ -231,7 +232,7 @@ const TEAL = [15, 127, 134];
 let D, BANDS = null;
 const points = b => { if (b == null) return null; for (const x of BANDS) if (x.max_b == null || b <= x.max_b) return x.points; return 0; };
 const bandAlpha = p => ({ 20: .26, 18: .19, 12: .12, 8: .075, 4: .04, 0: 0 })[p] ?? 0;
-const ptsPill = p => p == null ? '<span class="dash">—</span>' : `<span class="pts" style="background:rgba(${TEAL},${Math.max(.08, bandAlpha(p) + .04)});color:${p >= 12 ? '#0b4d52' : 'var(--ink2)'}">${p} pkt</span>`;
+const ptsPill = p => p == null ? '<span class="dash">—</span>' : `<span class="pts" style="background:rgba(${TEAL},${Math.max(.08, bandAlpha(p) + .04)});color:${p >= 12 ? '#3f5a30' : 'var(--ink2)'}">${p} pkt</span>`;
 const svgEl = (w, h, inner) => `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img">${inner}</svg>`;
 function tipFor(container) {
   let t = container.querySelector('.tip'); if (!t) { t = document.createElement('div'); t.className = 'tip'; container.appendChild(t); }
@@ -260,29 +261,29 @@ function scatter() {
   BANDS.forEach(b => {
     const hi = b.max_b ?? 4000, xa = X(prev), xb = X(Math.min(hi, 4000));
     s += `<rect x="${xa}" y="${T - 34}" width="${xb - xa}" height="${H - B - T + 34}" fill="rgba(${TEAL},${bandAlpha(b.points)})"/>`;
-    s += `<text x="${(xa + xb) / 2}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${b.points ? '#0b4d52' : '#7d8b91'}">${b.points} pkt</text>`;
+    s += `<text x="${(xa + xb) / 2}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${b.points ? '#3f5a30' : '#8e7d70'}">${b.points} pkt</text>`;
     prev = hi;
   });
   s += `<rect x="${L}" y="${T - 34}" width="${zeroW - 12}" height="${H - B - T + 34}" rx="8" fill="rgba(${TEAL},.3)"/>
-    <text x="${L + zeroW / 2 - 6}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0b4d52">20 pkt</text>`;
+    <text x="${L + zeroW / 2 - 6}" y="${T - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3f5a30">20 pkt</text>`;
   // grid + axes
-  [.99, .995, 1].forEach(f => { s += `<line x1="${L}" x2="${x1}" y1="${Y(f)}" y2="${Y(f)}" stroke="#0b1a20" stroke-opacity=".07"/>
-    <text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#7d8b91">${fmt(f, 3)}</text>`; });
-  s += `<line x1="${L}" x2="${x1}" y1="${Yr(ymin) - 10}" y2="${Yr(ymin) - 10}" stroke="#0b1a20" stroke-opacity=".18" stroke-dasharray="2 4"/>
-    <text x="${L - 10}" y="${Yr(ymin) - 6}" text-anchor="end" font-size="11" fill="#7d8b91">niżej</text>`;
-  [2, 3, 8, 14, 32, 70, 150, 300, 1000, 3000].forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">${pb(b)}</text>`; });
-  s += `<text x="${L + zeroW / 2 - 6}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">0</text>`;
-  s += `<text x="${(x0 + x1) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#41525a">Łączna liczba parametrów (skala logarytmiczna)</text>`;
-  s += `<text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#41525a">F1 (dane treningowe)</text>`;
+  [.99, .995, 1].forEach(f => { s += `<line x1="${L}" x2="${x1}" y1="${Y(f)}" y2="${Y(f)}" stroke="#2b211b" stroke-opacity=".07"/>
+    <text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#8e7d70">${fmt(f, 3)}</text>`; });
+  s += `<line x1="${L}" x2="${x1}" y1="${Yr(ymin) - 10}" y2="${Yr(ymin) - 10}" stroke="#2b211b" stroke-opacity=".18" stroke-dasharray="2 4"/>
+    <text x="${L - 10}" y="${Yr(ymin) - 6}" text-anchor="end" font-size="11" fill="#8e7d70">niżej</text>`;
+  [2, 3, 8, 14, 32, 70, 150, 300, 1000, 3000].forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#8e7d70">${pb(b)}</text>`; });
+  s += `<text x="${L + zeroW / 2 - 6}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#8e7d70">0</text>`;
+  s += `<text x="${(x0 + x1) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#5e4c40">Łączna liczba parametrów (skala logarytmiczna)</text>`;
+  s += `<text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#5e4c40">F1 (dane treningowe)</text>`;
   // placeholders: dashed column marker in the ≤8B band
   const ms = D.models.filter(m => m.params_b != null);
   ms.filter(m => m.f1.train == null).forEach(m => {
     const x = X(m.params_b);
     const ya = Y(1.0), yb = Y(.9875);
-    s += `<line x1="${x}" x2="${x}" y1="${ya}" y2="${yb}" stroke="#e8004f" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>
-      <circle cx="${x}" cy="${(ya + yb) / 2}" r="7" fill="#fff" stroke="#e8004f" stroke-width="2" stroke-dasharray="3 2.5" data-i="${D.models.indexOf(m)}" class="pt"/>
-      <text x="${x}" y="${yb + 16}" text-anchor="middle" font-size="11" font-weight="600" fill="#e8004f">${esc(m.name)}</text>
-      <text x="${x}" y="${yb + 30}" text-anchor="middle" font-size="10.5" font-style="italic" fill="#e8004f">w trakcie pomiaru</text>`;
+    s += `<line x1="${x}" x2="${x}" y1="${ya}" y2="${yb}" stroke="#c4551f" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>
+      <circle cx="${x}" cy="${(ya + yb) / 2}" r="7" fill="#fff" stroke="#c4551f" stroke-width="2" stroke-dasharray="3 2.5" data-i="${D.models.indexOf(m)}" class="pt"/>
+      <text x="${x}" y="${yb + 16}" text-anchor="middle" font-size="11" font-weight="600" fill="#c4551f">${esc(m.name)}</text>
+      <text x="${x}" y="${yb + 30}" text-anchor="middle" font-size="10.5" font-style="italic" fill="#c4551f">w trakcie pomiaru</text>`;
   });
   // measured points; labels alternate above/below where neighbours at the same F1 are close
   const meas = ms.filter(m => m.f1.train != null).sort((a, b) => a.params_b - b.params_b);
@@ -292,10 +293,10 @@ function scatter() {
     const near = lastAt[key] != null && x - lastAt[key].x < 92;
     const below = near ? !lastAt[key].below : false;
     lastAt[key] = { x, below };
-    const fill = m.arch === 'rules' ? '#0f7f86' : '#0b1a20';
+    const fill = m.arch === 'rules' ? '#5b7d47' : '#2b211b';
     s += `<circle cx="${x}" cy="${y}" r="7" fill="${fill}" stroke="#fff" stroke-width="2"/>
       <circle cx="${x}" cy="${y}" r="15" fill="transparent" class="pt" data-i="${D.models.indexOf(m)}" style="cursor:pointer"/>
-      <text x="${x}" y="${below ? y + 22 : y - 13}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0b1a20">${esc(m.name.replace(/ \(.*\)/, ''))}${m.f1.train < ymin ? ` · ${f1s(m.f1.train)} ↓` : ''}</text>`;
+      <text x="${x}" y="${below ? y + 22 : y - 13}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#2b211b">${esc(m.name.replace(/ \(.*\)/, ''))}${m.f1.train < ymin ? ` · ${f1s(m.f1.train)} ↓` : ''}</text>`;
   });
   box.innerHTML = svgEl(W, H, s);
   const tip = tipFor(box);
@@ -304,8 +305,8 @@ function scatter() {
     c.addEventListener('mouseleave', tip.hide);
   });
   const unk = D.models.filter(m => m.params_b == null);
-  $('#slegend').innerHTML = `<span><i style="background:#0b1a20"></i>model LLM</span><span><i style="background:#0f7f86"></i>reguły YAML (0 parametrów)</span>
-    <span><i style="background:#fff;border:2px dashed #e8004f;width:9px;height:9px"></i>w trakcie pomiaru</span>
+  $('#slegend').innerHTML = `<span><i style="background:#2b211b"></i>model LLM</span><span><i style="background:#5b7d47"></i>reguły YAML (0 parametrów)</span>
+    <span><i style="background:#fff;border:2px dashed #c4551f;width:9px;height:9px"></i>w trakcie pomiaru</span>
     ${unk.length ? `<span style="color:var(--mute)">Bez rozmiaru (nie da się umieścić na osi): ${unk.map(m => `${esc(m.name)}: F1 ${f1s(m.f1.train)}`).join(', ')}</span>` : ''}`;
 }
 
@@ -350,12 +351,12 @@ function cost() {
   let s = '';
   items.forEach((it, k) => {
     const y = k * rowH + 6, w = it.v ? (it.v / max) * (W - L - R) : 0, p = points(it.m.params_b);
-    const col = it.m.chosen ? '#e8004f' : it.m.arch === 'rules' ? '#0f7f86' : '#0b1a20';
-    s += `<text x="${L - 12}" y="${y + 15}" text-anchor="end" font-size="12.5" fill="#0b1a20" font-weight="${it.m.chosen ? 700 : 500}">${esc(it.m.name)}</text>`;
-    if (it.v) s += `<rect x="${L}" y="${y + 4}" width="${Math.max(4, w)}" height="16" rx="4" fill="${col}" opacity="${it.m.chosen ? 1 : .85}"/><text x="${L + w + 8}" y="${y + 16}" font-size="12" fill="#41525a" style="font-variant-numeric:tabular-nums">${usd(it.v)}</text>`;
-    else if (it.v === 0) s += `<rect x="${L}" y="${y + 4}" width="3" height="16" rx="1.5" fill="${col}"/><text x="${L + 10}" y="${y + 16}" font-size="12" fill="#41525a">0 $ (bez API)</text>`;
-    else s += `<text x="${L}" y="${y + 16}" font-size="12" font-style="italic" fill="${it.m.placeholder ? '#e8004f' : '#b6bfbb'}">${it.m.placeholder ? 'w trakcie pomiaru' : 'brak pomiaru kosztu'}</text>`;
-    s += `<text x="${W - 4}" y="${y + 16}" text-anchor="end" font-size="11.5" font-weight="700" fill="${p >= 12 ? '#0b4d52' : '#7d8b91'}">${p} pkt</text>`;
+    const col = it.m.chosen ? '#c4551f' : it.m.arch === 'rules' ? '#5b7d47' : '#2b211b';
+    s += `<text x="${L - 12}" y="${y + 15}" text-anchor="end" font-size="12.5" fill="#2b211b" font-weight="${it.m.chosen ? 700 : 500}">${esc(it.m.name)}</text>`;
+    if (it.v) s += `<rect x="${L}" y="${y + 4}" width="${Math.max(4, w)}" height="16" rx="4" fill="${col}" opacity="${it.m.chosen ? 1 : .85}"/><text x="${L + w + 8}" y="${y + 16}" font-size="12" fill="#5e4c40" style="font-variant-numeric:tabular-nums">${usd(it.v)}</text>`;
+    else if (it.v === 0) s += `<rect x="${L}" y="${y + 4}" width="3" height="16" rx="1.5" fill="${col}"/><text x="${L + 10}" y="${y + 16}" font-size="12" fill="#5e4c40">0 $ (bez API)</text>`;
+    else s += `<text x="${L}" y="${y + 16}" font-size="12" font-style="italic" fill="${it.m.placeholder ? '#c4551f' : '#c2bbb3'}">${it.m.placeholder ? 'w trakcie pomiaru' : 'brak pomiaru kosztu'}</text>`;
+    s += `<text x="${W - 4}" y="${y + 16}" text-anchor="end" font-size="11.5" font-weight="700" fill="${p >= 12 ? '#3f5a30' : '#8e7d70'}">${p} pkt</text>`;
   });
   box.innerHTML = svgEl(W, H, s);
 }
@@ -366,19 +367,19 @@ function ocr() {
   const box = $('#ocrchart'), W = Math.max(440, box.clientWidth), rowH = 30, L = Math.min(150, W * .38), R = 70, H = o.models.length * rowH + 30;
   const lo = .95, X = v => L + (v - lo) / (1 - lo) * (W - L - R);
   let s = '';
-  [.95, .96, .97, .98, .99, 1].forEach(v => { s += `<line x1="${X(v)}" x2="${X(v)}" y1="0" y2="${H - 24}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${X(v)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#7d8b91">${fmt(v, 2)}</text>`; });
+  [.95, .96, .97, .98, .99, 1].forEach(v => { s += `<line x1="${X(v)}" x2="${X(v)}" y1="0" y2="${H - 24}" stroke="#2b211b" stroke-opacity=".07"/><text x="${X(v)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#8e7d70">${fmt(v, 2)}</text>`; });
   o.models.forEach((m, k) => {
     const y = k * rowH + 14;
-    s += `<text x="${L - 12}" y="${y + 4}" text-anchor="end" font-size="12.5" fill="#0b1a20">${esc(m.name)}</text>`;
-    if (m.f1 != null) s += `<line x1="${X(lo)}" x2="${X(m.f1)}" y1="${y}" y2="${y}" stroke="#0b1a20" stroke-opacity=".15" stroke-width="2"/><circle cx="${X(m.f1)}" cy="${y}" r="6.5" fill="#0b1a20" stroke="#fff" stroke-width="2"/>
-      <text x="${X(m.f1) + 12}" y="${y + 4}" font-size="11.5" fill="#41525a">${f1s(m.f1)}${m.cost_usd != null ? ` · ${usd(m.cost_usd)}` : ''}</text>`;
-    else s += `<text x="${X(lo)}" y="${y + 4}" font-size="11.5" font-style="italic" fill="${m.placeholder ? '#e8004f' : '#b45309'}">${m.placeholder ? 'w trakcie pomiaru' : esc(m.note || m.status || '—')}</text>`;
+    s += `<text x="${L - 12}" y="${y + 4}" text-anchor="end" font-size="12.5" fill="#2b211b">${esc(m.name)}</text>`;
+    if (m.f1 != null) s += `<line x1="${X(lo)}" x2="${X(m.f1)}" y1="${y}" y2="${y}" stroke="#2b211b" stroke-opacity=".15" stroke-width="2"/><circle cx="${X(m.f1)}" cy="${y}" r="6.5" fill="#2b211b" stroke="#fff" stroke-width="2"/>
+      <text x="${X(m.f1) + 12}" y="${y + 4}" font-size="11.5" fill="#5e4c40">${f1s(m.f1)}${m.cost_usd != null ? ` · ${usd(m.cost_usd)}` : ''}</text>`;
+    else s += `<text x="${X(lo)}" y="${y + 4}" font-size="11.5" font-style="italic" fill="${m.placeholder ? '#c4551f' : '#b45309'}">${m.placeholder ? 'w trakcie pomiaru' : esc(m.note || m.status || '—')}</text>`;
   });
   box.innerHTML = svgEl(W, H, s);
   const maxCer = Math.max(...o.local.map(l => l.cer)), maxS = Math.max(...o.local.map(l => l.sec_per_page));
   $('#ocrlocal').innerHTML = o.local.map(l => `<div class="c"><b>${esc(l.name)}</b><small>${esc(l.where)}</small>
-    <div style="margin-top:10px"><div class="mrow"><span>CER</span><b>${(l.cer * 100).toFixed(1).replace('.', ',')}%</b></div><div class="meter"><i style="width:${l.cer / maxCer * 100}%;background:#0b1a20"></i></div></div>
-    <div style="margin-top:8px"><div class="mrow"><span>czas / strona</span><b>${l.sec_per_page} s</b></div><div class="meter"><i style="width:${l.sec_per_page / maxS * 100}%;background:#0b1a20"></i></div></div></div>`).join('');
+    <div style="margin-top:10px"><div class="mrow"><span>CER</span><b>${(l.cer * 100).toFixed(1).replace('.', ',')}%</b></div><div class="meter"><i style="width:${l.cer / maxCer * 100}%;background:#2b211b"></i></div></div>
+    <div style="margin-top:8px"><div class="mrow"><span>czas / strona</span><b>${l.sec_per_page} s</b></div><div class="meter"><i style="width:${l.sec_per_page / maxS * 100}%;background:#2b211b"></i></div></div></div>`).join('');
 }
 
 // ---------------------------------------------------------------- bands (step chart)
@@ -386,12 +387,12 @@ function bands() {
   const box = $('#bands'), W = box.clientWidth, H = 190, L = 34, R = 10, T = 14, B = 34, n = BANDS.length, bw = (W - L - R) / n;
   const Y = p => T + (20 - p) / 20 * (H - T - B);
   let s = '';
-  [0, 10, 20].forEach(p => { s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${L - 8}" y="${Y(p) + 4}" text-anchor="end" font-size="11" fill="#7d8b91">${p}</text>`; });
+  [0, 10, 20].forEach(p => { s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="#2b211b" stroke-opacity=".07"/><text x="${L - 8}" y="${Y(p) + 4}" text-anchor="end" font-size="11" fill="#8e7d70">${p}</text>`; });
   BANDS.forEach((b, k) => {
     const x = L + k * bw + 4, w = bw - 8, y = Y(b.points);
     s += `<rect x="${x}" y="${y}" width="${w}" height="${Math.max(2, H - B - y)}" rx="4" fill="rgba(${TEAL},${Math.max(.12, bandAlpha(b.points) * 2.6)})"/>
-      <text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" font-size="12" font-weight="700" fill="#0b1a20">${b.points}</text>
-      <text x="${x + w / 2}" y="${H - B + 17}" text-anchor="middle" font-size="11" fill="#41525a">${esc(b.label)}</text>`;
+      <text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" font-size="12" font-weight="700" fill="#2b211b">${b.points}</text>
+      <text x="${x + w / 2}" y="${H - B + 17}" text-anchor="middle" font-size="11" fill="#5e4c40">${esc(b.label)}</text>`;
   });
   box.innerHTML = svgEl(W, H, s);
 }
@@ -422,7 +423,7 @@ let SW = null, swMtime = undefined, swSort = 'blind', swDir = -1, swPd = 'blind'
 const DEF_BANDS = [{ max_b: 8, points: 20 }, { max_b: 14, points: 18 }, { max_b: 32, points: 12 }, { max_b: 70, points: 8 }, { max_b: 150, points: 4 }, { max_b: null, points: 0 }];
 const bandsOf = () => BANDS || DEF_BANDS;
 const ptsOf = r => r.points ?? (r.params_b == null ? null : (bandsOf().find(b => b.max_b == null || r.params_b <= b.max_b) || {}).points ?? 0);
-const BAND_COL = { 20: '#0b4d52', 18: '#0f7f86', 12: '#4fa7ab', 8: '#93c9cb', 4: '#c4dfe0', 0: '#9aa5a9' };
+const BAND_COL = { 20: '#3f5a30', 18: '#5b7d47', 12: '#7fa164', 8: '#b9d1a4', 4: '#d8e5cb', 0: '#ada296' };
 const PD_LABEL = { odwolanie: 'Odwołanie', pelnomocnictwo: 'Pełnomocn.', potwierdzenie_przelewu: 'Przelew', przelew: 'Przelew', inny: 'Inny' };
 const nores = (err, what = 'brak wyniku') => `<span class="nores" title="${esc(err || 'Brak wyniku (pomiar w toku albo przebieg nie zwrócił danych)')}">${what}</span>`;
 const swName = r => r.name ? r.name.replace(/^[^:]{1,30}:\s*/, '') : r.model.split('/').pop();
@@ -500,22 +501,22 @@ function swScatter(runs) {
   let s = '', prev = Math.pow(10, lmin);
   bandsOf().forEach(b => { const hi = b.max_b ?? Math.pow(10, lmax), xa = X(Math.max(prev, Math.pow(10, lmin))), xb = X(Math.min(hi, Math.pow(10, lmax)));
     if (xb > xa) { s += `<rect x="${xa}" y="${T - 22}" width="${xb - xa}" height="${H - B - T + 22}" fill="rgba(${TEAL},${bandAlpha(b.points) * .7})"/>
-      <text x="${(xa + xb) / 2}" y="${T - 8}" text-anchor="middle" font-size="11" font-weight="700" fill="${b.points ? '#0b4d52' : '#7d8b91'}">${b.points} pkt</text>`; }
+      <text x="${(xa + xb) / 2}" y="${T - 8}" text-anchor="middle" font-size="11" font-weight="700" fill="${b.points ? '#3f5a30' : '#8e7d70'}">${b.points} pkt</text>`; }
     prev = hi; });
   const step = ymax - ymin > .2 ? .1 : ymax - ymin > .08 ? .02 : .01;
-  for (let f = Math.ceil(ymin / step) * step; f <= 1.0001; f += step) s += `<line x1="${L}" x2="${W - R}" y1="${Y(f)}" y2="${Y(f)}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#7d8b91">${fmt(f, 2)}</text>`;
-  [1, 3, 8, 14, 32, 70, 150, 400, 1000, 3000].filter(b => Math.log10(b) >= lmin && Math.log10(b) <= lmax).forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">${pb(b)}</text>`; });
-  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#41525a">Łączna liczba parametrów (skala logarytmiczna)</text>
-    <text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#41525a">F1 (ślepy zbiór)</text>`;
+  for (let f = Math.ceil(ymin / step) * step; f <= 1.0001; f += step) s += `<line x1="${L}" x2="${W - R}" y1="${Y(f)}" y2="${Y(f)}" stroke="#2b211b" stroke-opacity=".07"/><text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#8e7d70">${fmt(f, 2)}</text>`;
+  [1, 3, 8, 14, 32, 70, 150, 400, 1000, 3000].filter(b => Math.log10(b) >= lmin && Math.log10(b) <= lmax).forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#8e7d70">${pb(b)}</text>`; });
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#5e4c40">Łączna liczba parametrów (skala logarytmiczna)</text>
+    <text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#5e4c40">F1 (ślepy zbiór)</text>`;
   // Pareto frontier: step line through optimal models, ordered by size
   const fr = pts.filter(r => r._par).sort((a, b) => a.params_b - b.params_b);
-  if (fr.length > 1) s += `<polyline fill="none" stroke="#e8004f" stroke-width="2" stroke-dasharray="5 4" opacity=".75" points="${fr.map(r => `${X(r.params_b)},${Y(r._b)}`).join(' ')}"/>`;
+  if (fr.length > 1) s += `<polyline fill="none" stroke="#c4551f" stroke-width="2" stroke-dasharray="5 4" opacity=".75" points="${fr.map(r => `${X(r.params_b)},${Y(r._b)}`).join(' ')}"/>`;
   let hits = '';  // hover targets go on top of every mark
   const order = [...pts].sort((a, b) => rad(b._cost) - rad(a._cost));  // small bubbles on top
-  order.forEach(r => { const i = runs.indexOf(r), x = X(r.params_b), y = Y(r._b), col = BAND_COL[r._pts] ?? '#9aa5a9';
+  order.forEach(r => { const i = runs.indexOf(r), x = X(r.params_b), y = Y(r._b), col = BAND_COL[r._pts] ?? '#ada296';
     s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost)}" fill="${r._cost == null ? '#fff' : col}" fill-opacity="${r._cost == null ? 1 : .85}" stroke="${r._cost == null ? col : '#fff'}" stroke-width="2" ${isEU(r) ? '' : 'stroke-dasharray="3 2"'}/>`;
-    if (!isEU(r)) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + 3}" fill="none" stroke="#c27803" stroke-width="1.5" stroke-dasharray="3 2.5"/>`;
-    if (r._par) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + (isEU(r) ? 3.5 : 6.5)}" fill="none" stroke="#e8004f" stroke-width="2"/>`;
+    if (!isEU(r)) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + 3}" fill="none" stroke="#b07a24" stroke-width="1.5" stroke-dasharray="3 2.5"/>`;
+    if (r._par) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + (isEU(r) ? 3.5 : 6.5)}" fill="none" stroke="#c4551f" stroke-width="2"/>`;
     hits += `<circle cx="${x}" cy="${y}" r="${Math.max(12, rad(r._cost) + 4)}" fill="transparent" class="pt" data-i="${i}" style="cursor:pointer"/>`; });
   // direct labels only for Pareto models and special models (selective labelling)
   const lab = pts.filter(r => r._par || specialOf(r));
@@ -531,7 +532,7 @@ function swScatter(runs) {
     }
     best = best || { x0: cx + q, x1: cx + q + w, y0: Y(r._b) - 7, y1: Y(r._b) + 7 };
     used.push(best);
-    s += `<text x="${best.x0}" y="${best.y1 - 3}" font-size="11.5" font-weight="600" fill="#0b1a20" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-opacity=".8">${esc(nm)}</text>`; });
+    s += `<text x="${best.x0}" y="${best.y1 - 3}" font-size="11.5" font-weight="600" fill="#2b211b" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-opacity=".8">${esc(nm)}</text>`; });
   s += hits;
   box.innerHTML = svgEl(W, H, s);
   const tip = tipFor(box);
@@ -543,9 +544,9 @@ function swScatter(runs) {
   });
   const off = runs.filter(r => !pts.includes(r));
   $('#swlegend').innerHTML = bandsOf().filter(b => pts.some(r => r._pts === b.points)).map(b => `<span><i style="background:${BAND_COL[b.points]}"></i>${b.points} pkt</span>`).join('') +
-    `<span><svg width="30" height="14"><circle cx="5" cy="7" r="3" fill="#7d8b91"/><circle cx="20" cy="7" r="6.5" fill="#7d8b91"/></svg>wielkość = koszt (trening + ślepy)</span>
-    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#e8004f" stroke-width="2"/></svg>Pareto: najlepszy F1 przy danej liczbie punktów</span>
-    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#c27803" stroke-width="1.5" stroke-dasharray="3 2.5"/></svg>poza UE</span>
+    `<span><svg width="30" height="14"><circle cx="5" cy="7" r="3" fill="#8e7d70"/><circle cx="20" cy="7" r="6.5" fill="#8e7d70"/></svg>wielkość = koszt (trening + ślepy)</span>
+    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#c4551f" stroke-width="2"/></svg>Pareto: najlepszy F1 przy danej liczbie punktów</span>
+    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#b07a24" stroke-width="1.5" stroke-dasharray="3 2.5"/></svg>poza UE</span>
     ${off.length ? `<span style="color:var(--mute)">Poza wykresem (brak F1 ślepego lub rozmiaru): ${off.map(r => esc(swName(r))).join(', ')}</span>` : ''}`;
 }
 function swTip(r) {
@@ -554,7 +555,7 @@ function swTip(r) {
     <span class="m">parametry</span> ${r.params_b == null ? 'nieznane' : pb(r.params_b)} <span class="m">· punkty</span> ${r._pts ?? '—'} <span class="m">·</span> ${isEU(r) ? 'UE: ' + esc(r.eu_providers.join(', ')) : 'poza UE'}<br>
     <span class="m">F1 ślepy</span> ${f1s(r._b) ?? 'brak wyniku'} <span class="m">· trening</span> ${f1s(r._t) ?? 'brak wyniku'}<br>
     ${Object.keys(pd).length ? Object.entries(pd).map(([k, v]) => `<span class="m">${esc(PD_LABEL[k] || k)}</span> ${f1s(v) ?? '—'}`).join(' · ') + '<br>' : ''}
-    <span class="m">koszt</span> ${usd(r._cost) ?? '—'} <span class="m">· czas</span> ${secs(r._sec) ?? '—'}${(r.blind || {}).negatives_ok ? ` <span class="m">· negatywy</span> ${r.blind.negatives_ok}` : ''}${r._par ? '<br><span style="color:#ff8fb3">Pareto: najlepszy F1 przy tej liczbie punktów</span>' : ''}`;
+    <span class="m">koszt</span> ${usd(r._cost) ?? '—'} <span class="m">· czas</span> ${secs(r._sec) ?? '—'}${(r.blind || {}).negatives_ok ? ` <span class="m">· negatywy</span> ${r.blind.negatives_ok}` : ''}${r._par ? '<br><span style="color:#f0a774">Pareto: najlepszy F1 przy tej liczbie punktów</span>' : ''}`;
 }
 
 function swTable(runs) {

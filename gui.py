@@ -25,7 +25,7 @@ from o2j.pdf import _PDFIUM_LOCK, flat_page  # noqa: E402
 from o2j.pipeline import Pipeline  # noqa: E402
 
 DATA = ROOT / "gui_data"
-app = FastAPI(title="Odwołania2JSON")
+app = FastAPI(title="Wróbelek")
 from fastapi.middleware.gzip import GZipMiddleware  # noqa: E402
 
 app.add_middleware(GZipMiddleware, minimum_size=1024)
@@ -50,7 +50,7 @@ async def basic_auth(request, call_next):
             except Exception:  # noqa: BLE001
                 ok = False
         if not ok:
-            return Response("Wymagane logowanie", status_code=401, headers={"WWW-Authenticate": 'Basic realm="odwolania2json"'})
+            return Response("Wymagane logowanie", status_code=401, headers={"WWW-Authenticate": 'Basic realm="wrobelek"'})
     return await call_next(request)
 _pipes: dict[tuple[str, str], Pipeline] = {}
 PROFILE_INFO = {
@@ -593,5 +593,5 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
     a = ap.parse_args()
-    print(f"Odwołania2JSON GUI: http://{a.host}:{a.port}")
+    print(f"Wróbelek GUI: http://{a.host}:{a.port}")
     uvicorn.run(app, host=a.host, port=a.port)

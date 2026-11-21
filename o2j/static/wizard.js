@@ -42,7 +42,7 @@ const I = {
   ok: '<path d="m5 12 4.5 4.5L19 7"/>', bad: '<path d="M12 7v6M12 17h.01"/>', plus: '<path d="M12 5v14M5 12h14"/>',
   child: '<path d="M6 4v9a3 3 0 0 0 3 3h9M14 12l4 4-4 4"/>', trash: '<path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   up: '<path d="M12 19V5M6 11l6-6 6 6"/>', save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
-  doc: '<rect x="12" y="6" width="30" height="40" rx="6" fill="#fff" stroke="#0b1a20" stroke-width="2"/><path d="M18 17h18M18 24h18M18 31h11" stroke="#c9d1ce" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="40" r="10" fill="#e8004f"/><path d="M40 35v10M35 40h10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>',
+  doc: '<rect x="12" y="6" width="30" height="40" rx="6" fill="#fff" stroke="#2b211b" stroke-width="2"/><path d="M18 17h18M18 24h18M18 31h11" stroke="#d3cdc7" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="40" r="10" fill="#c4551f"/><path d="M40 35v10M35 40h10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>',
 };
 const ic = (n, vb = '0 0 24 24') => `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
 
@@ -52,7 +52,7 @@ const S = { step: 1, mode: 'template', name: '', title: '', desc: '', template: 
 // ---------- shell ----------
 const root = document.createElement('div');
 root.id = 'wiz';
-root.innerHTML = `<div class="wz-top"><a class="mark" href="/">odwołania <i>→</i> json</a><h1>Nowy typ dokumentu</h1>
+root.innerHTML = `<div class="wz-top"><a class="mark" href="/"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M27 15l4-1-4 3z" fill="#6b4a33"/><ellipse cx="18" cy="18" rx="10" ry="8" fill="#a8703f"/><path d="M9 19q3 8 11 7-7-2-8-8z" fill="#efe3cf"/><path d="M15 14q7-4 12 3-5 5-11 2z" fill="#7a4f2e"/><circle cx="11" cy="12" r="6" fill="#9c9389"/><path d="M6 11q3-6 9-3-1 3-3 2z" fill="#8a4a25"/><path d="M6 14q2 3 5 3l-1-3z" fill="#2b211b"/><circle cx="9.5" cy="11.5" r="1.1" fill="#1a1310"/><path d="M5.5 12.5L3 13.5l2.8.8z" fill="#3a2b22"/></svg>Wróbel<i>ek</i></a><h1>Nowy typ dokumentu</h1>
   <nav class="wz-steps" id="wzsteps"></nav>
   <button class="iconbtn" id="wzclose" title="Zamknij (Esc)">${ic('x')}</button></div>
   <div class="wz-body" id="wzbody"></div><div class="wz-foot" id="wzfoot"></div>`;
