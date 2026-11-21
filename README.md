@@ -33,7 +33,7 @@ Pomiar (profil `auto`, domyślne 8 wątków, few-shot bez przykładów z własne
 | Wywołania LLM / koszt | 221 / $0.10 | 89 / $0.05 | 96 / $0.06 |
 | F1 | 0.9993 | 0.9976 | 1.0000 |
 
-Zestaw 150 PDF: 44 sprawy z `data/train`, 8 dokumentów negatywnych, 6 skanów z `samples/`. Zestaw 42 PDF: skany z `data/scans` i `data/hard_scans/faded`, 5 spraw cyfrowych, 3 negatywne. Czas zależy głównie od API: skan to ok. 20-75 s (OCR 8B), dokument cyfrowy 2-5 s. Nawet 150 samych skanów na 1 rdzeniu to szacunkowo ok. 15 min.
+Zestaw 150 PDF: 44 sprawy z `data/train`, 8 dokumentów negatywnych, 6 skanów z `samples/`. Zestaw 42 PDF: skany z `data/scans` i `data/hard_scans/faded` (lokalny zestaw, poza repozytorium), 5 spraw cyfrowych, 3 negatywne. Czas zależy głównie od API: skan to ok. 20-75 s (OCR 8B), dokument cyfrowy 2-5 s. Nawet 150 samych skanów na 1 rdzeniu to szacunkowo ok. 15 min.
 
 ### Docker Compose
 
