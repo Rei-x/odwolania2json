@@ -110,11 +110,11 @@ def amount(v):
     if v is None:
         return None
     if isinstance(v, (int, float)):
-        return round(float(v), 2)
+        return round(abs(float(v)), 2)  # debit shown as "-3 000,00" -> amount is positive
     s = strip(v)
     if s is None:
         return None
-    s = s.split("(")[0]  # drop "(słownie: ...)"
+    s = s.split("(")[0].replace("-", "")  # drop "(słownie: ...)"
     s = re.sub(r"[^\d,.\-]", "", s.replace("\u00a0", ""))
     if re.fullmatch(r"\d{1,3}(\.\d{3})+", s):  # 7.500 / 15.000 -> thousands separators
         s = s.replace(".", "")

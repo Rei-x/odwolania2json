@@ -18,7 +18,7 @@ few_shot: 2
 examples: {pdf: potwierdzenie_przelewu.pdf, json: przelew.json}   # pliki w każdym folderze data/train/<sprawa>/
 instructions: |
   - Numery rachunków: 26 cyfr, bez prefiksu PL i bez spacji.
-  - kwota jako liczba (np. 15000.00).
+  - kwota jako liczba dodatnia (np. 15000.00), także gdy bank pokazuje ją ze znakiem minus (obciążenie).
   - tytul przepisz dokładnie, w całości, z zachowaniem wielkości liter.
   - numer_transakcji: numer referencyjny / identyfikator transakcji, jeśli występuje.
 fields:
