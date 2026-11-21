@@ -47,10 +47,13 @@ def _norm(v):
 
 
 def leaf_equal(p, g, path: str = "") -> bool:
-    p, g = _norm(p), _norm(g)
-    if isinstance(p, float) and isinstance(g, float):
-        return abs(p - g) < 0.005
-    p, g = str(p), str(g)
+    # numbers compare numerically only when both are JSON numbers; identifiers (KRS, NIP, accounts…) are strings
+    # and must match exactly (leading zeros matter)
+    if isinstance(p, (int, float)) or isinstance(g, (int, float)):
+        pn, gn = _norm(p), _norm(g)  # a JSON number on either side -> numeric comparison ("200,00" == 200.0)
+        if isinstance(pn, float) and isinstance(gn, float):
+            return abs(pn - gn) < 0.005
+    p, g = " ".join(str(p).split()), " ".join(str(g).split())
     if p == g:
         return True
     if _field_key(path) in FUZZY_FIELDS:

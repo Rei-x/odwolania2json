@@ -139,7 +139,7 @@ def integer(v):
     return int(d) if d else None
 
 
-TITLES = r"(mecenas|aplikant(ka)?\s+(adwokack[ia]|radcowsk[ia])|radca|adw\.?|adwokat|r\.\s?pr\.?|radca\s+prawny|radczyni\s+prawna|mec\.?|dr\.?\s*hab\.?|dr\.?|prof\.?|apl\.?\s*adw\.?|apl\.?\s*radc\.?|pan|pani|mgr\.?|inż\.?)"
+TITLES = r"(mecenas|aplikant(ka)?\s+(adwokack[ia]|radcowsk[ia])|adw\.?|adwokat|r\.\s?pr\.?|radca\s+prawny|radczyni\s+prawna|radca|mec\.?|dr\.?\s*hab\.?|dr\.?|prof\.?|apl\.?\s*adw\.?|apl\.?\s*radc\.?|pan|pani|mgr\.?|inż\.?)"
 
 
 def person(v):

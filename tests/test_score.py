@@ -80,9 +80,6 @@ def test_f1():
     assert f1({"TP": 2, "FP": 1, "FN": 1}) == pytest.approx(4 / 6)
 
 
-@pytest.mark.xfail(reason="BUG eval/score.py _norm(): digit strings are compared as floats, so identifiers "
-                          "differing only in leading zeros (KRS '405188' vs '0000405188') count as TP; "
-                          "the organiser rule is exact match for non-fuzzy fields")
 def test_identifier_leading_zeros_are_not_equal():
     assert kinds({"krs": "405188"}, {"krs": "0000405188"}) == {"krs": "FP"}
 

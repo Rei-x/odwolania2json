@@ -130,8 +130,6 @@ def test_person(raw, expected):
     assert N.person(raw) == expected
 
 
-@pytest.mark.xfail(reason="BUG o2j/normalize.py TITLES: 'radca' precedes 'radca\\s+prawny' in the alternation, "
-                          "so 'radca prawny X' strips only 'radca' and leaves 'prawny X'")
 def test_person_radca_prawny():
     assert N.person("radca prawny Anna Nowak") == "Anna Nowak"
 

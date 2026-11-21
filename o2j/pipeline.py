@@ -129,9 +129,11 @@ class Pipeline:
             text = P.load(path).text()[:6000]
         except Exception:  # noqa: BLE001
             text = ""
-        scores = rule_scores(text, path.name, self.specs)
-        name, score = max(scores.items(), key=lambda x: x[1])
-        return (name, self.specs[name].skeleton()) if score > 0 else ("inny", {})
+        scores = sorted(rule_scores(text, path.name, self.specs).items(), key=lambda x: -x[1])
+        (name, score), second = scores[0], (scores[1][1] if len(scores) > 1 else 0)
+        min_score = float(self.s.get("classification", {}).get("min_score", 3))
+        confident = score >= min_score and score - second >= 2  # only a confident class gets a skeleton
+        return (name, self.specs[name].skeleton()) if confident else ("inny", {})
 
     def run_dir(self, input_dir: Path, output_dir: Path, trace_dir: Path | None = None, workers: int = 8,
                 exclude_self: bool = False, log=print) -> list[dict]:
