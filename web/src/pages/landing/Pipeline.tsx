@@ -18,7 +18,7 @@ const STEPS: Step[] = [
   { name: "dowód", title: "Dowód", kind: "kod", body: "Każde pole dostaje stronę i cytat. Pole bez cytatu jest oznaczane.",
     ex: [["nip", "str. 1, „NIP: 999-295-65-50”"], ["numer_postepowania", "⚠ brak cytatu"]] },
   { name: "weryfikacja", title: "Weryfikacja", kind: "LLM", body: "Model poprawia tylko oznaczone pola.", ex: [["242.5O (litera O)", "242.50"]], focus: true },
-  { name: "router", title: "Router", kind: "LLM", body: "Większy model tylko dla trudnych dokumentów.", ex: [["zwykły PDF", "Ministral 3B"], ["skan, niezgodność", "Ministral 8B"]] },
+  { name: "eskalacja", title: "Eskalacja", kind: "LLM", body: "Gdy coś się nie zgadza, ekstrakcja jeszcze raz większym modelem.", ex: [["reguły = LLM", "zostaje 3B"], ["spór reguł i 3B", "powtórka na 8B"]] },
 ]
 const N = STEPS.length
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -168,10 +168,13 @@ export function Pipeline() {
               </svg>
               <div className="pgl"><b>dowód</b> · str. 1<br />„NIP: 999-295-65-50”</div>
               <div className="router">
-                <div className="rt-doc"><span className="pg" />dokument</div>
-                <div className="rt-lanes">
-                  <div className="rt-lane"><ModelName vendor="mistral">Ministral 3B</ModelName><small>zwykłe PDF-y, większość akt</small></div>
-                  <div className="rt-lane hard"><ModelName vendor="mistral">Ministral 8B</ModelName><small>skan, niezgodność, nowy układ</small></div>
+                <div className="rt-row">
+                  <div className="rt-box"><small>3 · ekstrakcja</small><ModelName vendor="mistral">Ministral 3B</ModelName></div>
+                  <i className="rt-arr" aria-hidden="true">→</i>
+                  <div className="rt-box"><small>kontrola wyniku</small><b>reguły = LLM?</b></div>
+                  <i className="rt-arr" aria-hidden="true">→</i>
+                  <div className="rt-box ok"><small>tak</small><b>wynik zostaje ✓</b></div>
+                  <div className="rt-loop"><span className="rt-badge">↺ spór: wraca do ekstrakcji, <ModelName vendor="mistral">Ministral 8B</ModelName></span></div>
                 </div>
                 <div className="rt-foot">tryb Auto: F1 0,984 · mediana 2,7 s / dokument</div>
               </div>
