@@ -10,4 +10,3 @@ uvicorn>=0.30
 python-multipart>=0.0.9
 numpy>=2.0
 onnxruntime>=1.18
-anthropic>=2.0  # tylko ewaluacja (eval/opus_reference.py), nie pipeline
