@@ -1,0 +1,29 @@
+# Wróbelek (Odwołania2JSON) w Dockerze.
+#   cp .env.example .env                 # klucz API
+#   docker compose run --rm wrobelek     # ./input/<sprawa>/*.pdf -> ./output/<sprawa>/*.json (ślady: ./trace)
+#   docker compose run --rm wrobelek --force --profile standard   # dodatkowe opcje CLI jak w run.py
+#   docker compose --profile gui up gui  # GUI: http://127.0.0.1:8000
+services:
+  wrobelek:
+    build: .
+    image: odwolania2json:latest
+    entrypoint: ["python", "run.py", "--input", "/app/input", "--output", "/app/output", "--trace", "/app/trace"]
+    command: []
+    env_file: .env
+    init: true               # Ctrl+C / docker stop dochodzą do procesu; gotowe JSON-y zostają, ponowne uruchomienie wznawia
+    volumes:
+      - ./input:/app/input:ro
+      - ./output:/app/output
+      - ./trace:/app/trace
+
+  gui:
+    profiles: ["gui"]
+    build: .
+    image: odwolania2json:latest
+    command: ["python", "gui.py", "--host", "0.0.0.0", "--port", "8000"]
+    env_file: .env
+    init: true
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./gui_data:/app/gui_data
