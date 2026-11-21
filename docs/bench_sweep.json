@@ -90,7 +90,7 @@
         "cost": null,
         "seconds": 1200,
         "per_doc": null,
-        "error": "timeout"
+        "error": "timeout: dostawca nie odpowiedział w 20 min (model niedostępny / przeciążony)"
       },
       "blind": {
         "f1": null,
@@ -98,7 +98,7 @@
         "seconds": 1200,
         "negatives_ok": null,
         "per_doc": null,
-        "error": "timeout"
+        "error": "timeout: dostawca nie odpowiedział w 20 min (model niedostępny / przeciążony)"
       }
     },
     {
@@ -219,6 +219,311 @@
           "potwierdzenie_przelewu": "0.8966"
         },
         "error": null
+      }
+    },
+    {
+      "model": "cohere/command-r7b-12-2024",
+      "name": "Cohere: Command R7B (12-2024)",
+      "params_b": 7.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "cohere"
+      ],
+      "ts": 1795289292.230676,
+      "train": {
+        "f1": 0.8253,
+        "cost": 0.014,
+        "seconds": 673,
+        "per_doc": {
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 0.0,
+          "KIO_KIO 2617-21": 0.0,
+          "odwolanie": 0.9598,
+          "pelnomocnictwo": 0.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.715,
+        "cost": 0.018,
+        "seconds": 946,
+        "negatives_ok": "1/3",
+        "per_doc": {
+          "odwolanie": "0.7995",
+          "pelnomocnictwo": "0.0000",
+          "potwierdzenie_przelewu": "1.0000"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "liquid/lfm-3-1.7b",
+      "name": "LiquidAI: LFM3-1.7B",
+      "params_b": 1.7,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "liquid"
+      ],
+      "ts": 1795290910.904417,
+      "train": {
+        "f1": 0.538,
+        "cost": 0.176,
+        "seconds": 349,
+        "per_doc": {
+          "odwolanie": 0.1707,
+          "pelnomocnictwo": 0.9818,
+          "potwierdzenie_przelewu": 0.7059
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.3499,
+        "cost": 0.306,
+        "seconds": 552,
+        "negatives_ok": "3/3",
+        "per_doc": {
+          "odwolanie": "0.0842",
+          "pelnomocnictwo": "0.5214",
+          "potwierdzenie_przelewu": "0.7135"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "tencent/hy-mt2-7b",
+      "name": "Tencent: Hy-MT2-7B",
+      "params_b": 7.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "tencent"
+      ],
+      "ts": 1795291812.1209826,
+      "train": {
+        "f1": 0.5702,
+        "cost": 0.033,
+        "seconds": 105,
+        "per_doc": {
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 1.0,
+          "KIO_KIO 2617-21": 0.0,
+          "odwolanie": 0.3752,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.5314,
+        "cost": 0.061,
+        "seconds": 167,
+        "negatives_ok": "2/3",
+        "per_doc": {
+          "odwolanie": "0.3023",
+          "pelnomocnictwo": "0.9651",
+          "potwierdzenie_przelewu": "0.9958"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "bytedance/ui-tars-1.5-7b",
+      "name": "ByteDance: UI-TARS 7B ",
+      "params_b": 7.0,
+      "points": 20,
+      "eu_providers": [],
+      "providers": [
+        "parasail"
+      ],
+      "ts": 1795292083.9513514,
+      "train": {
+        "f1": 0.8955,
+        "cost": 0.055,
+        "seconds": 111,
+        "per_doc": {
+          "1648041143_1647951357decyzja-ministrasportu-pzn": 0.0,
+          "16_komisja_ds._regulacji_wynagrodzeń": 0.0,
+          "2020_03_21-22prowadzenie_postepowania_odwolawczego": 0.0,
+          "KIO_KIO 2617-21": 0.0,
+          "Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r.": 0.0,
+          "odwolanie": 0.9526,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.8951,
+        "cost": 0.065,
+        "seconds": 120,
+        "negatives_ok": "2/3",
+        "per_doc": {
+          "odwolanie": "0.8650",
+          "pelnomocnictwo": "0.9739",
+          "potwierdzenie_przelewu": "0.9617"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "qwen/qwen3.5-9b",
+      "name": "Qwen: Qwen3.5-9B",
+      "params_b": 9.0,
+      "points": 18,
+      "eu_providers": [],
+      "providers": [
+        "darkbloom",
+        "deepinfra",
+        "parasail",
+        "primeintellect",
+        "siliconflow",
+        "together"
+      ],
+      "ts": 1795292315.5995436,
+      "train": {
+        "f1": 1.0,
+        "cost": 0.024,
+        "seconds": 46,
+        "per_doc": {
+          "odwolanie": 1.0,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 1.0
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.977,
+        "cost": 0.045,
+        "seconds": 119,
+        "negatives_ok": "3/3",
+        "per_doc": {
+          "odwolanie": "0.9676",
+          "pelnomocnictwo": "0.9822",
+          "potwierdzenie_przelewu": "1.0000"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "prism-ml/ternary-bonsai-2-9b",
+      "name": "PrismML: Ternary Bonsai 2 9B",
+      "params_b": 9.0,
+      "points": 18,
+      "eu_providers": [],
+      "providers": [
+        "darkbloom"
+      ],
+      "ts": 1795292480.4034717,
+      "train": {
+        "f1": null,
+        "cost": null,
+        "seconds": 1200,
+        "per_doc": null,
+        "error": "timeout: dostawca nie odpowiedział w 20 min (model niedostępny / przeciążony)"
+      },
+      "blind": {
+        "f1": null,
+        "cost": null,
+        "seconds": 1200,
+        "negatives_ok": null,
+        "per_doc": null,
+        "error": "timeout: dostawca nie odpowiedział w 20 min (model niedostępny / przeciążony)"
+      }
+    },
+    {
+      "model": "liquid/lfm-2.5-24b-a2b",
+      "name": "LiquidAI: LFM2.5-24B-A2B",
+      "params_b": 24.0,
+      "points": 12,
+      "eu_providers": [],
+      "providers": [
+        "liquid"
+      ],
+      "ts": 1795294880.7101607,
+      "train": {
+        "f1": 0.9599,
+        "cost": 0.268,
+        "seconds": 178,
+        "per_doc": {
+          "odwolanie": 0.9442,
+          "pelnomocnictwo": 1.0,
+          "potwierdzenie_przelewu": 0.9606
+        },
+        "error": null
+      },
+      "blind": {
+        "f1": 0.7049,
+        "cost": 0.369,
+        "seconds": 227,
+        "negatives_ok": "3/3",
+        "per_doc": {
+          "odwolanie": "0.6438",
+          "pelnomocnictwo": "0.8000",
+          "potwierdzenie_przelewu": "0.7474"
+        },
+        "error": null
+      }
+    },
+    {
+      "model": "nvidia/nemotron-3-nano-30b-a3b",
+      "name": "NVIDIA: Nemotron 3 Nano 30B A3B",
+      "params_b": 30.0,
+      "points": 12,
+      "eu_providers": [
+        "nebius"
+      ],
+      "providers": [
+        "nebius"
+      ],
+      "ts": 1795295285.9881382,
+      "train": {
+        "f1": null,
+        "cost": null,
+        "seconds": 10,
+        "per_doc": null,
+        "error": "nie zmierzono: wyczerpane środki API (HTTP 402) w trakcie sweepu"
+      },
+      "blind": {
+        "f1": null,
+        "cost": null,
+        "seconds": 8,
+        "negatives_ok": "3/3",
+        "per_doc": null,
+        "error": "nie zmierzono: wyczerpane środki API (HTTP 402) w trakcie sweepu"
+      }
+    },
+    {
+      "model": "qwen/qwen3.6-35b-a3b",
+      "name": "Qwen: Qwen3.6 35B A3B",
+      "params_b": 35.0,
+      "points": 8,
+      "eu_providers": [],
+      "providers": [
+        "akashml",
+        "coreweave",
+        "darkbloom",
+        "deepinfra",
+        "parasail",
+        "primeintellect",
+        "siliconflow",
+        "venice"
+      ],
+      "ts": 1795295304.3234522,
+      "train": {
+        "f1": null,
+        "cost": null,
+        "seconds": 10,
+        "per_doc": null,
+        "error": "nie zmierzono: wyczerpane środki API (HTTP 402) w trakcie sweepu"
+      },
+      "blind": {
+        "f1": null,
+        "cost": null,
+        "seconds": 7,
+        "negatives_ok": "3/3",
+        "per_doc": null,
+        "error": "nie zmierzono: wyczerpane środki API (HTTP 402) w trakcie sweepu"
       }
     }
   ]
