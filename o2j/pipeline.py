@@ -67,8 +67,10 @@ class Pipeline:
             trace["elapsed_s"] = round(time.time() - t0, 2)
             return doctype, spec.skeleton(), trace
         learned = self.memory.example_dirs(doctype) if self.memory else []
+        sim_scores: list = []
         examples = E.few_shot_examples(spec, self.s["paths"].get("train"), text, set(exclude_cases), spec.few_shot,
-                                       learned=learned)
+                                       learned=learned, scores_out=sim_scores)
+        trace["nearest_example_similarity"] = sim_scores[0] if sim_scores else None
         trace["learned_examples_available"] = len(learned)
         system, user = E.build_prompt(spec, text, examples)
         images = None
@@ -134,7 +136,29 @@ class Pipeline:
             rounds.append({"issues": issues, "changes": changes})
             if not changes:
                 break
-        trace["verification"] = {"rounds": rounds, "remaining_issues": V.verify(spec, result, evidence, ocr_doc=bool(images))}
+        remaining = V.verify(spec, result, evidence, ocr_doc=bool(images))
+        trace["verification"] = {"rounds": rounds, "remaining_issues": remaining}
+        rcfg = self.s.get("router") or {}
+        if rcfg.get("enabled"):  # adaptive escalation of hard documents
+            from . import deterministic as D
+            from . import router as R
+            det = None
+            try:
+                if D.has_rules(spec):
+                    n = D.pages_to_read(spec)
+                    det = E.postprocess(spec, D.extract(spec, [p.text for p in (doc.pages[:n] if n else doc.pages)]))
+            except Exception as e:  # noqa: BLE001
+                trace["router_det_error"] = repr(e)
+            sim = trace.get("nearest_example_similarity")
+            diff = R.difficulty(result, det, remaining, bool(trace.get("ocr_pages")),
+                                None if sim is None else max(0.0, 100.0 - sim), rcfg)
+            trace["router"] = diff
+            if diff["escalate"]:
+                new, vinfo = R.escalate(self, spec, system, user, images, doc, result, det, rcfg)
+                trace["router"]["changes"] = R.changed_fields(result, new)
+                trace["router"]["vote"] = vinfo
+                result = new
+                evidence = E.ground(doc, result, derived)
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
                      raw_llm_output=raw, evidence=evidence,
                      page_texts=[{"page": p.number, "source": p.source, "text": p.text} for p in doc.pages],

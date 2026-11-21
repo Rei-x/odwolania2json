@@ -27,6 +27,13 @@ voting:
 extraction:
   mode: llm                          # llm (LLM + weryfikacja/naprawa) | deterministic (reguły z sekcji `deterministic:` w YAML typów, zero wywołań LLM)
   ocr_engine: none                   # tylko dla deterministic: none | paddle (lokalny OCR); vlm wymagałby LLM
+router:                              # tryb automatyczny: eskalacja tylko trudnych dokumentów
+  enabled: false                     # włączany profilem `auto`
+  escalate_if: {disputed_fields: 1, remaining_issues: 1, ocr: true, novelty: 40}
+  escalation:
+    models: [deepseek/deepseek-v4-pro]   # mocniejszy model(e) dla trudnych dokumentów
+    n: 2
+    include_deterministic: true      # reguły YAML jako dodatkowy głos przy remisie
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
@@ -50,6 +57,9 @@ profiles:
     verify: {max_rounds: 0}
   standard:                          # domyślny: szybki model + weryfikacja i naprawa
     llm: {model: deepseek/deepseek-v4.1-flash}
+  auto:                              # router: tani pierwszy przebieg, eskalacja tylko trudnych dokumentów
+    llm: {model: deepseek/deepseek-v4.1-flash}
+    router: {enabled: true}
   maksymalny:                        # najwyższa jakość: głosowanie kilku modeli
     llm: {model: deepseek/deepseek-v4.1-flash}
     voting: {n: 3, models: [deepseek/deepseek-v4.1-flash], temperature: 0.7}
