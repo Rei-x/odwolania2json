@@ -1,0 +1,72 @@
+"""Thin client for any OpenAI-compatible chat API (open-weight models hosted by a provider)."""
+from __future__ import annotations
+
+import json
+import re
+import time
+
+from openai import OpenAI
+
+from .pdf import png_data_url
+
+
+class LLM:
+    def __init__(self, cfg: dict):
+        if not cfg.get("base_url") or not cfg.get("model"):
+            raise RuntimeError("Brak konfiguracji LLM: ustaw O2J_LLM_BASE_URL, O2J_LLM_API_KEY, O2J_LLM_MODEL (.env)")
+        self.cfg = cfg
+        self.model = cfg["model"]
+        self.client = OpenAI(base_url=cfg["base_url"], api_key=cfg.get("api_key") or "none",
+                             timeout=float(cfg.get("timeout", 180)))
+
+    def _chat(self, messages, **kw):
+        last = None
+        for attempt in range(int(self.cfg.get("retries", 2)) + 1):
+            try:
+                return self.client.chat.completions.create(model=kw.pop("model", self.model), messages=messages, **kw)
+            except Exception as e:  # noqa: BLE001
+                last = e
+                time.sleep(2 * (attempt + 1))
+        raise last
+
+    def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction") -> tuple[dict, dict]:
+        kw = dict(temperature=self.cfg.get("temperature", 0), max_tokens=int(self.cfg.get("max_tokens", 4000)))
+        mode = self.cfg.get("structured_output", "json_schema")
+        if schema is not None and mode == "json_schema":
+            kw["response_format"] = {"type": "json_schema",
+                                     "json_schema": {"name": name, "schema": schema, "strict": True}}
+        elif mode in ("json_schema", "json_object"):
+            kw["response_format"] = {"type": "json_object"}
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        try:
+            resp = self._chat(messages, **kw)
+        except Exception:  # provider may not support json_schema -> fall back
+            kw["response_format"] = {"type": "json_object"}
+            resp = self._chat(messages, **kw)
+        content = resp.choices[0].message.content or ""
+        usage = resp.usage.model_dump() if resp.usage else {}
+        return parse_json(content), {"model": resp.model, "usage": usage, "raw": content}
+
+    def ocr(self, png: bytes, model: str | None = None) -> str:
+        resp = self._chat(
+            [{"role": "user", "content": [
+                {"type": "text", "text": "Przepisz dokładnie cały tekst z tej strony dokumentu (język polski). "
+                                         "Zachowaj kolejność i podział na linie. Zwróć wyłącznie tekst."},
+                {"type": "image_url", "image_url": {"url": png_data_url(png)}},
+            ]}],
+            model=model or self.model, temperature=0, max_tokens=4000,
+        )
+        return resp.choices[0].message.content or ""
+
+
+def parse_json(s: str) -> dict:
+    s = s.strip()
+    s = re.sub(r"^<think>.*?</think>", "", s, flags=re.S).strip()
+    m = re.search(r"```(?:json)?\s*(.*?)```", s, re.S)
+    if m:
+        s = m.group(1)
+    start = s.find("{")
+    end = s.rfind("}")
+    if start >= 0 and end > start:
+        s = s[start:end + 1]
+    return json.loads(s)

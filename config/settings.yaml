@@ -1,0 +1,22 @@
+# Ustawienia runtime. Sekrety (klucze API) w pliku .env lub zmiennych środowiskowych.
+llm:
+  base_url: ${O2J_LLM_BASE_URL}      # dowolne API zgodne z OpenAI (np. dostawca w UE)
+  api_key: ${O2J_LLM_API_KEY}
+  model: ${O2J_LLM_MODEL}
+  temperature: 0
+  max_tokens: 4000
+  structured_output: json_schema     # json_schema | json_object
+  timeout: 180
+  retries: 2
+ocr:
+  min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
+  engine: vlm                        # vlm (model wizyjny po API) | none
+  model: ${O2J_OCR_MODEL}
+  dpi: 200
+  max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
+classification:
+  min_score: 3                       # poniżej => klasyfikacja przez LLM
+paths:
+  doctypes: config/doctypes
+  train: data/train                  # źródło przykładów few-shot
+  trace: trace                       # ślady ekstrakcji (dowody, strony, cytaty)

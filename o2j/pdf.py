@@ -1,0 +1,75 @@
+"""PDF -> per-page text. Text layer first; pages without it go to OCR."""
+from __future__ import annotations
+
+import base64
+import io
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import threading
+
+import pypdfium2 as pdfium
+
+_PDFIUM_LOCK = threading.Lock()  # pdfium is not thread-safe
+
+
+@dataclass
+class Page:
+    number: int  # 1-based
+    text: str
+    source: str  # "text" | "ocr"
+
+
+@dataclass
+class Document:
+    path: Path
+    pages: list[Page] = field(default_factory=list)
+
+    def text(self, max_pages: int | None = None) -> str:
+        pages = self.pages[:max_pages] if max_pages else self.pages
+        return "\n\n".join(f"=== Strona {p.number} ===\n{p.text}" for p in pages)
+
+    @property
+    def ocr_used(self) -> bool:
+        return any(p.source == "ocr" for p in self.pages)
+
+
+def render_png(page: pdfium.PdfPage, dpi: int = 200) -> bytes:
+    img = page.render(scale=dpi / 72).to_pil()
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: int | None = None,
+         ocr_max_pages: int = 4) -> Document:
+    """ocr: callable(png_bytes) -> str, used for pages without a usable text layer."""
+    raw: list[tuple[str, bytes | None]] = []
+    with _PDFIUM_LOCK:
+        pdf = pdfium.PdfDocument(str(path))
+        n = len(pdf) if max_pages is None else min(len(pdf), max_pages)
+        for i in range(n):
+            page = pdf[i]
+            tp = page.get_textpage()
+            text = tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n")
+            tp.close()
+            need = len(text.strip()) < min_chars and ocr is not None and i < ocr_max_pages
+            png = render_png(page, dpi) if need else None
+            raw.append((text, png))
+            page.close()
+        pdf.close()
+    doc = Document(path=path)
+    todo = [i for i, (_, png) in enumerate(raw) if png is not None]
+    ocr_text = {}
+    if todo:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=len(todo)) as ex:
+            ocr_text = dict(zip(todo, ex.map(lambda i: ocr(raw[i][1]), todo)))
+    for i, (text, _) in enumerate(raw):
+        source = "ocr" if i in ocr_text else "text"
+        doc.pages.append(Page(i + 1, (ocr_text.get(i, text) or "").strip(), source))
+    return doc
+
+
+def png_data_url(png: bytes) -> str:
+    return "data:image/png;base64," + base64.b64encode(png).decode()

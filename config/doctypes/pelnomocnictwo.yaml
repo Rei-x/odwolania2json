@@ -1,0 +1,46 @@
+name: pelnomocnictwo
+description: Pełnomocnictwo udzielone przez wykonawcę (mocodawcę) osobom (pełnomocnikom) do reprezentacji, np. przed KIO.
+classify:
+  keywords:
+    '\bPEŁNOMOCNICTWO\b': 5
+    'Mocodawc': 3
+    'udziela(m|my|ją)? pełnomocnictwa': 3
+    'umocowan': 1
+  filename: ['pelnomoc', 'pełnomoc']
+pages: 3
+few_shot: 2
+examples: {pdf: pelnomocnictwo.pdf, json: pelnomocnictwo.json}   # pliki w każdym folderze data/train/<sprawa>/
+instructions: |
+  - Mocodawców może być kilku (np. konsorcjum udzielające pełnomocnictwa wspólnie) — każdy osobno.
+  - Dla osoby prawnej imie_nazwisko = null; dla przedsiębiorcy będącego osobą fizyczną (np. "DUDEK-TECH Jarosław Dudek")
+    typ = "osoba_fizyczna", imie_nazwisko = imię i nazwisko, nazwa = pełna nazwa firmy.
+  - podpisujacy: osoby podpisane w imieniu danego mocodawcy (pod "Mocodawca:" / "W imieniu ..."), bez stanowisk.
+  - pelnomocnicy: imię i nazwisko w mianowniku, bez tytułów (adw., r.pr.); PESEL tylko jeśli podany.
+  - Nie wymyślaj danych — brak = null.
+fields:
+  mocodawca:
+    type: array
+    items:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            imie_nazwisko: {type: string, normalize: [person], description: "Imię i nazwisko mocodawcy będącego osobą fizyczną; dla osoby prawnej null."}
+            krs: {type: string, normalize: [krs], description: Numer KRS mocodawcy.}
+            nazwa: {type: string, description: Pełna nazwa mocodawcy.}
+            nip: {type: string, normalize: [nip], description: Numer NIP mocodawcy.}
+            typ: {type: enum, values: [osoba_prawna, osoba_fizyczna], description: Typ mocodawcy.}
+        podpisujacy:
+          type: array
+          items:
+            type: object
+            properties:
+              imie_nazwisko: {type: string, normalize: [person], description: Imię i nazwisko osoby podpisującej w imieniu mocodawcy.}
+  pelnomocnicy:
+    type: array
+    items:
+      type: object
+      properties:
+        imie_nazwisko: {type: string, normalize: [person], description: Imię i nazwisko pełnomocnika w mianowniku.}
+        pesel: {type: integer, normalize: [pesel], description: PESEL pełnomocnika (jeśli podany).}

@@ -1,0 +1,28 @@
+name: przelew
+description: Potwierdzenie wykonania przelewu bankowego (np. wpis od odwołania, opłata skarbowa od pełnomocnictwa).
+classify:
+  keywords:
+    'POTWIERDZENIE (WYKONANIA )?PRZELEWU': 6
+    'Rachunek (zleceniodawcy|odbiorcy|nadawcy)': 3
+    'Tytuł (przelewu|operacji)': 2
+    'Kwota': 1
+    'Data operacji': 2
+  filename: ['przelew', 'potwierdzenie']
+pages: 2
+few_shot: 2
+examples: {pdf: potwierdzenie_przelewu.pdf, json: przelew.json}   # pliki w każdym folderze data/train/<sprawa>/
+instructions: |
+  - Numery rachunków: 26 cyfr, bez prefiksu PL i bez spacji.
+  - kwota jako liczba (np. 15000.00).
+  - tytul przepisz dokładnie, w całości, z zachowaniem wielkości liter.
+  - numer_transakcji: numer referencyjny / identyfikator transakcji, jeśli występuje.
+fields:
+  przelew_bankowy:
+    type: object
+    properties:
+      data_operacji: {type: date, description: Data operacji / wykonania przelewu.}
+      kwota: {type: number, normalize: [amount], description: Kwota przelewu.}
+      na_rachunek: {type: string, normalize: [iban], description: Rachunek odbiorcy (26 cyfr).}
+      numer_transakcji: {type: string, description: Numer referencyjny / identyfikator transakcji.}
+      tytul: {type: string, description: Tytuł przelewu (pełny).}
+      z_rachunku: {type: string, normalize: [iban], description: Rachunek zleceniodawcy (26 cyfr).}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Odwołania2JSON</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#f6f8f9; --ink:#0b2530; --muted:#5b6b73; --line:#dde5e8; --accent:#e8004f; --teal:#0f7f86;
+          --ok:#1d8a4e; --warn:#b7791f; --info:#2b6cb0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); height:100vh; display:flex; flex-direction:column; }
+  header { background:#082631; color:#fff; padding:10px 18px; display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.3px; }
+  header h1 b { color:var(--accent); }
+  header .sub { color:#9fc3c9; font-size:12px; }
+  main { flex:1; display:grid; grid-template-columns: 260px 1fr 1fr; gap:12px; padding:12px; min-height:0; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:10px; display:flex; flex-direction:column; min-height:0; }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0; padding:10px 12px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .body { padding:10px 12px; overflow:auto; flex:1; }
+  #drop { border:2px dashed var(--line); border-radius:8px; padding:16px 10px; text-align:center; color:var(--muted); cursor:pointer; margin-bottom:10px; }
+  #drop.over { border-color:var(--teal); background:#effafa; }
+  .doc { padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; gap:8px; align-items:center; }
+  .doc.active { border-color:var(--teal); background:#effafa; }
+  .doc .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .badge { font-size:11px; padding:2px 7px; border-radius:20px; background:#e7eef0; color:var(--ink); white-space:nowrap; }
+  .badge.odwolanie { background:#fde3ec; color:#a0003a; } .badge.pelnomocnictwo { background:#dff4f4; color:#0b6268; }
+  .badge.przelew { background:#fff1d6; color:#8a5a00; } .badge.error { background:#fee; color:#b00; }
+  iframe { border:0; width:100%; height:100%; border-radius:0 0 10px 10px; }
+  .empty { color:var(--muted); text-align:center; margin-top:40px; }
+  .tree { font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .tree .k { color:#7a3e9d; } .tree .s { color:#0b6268; } .tree .n { color:#b45309; } .tree .null { color:#9aa5ab; }
+  .tree .leaf { cursor:pointer; border-radius:4px; padding:0 2px; }
+  .tree .leaf:hover { background:#eef6f7; }
+  .tree .leaf.sel { background:#d7f0f1; }
+  .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:5px; vertical-align:middle; }
+  .dot.located { background:var(--ok); } .dot.inferred { background:var(--warn); } .dot.derived { background:var(--info); }
+  #evidence { border-top:1px solid var(--line); padding:10px 12px; font-size:13px; min-height:90px; background:#fbfcfc; border-radius:0 0 10px 10px; }
+  #evidence .q { background:#fff7cc; padding:1px 2px; }
+  button, .btn { background:var(--teal); color:#fff; border:0; border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; text-decoration:none; }
+  button.ghost { background:#e7eef0; color:var(--ink); }
+  .legend { font-size:11px; color:var(--muted); font-weight:normal; text-transform:none; letter-spacing:0; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid #cfe; border-top-color:var(--teal); border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .meta { font-size:12px; color:var(--muted); margin-bottom:8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ODWOŁANIA<b>2JSON</b></h1>
+  <span class="sub">Rozpoznaj · Wyodrębnij · Zwróć JSON — z dowodem dla każdego pola</span>
+</header>
+<main>
+  <section class="panel">
+    <h2>Dokumenty</h2>
+    <div class="body">
+      <div id="drop">Upuść PDF-y sprawy tutaj<br>lub kliknij, aby wybrać<input id="file" type="file" accept=".pdf" multiple hidden></div>
+      <div id="status"></div>
+      <div id="docs"></div>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Podgląd pliku PDF <span id="pageinfo" class="legend"></span></h2>
+    <div class="body" style="padding:0"><div id="pdfwrap" style="height:100%"><div class="empty">Wgraj dokument, aby zobaczyć podgląd</div></div></div>
+  </section>
+  <section class="panel">
+    <h2>Wynik / JSON
+      <span>
+        <span class="legend"><span class="dot located"></span> w tekście <span class="dot inferred"></span> wywnioskowane <span class="dot derived"></span> z reguły</span>
+        <button class="ghost" id="copy">Kopiuj</button> <a class="btn" id="dl" href="#" download>Pobierz</a>
+      </span>
+    </h2>
+    <div class="body"><div id="meta" class="meta"></div><div id="json" class="tree"><div class="empty">Brak wyniku</div></div></div>
+    <div id="evidence"><span class="legend">Kliknij pole, aby zobaczyć skąd pochodzi wartość (strona i cytat z dokumentu).</span></div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+let session = null, docs = [], current = null;
+
+const drop = $('#drop'), input = $('#file');
+drop.onclick = () => input.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); upload(e.dataTransfer.files); };
+input.onchange = () => upload(input.files);
+
+async function upload(files) {
+  if (!files.length) return;
+  const fd = new FormData();
+  for (const f of files) fd.append('files', f);
+  $('#status').innerHTML = `<p><span class="spinner"></span> Analiza ${files.length} dokument(ów)…</p>`;
+  try {
+    const r = await fetch('/api/process', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    session = data.session;
+    docs = docs.concat(data.documents.map(d => ({ ...d, session })));
+    $('#status').innerHTML = '';
+    renderDocs();
+    select(docs.length - data.documents.length);
+  } catch (e) { $('#status').innerHTML = `<p style="color:#b00">Błąd: ${e.message}</p>`; }
+}
+
+function renderDocs() {
+  $('#docs').innerHTML = docs.map((d, i) =>
+    `<div class="doc ${i === current ? 'active' : ''}" onclick="select(${i})">
+       <span class="name" title="${d.file}">${d.file}</span><span class="badge ${d.doctype}">${d.doctype}</span></div>`).join('');
+}
+
+function select(i) {
+  current = i; renderDocs();
+  const d = docs[i];
+  showPdf(d, 1);
+  const t = d.trace || {};
+  const cls = t.classification || {};
+  $('#meta').innerHTML = d.error ? `<span style="color:#b00">${d.error}</span>` :
+    `Typ: <b>${d.doctype}</b> (klasyfikacja: ${cls.method || '-'}) · model: ${t.model || '-'} · stron: ${t.pages || '-'}` +
+    (t.ocr_pages && t.ocr_pages.length ? ` · OCR stron: ${t.ocr_pages.join(', ')}` : '') + ` · ${t.elapsed_s || '-'} s`;
+  const ev = {};
+  (t.evidence || []).forEach(e => ev[e.field] = e);
+  $('#json').innerHTML = render(d.result, '', ev, 0);
+  const json = JSON.stringify(d.result, null, 2);
+  $('#dl').href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  $('#dl').download = d.file.replace(/\.pdf$/i, '.json');
+  $('#copy').onclick = () => navigator.clipboard.writeText(json);
+  $('#evidence').innerHTML = '<span class="legend">Kliknij pole, aby zobaczyć skąd pochodzi wartość (strona i cytat z dokumentu).</span>';
+}
+
+function showPdf(d, page) {
+  $('#pdfwrap').innerHTML = `<iframe src="/files/${d.session}/${encodeURIComponent(d.file)}#page=${page}&view=FitH"></iframe>`;
+  $('#pageinfo').textContent = page > 1 ? `strona ${page}` : '';
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function val(v) {
+  if (v === null) return '<span class="null">null</span>';
+  if (typeof v === 'number') return `<span class="n">${v}</span>`;
+  return `<span class="s">"${esc(v)}"</span>`;
+}
+function render(x, path, ev, ind) {
+  const pad = '  '.repeat(ind);
+  if (Array.isArray(x)) {
+    if (!x.length) return '[]';
+    return '[\n' + x.map((v, i) => pad + '  ' + render(v, `${path}[${i}]`, ev, ind + 1)).join(',\n') + '\n' + pad + ']';
+  }
+  if (x && typeof x === 'object') {
+    const ks = Object.keys(x);
+    return '{\n' + ks.map(k => {
+      const p = path ? `${path}.${k}` : k;
+      const v = x[k];
+      if (v !== null && typeof v === 'object') return `${pad}  <span class="k">"${k}"</span>: ${render(v, p, ev, ind + 1)}`;
+      const e = ev[p];
+      const dot = e ? `<span class="dot ${e.method}"></span>` : '';
+      return `${pad}  <span class="leaf" data-p="${esc(p)}" onclick="showEv(this)"><span class="k">"${k}"</span>: ${val(v)}${dot}</span>`;
+    }).join(',\n') + '\n' + pad + '}';
+  }
+  return val(x);
+}
+window.showEv = el => {
+  document.querySelectorAll('.leaf.sel').forEach(n => n.classList.remove('sel'));
+  el.classList.add('sel');
+  const d = docs[current], p = el.dataset.p;
+  const e = (d.trace.evidence || []).find(x => x.field === p);
+  if (!e) { $('#evidence').innerHTML = `<b>${esc(p)}</b>: brak wartości w dokumencie (null).`; return; }
+  if (e.method === 'located') {
+    const ctx = esc(e.context).replace(esc(e.quote), `<span class="q">${esc(e.quote)}</span>`);
+    $('#evidence').innerHTML = `<b>${esc(p)}</b> — strona ${e.page}, zgodność ${e.score}%<br>…${ctx}…`;
+    showPdf(d, e.page);
+  } else if (e.method === 'derived') {
+    $('#evidence').innerHTML = `<b>${esc(p)}</b> — wartość wyznaczona regułą z konfiguracji (np. etykieta wybranego powodu).`;
+  } else {
+    $('#evidence').innerHTML = `<b>${esc(p)}</b> — ${esc(e.note || 'wartość wywnioskowana przez model')}.`;
+  }
+};
+</script>
+</body>
+</html>
