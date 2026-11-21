@@ -115,7 +115,7 @@ function select(i) {
   const cls = t.classification || {};
   $('#meta').innerHTML = d.error ? `<span style="color:#b00">${d.error}</span>` :
     `Typ: <b>${d.doctype}</b> (klasyfikacja: ${cls.method || '-'}) · model: ${t.model || '-'} · stron: ${t.pages || '-'}` +
-    (t.ocr_pages && t.ocr_pages.length ? ` · OCR stron: ${t.ocr_pages.join(', ')}` : '') + ` · ${t.elapsed_s || '-'} s`;
+    (t.ocr_pages && t.ocr_pages.length ? ` · OCR stron: ${t.ocr_pages.join(', ')}` : '') + ` · ${t.elapsed_s || '-'} s` + verif(t.verification);
   const ev = {};
   (t.evidence || []).forEach(e => ev[e.field] = e);
   $('#json').innerHTML = render(d.result, '', ev, 0);
@@ -124,6 +124,15 @@ function select(i) {
   $('#dl').download = d.file.replace(/\.pdf$/i, '.json');
   $('#copy').onclick = () => navigator.clipboard.writeText(json);
   $('#evidence').innerHTML = '<span class="legend">Kliknij pole, aby zobaczyć skąd pochodzi wartość (strona i cytat z dokumentu).</span>';
+}
+
+function verif(v) {
+  if (!v) return '';
+  const ch = (v.rounds || []).flatMap(r => r.changes || []);
+  const rem = (v.remaining_issues || []).length;
+  let h = `<br>Weryfikacja: ${(v.rounds || []).length} rund(y), poprawek: ${ch.length}` + (rem ? `, <span style="color:#b7791f">otwarte uwagi: ${rem}</span>` : ', <span style="color:#1d8a4e">bez uwag</span>');
+  if (ch.length) h += '<ul style="margin:4px 0 0 16px;padding:0">' + ch.map(c => `<li><b>${esc(c.field)}</b>: ${esc(JSON.stringify(c.before))} → ${esc(JSON.stringify(c.after))} <i>${esc(c.reason || '')}</i></li>`).join('') + '</ul>';
+  return h;
 }
 
 function showPdf(d, page) {

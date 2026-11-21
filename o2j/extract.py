@@ -108,6 +108,11 @@ def _pp(node: dict, v, parent):
     return N.apply(v, node)
 
 
+def fill_ratio(result) -> float:
+    vals = [v for _, v in _leaves(result)]
+    return sum(v is not None for v in vals) / max(1, len(vals))
+
+
 def _all_null(x) -> bool:
     if isinstance(x, dict):
         return all(_all_null(v) for v in x.values())

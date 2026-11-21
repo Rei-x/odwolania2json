@@ -8,12 +8,15 @@ llm:
   structured_output: json_schema     # json_schema | json_object
   timeout: 180
   retries: 2
+  extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
   min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
   engine: vlm                        # vlm (model wizyjny po API) | none
   model: ${O2J_OCR_MODEL}
   dpi: 200
   max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
+verify:
+  max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
   min_score: 3                       # poniżej => klasyfikacja przez LLM
 paths:

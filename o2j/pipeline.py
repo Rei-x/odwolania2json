@@ -8,6 +8,7 @@ from pathlib import Path
 
 from . import extract as E
 from . import pdf as P
+from . import verify as V
 from .classify import classify
 from .config import load_settings
 from .llm import LLM
@@ -45,8 +46,35 @@ class Pipeline:
         system, user = E.build_prompt(spec, text, examples)
         raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype)
         result = E.postprocess(spec, raw)
+        retries = 0
+        while E.fill_ratio(result) < 0.25 and len(text) > 300 and retries < 2:  # suspiciously empty -> retry
+            retries += 1
+            raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype)
+            cand = E.postprocess(spec, raw)
+            if E.fill_ratio(cand) > E.fill_ratio(result):
+                result = cand
+        trace["extraction_retries"] = retries
+        # agentic verify -> repair loop
+        derived = E.derived_fields(spec)
+        evidence = E.ground(doc, result, derived)
+        rounds = []
+        for _ in range(int(self.s.get("verify", {}).get("max_rounds", 2))):
+            issues = V.verify(spec, result, evidence)
+            if not issues:
+                break
+            try:
+                result, changes = V.repair(self.llm, spec, text, result, issues)
+            except Exception as e:  # noqa: BLE001
+                rounds.append({"issues": issues, "error": repr(e)})
+                break
+            evidence = E.ground(doc, result, derived)
+            rounds.append({"issues": issues, "changes": changes})
+            if not changes:
+                break
+        trace["verification"] = {"rounds": rounds, "remaining_issues": V.verify(spec, result, evidence)}
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
-                     raw_llm_output=raw, evidence=E.ground(doc, result, E.derived_fields(spec)),
+                     raw_llm_output=raw, evidence=evidence,
+                     page_texts=[{"page": p.number, "source": p.source, "text": p.text} for p in doc.pages],
                      elapsed_s=round(time.time() - t0, 2))
         return doctype, result, trace
 

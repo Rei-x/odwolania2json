@@ -74,4 +74,13 @@ Działa z każdym API zgodnym z OpenAI, które serwuje model o otwartych wagach.
 
 | Model | F1 |
 |---|---|
-| Kimi K3.1 Pro | 1.0000 |
+| Kimi K3.1 Pro + weryfikacja/naprawa | 1.0000 |
+
+## Pętla agentowa: weryfikacja → naprawa
+
+Po ekstrakcji walidatory z YAML sprawdzają każde pole:
+- `pattern`: zgodność formatu,
+- `single_person`: w polu jest jedna osoba,
+- grounding: wartość występuje w tekście dokumentu.
+
+Pola, które nie przeszły, wracają do LLM razem z opisem problemu i dokumentem. Model poprawia tylko te pola i uzasadnia każdą zmianę cytatem. Potem następuje ponowna weryfikacja, maksymalnie `verify.max_rounds` rund. Wszystkie poprawki są zapisane w `trace/` i widoczne w GUI.

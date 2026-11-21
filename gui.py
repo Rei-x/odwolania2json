@@ -66,7 +66,7 @@ async def process(files: list[UploadFile] = File(...)):
             return {"file": path.name, "doctype": "error", "error": str(e), "result": {}, "trace": {}}
         (d / (path.stem + ".json")).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"file": path.name, "doctype": doctype, "result": result,
-                "trace": {k: trace.get(k) for k in ("classification", "evidence", "model", "pages", "ocr_pages", "elapsed_s", "few_shot")}}
+                "trace": {k: trace.get(k) for k in ("classification", "evidence", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification")}}
 
     with ThreadPoolExecutor(max_workers=8) as ex:
         results = list(ex.map(one, paths))

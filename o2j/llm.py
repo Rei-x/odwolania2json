@@ -23,7 +23,9 @@ class LLM:
         last = None
         for attempt in range(int(self.cfg.get("retries", 2)) + 1):
             try:
-                return self.client.chat.completions.create(model=kw.pop("model", self.model), messages=messages, **kw)
+                extra = self.cfg.get("extra_body") or None
+                return self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
+                                                           extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
             except Exception as e:  # noqa: BLE001
                 last = e
                 time.sleep(2 * (attempt + 1))
@@ -47,7 +49,17 @@ class LLM:
         usage = resp.usage.model_dump() if resp.usage else {}
         return parse_json(content), {"model": resp.model, "usage": usage, "raw": content}
 
-    def ocr(self, png: bytes, model: str | None = None) -> str:
+    def ocr(self, png: bytes, model: str | None = None, min_len: int = 40, attempts: int = 3) -> str:
+        best = ""
+        for _ in range(attempts):
+            text = self._ocr_once(png, model)
+            if len(text.strip()) > len(best.strip()):
+                best = text
+            if len(best.strip()) >= min_len:
+                break
+        return best
+
+    def _ocr_once(self, png: bytes, model: str | None = None) -> str:
         resp = self._chat(
             [{"role": "user", "content": [
                 {"type": "text", "text": "Przepisz dokładnie cały tekst z tej strony dokumentu (język polski). "

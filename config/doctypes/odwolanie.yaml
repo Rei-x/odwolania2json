@@ -23,6 +23,7 @@ instructions: |
   - Odwołujący/Zamawiający: dane identyfikacyjne (KRS/NIP/REGON) bierz tylko z bloku danego podmiotu.
   - Konsorcjum odwołujących: podaj Lidera konsorcjum.
   - Pełnomocnik: osoba wskazana jako "reprezentowany przez" / pełnomocnik; imię i nazwisko bez tytułów (adw., r.pr.).
+    Gdy wskazano kilku pełnomocników — podaj tylko PIERWSZEGO.
   - Numery BZP/TED/postępowania przepisz z dokumentu; nie myl numeru TED z BZP.
 fields:
   OdwolanieKIO:
@@ -64,15 +65,15 @@ fields:
     items:
       type: object
       properties:
-        krs: {type: string, normalize: [krs], description: KRS Odwołującego (lub Lidera konsorcjum).}
+        krs: {type: string, normalize: [krs], pattern: '\d{10}', description: KRS Odwołującego (lub Lidera konsorcjum).}
         nazwa: {type: string, description: Pełna nazwa Odwołującego (lub Lidera konsorcjum).}
-        nip: {type: string, normalize: [nip], description: NIP Odwołującego.}
-        regon: {type: string, normalize: [regon], description: REGON Odwołującego.}
+        nip: {type: string, normalize: [nip], pattern: '\d{10}', description: NIP Odwołującego.}
+        regon: {type: string, normalize: [regon], pattern: '\d{9}(\d{5})?', description: REGON Odwołującego.}
         przez-pelnomocnika: {type: integer, description: "1 jeśli Odwołujący działa przez pełnomocnika, 0 jeśli nie."}
         pelnomocnik:
           type: object
           properties:
-            imie_nazwisko: {type: string, normalize: [person], description: Imię i nazwisko pełnomocnika Odwołującego (bez tytułów).}
+            imie_nazwisko: {type: string, normalize: [person], single_person: true, description: Imię i nazwisko pełnomocnika Odwołującego (bez tytułów).}
             nazwa: {type: string, description: Nazwa podmiotu (kancelarii) zatrudniającego pełnomocnika.}
             mail: {type: string, description: Adres e-mail kontaktowy pełnomocnika.}
   Zamawiajacy:
@@ -81,15 +82,15 @@ fields:
     items:
       type: object
       properties:
-        krs: {type: string, normalize: [krs], description: KRS Zamawiającego (jeśli jawnie podany przy Zamawiającym).}
+        krs: {type: string, normalize: [krs], pattern: '\d{10}', description: KRS Zamawiającego (jeśli jawnie podany przy Zamawiającym).}
         nazwa: {type: string, description: Pełna nazwa Zamawiającego.}
-        nip: {type: string, normalize: [nip], description: NIP Zamawiającego (jeśli jawnie podany).}
-        regon: {type: string, normalize: [regon], description: REGON Zamawiającego (jeśli jawnie podany).}
+        nip: {type: string, normalize: [nip], pattern: '\d{10}', description: NIP Zamawiającego (jeśli jawnie podany).}
+        regon: {type: string, normalize: [regon], pattern: '\d{9}(\d{5})?', description: REGON Zamawiającego (jeśli jawnie podany).}
         prowadzacy_postepowanie: {type: integer, description: "null gdy jest jeden zamawiający; przy kilku: 1 dla oznaczonego jako prowadzący/lider postępowania, 0 dla pozostałych."}
   ZamowieniePubliczne:
     type: object
     properties:
-      numer_bzp: {type: string, normalize: [bzp], description: "Numer ogłoszenia w BZP, format 'YYYY/BZP ########' (opcjonalnie '/##'). Nie wpisuj tu numeru TED."}
+      numer_bzp: {type: string, normalize: [bzp], pattern: '\d{4}/BZP\d{8}(/\d{1,2})?', description: "Numer ogłoszenia w BZP, format 'YYYY/BZP ########' (opcjonalnie '/##'). Nie wpisuj tu numeru TED."}
       numer_postepowania: {type: string, description: "Numer referencyjny / znak / nr postępowania, np. 'ZP.039.2025', 'DZP.260.11.2025'."}
-      numer_ted: {type: string, normalize: [ted], description: "Numer ogłoszenia TED, format 'NNNNNN-YYYY' (z 'YYYY/S ###-NNNNNN' zapisz jako 'NNNNNN-YYYY')."}
+      numer_ted: {type: string, normalize: [ted], pattern: '\d{5,7}-\d{4}', description: "Numer ogłoszenia TED, format 'NNNNNN-YYYY' (z 'YYYY/S ###-NNNNNN' zapisz jako 'NNNNNN-YYYY')."}
       tytul: {type: string, description: Tytuł (nazwa) zamówienia/postępowania, bez cudzysłowów.}

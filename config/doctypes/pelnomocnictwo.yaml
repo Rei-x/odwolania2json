@@ -26,21 +26,21 @@ fields:
         data:
           type: object
           properties:
-            imie_nazwisko: {type: string, normalize: [person], description: "Imię i nazwisko mocodawcy będącego osobą fizyczną; dla osoby prawnej null."}
-            krs: {type: string, normalize: [krs], description: Numer KRS mocodawcy.}
+            imie_nazwisko: {type: string, normalize: [person], single_person: true, description: "Imię i nazwisko mocodawcy będącego osobą fizyczną; dla osoby prawnej null."}
+            krs: {type: string, normalize: [krs], pattern: '\d{10}', description: Numer KRS mocodawcy.}
             nazwa: {type: string, description: Pełna nazwa mocodawcy.}
-            nip: {type: string, normalize: [nip], description: Numer NIP mocodawcy.}
+            nip: {type: string, normalize: [nip], pattern: '\d{10}', description: Numer NIP mocodawcy.}
             typ: {type: enum, values: [osoba_prawna, osoba_fizyczna], description: Typ mocodawcy.}
         podpisujacy:
           type: array
           items:
             type: object
             properties:
-              imie_nazwisko: {type: string, normalize: [person], description: Imię i nazwisko osoby podpisującej w imieniu mocodawcy.}
+              imie_nazwisko: {type: string, normalize: [person], single_person: true, description: Imię i nazwisko osoby podpisującej w imieniu mocodawcy.}
   pelnomocnicy:
     type: array
     items:
       type: object
       properties:
-        imie_nazwisko: {type: string, normalize: [person], description: Imię i nazwisko pełnomocnika w mianowniku.}
+        imie_nazwisko: {type: string, normalize: [person], single_person: true, description: Imię i nazwisko pełnomocnika w mianowniku.}
         pesel: {type: integer, normalize: [pesel], description: PESEL pełnomocnika (jeśli podany).}

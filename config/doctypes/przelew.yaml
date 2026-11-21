@@ -22,7 +22,7 @@ fields:
     properties:
       data_operacji: {type: date, description: Data operacji / wykonania przelewu.}
       kwota: {type: number, normalize: [amount], description: Kwota przelewu.}
-      na_rachunek: {type: string, normalize: [iban], description: Rachunek odbiorcy (26 cyfr).}
+      na_rachunek: {type: string, normalize: [iban], pattern: '\d{26}', description: Rachunek odbiorcy (26 cyfr).}
       numer_transakcji: {type: string, description: Numer referencyjny / identyfikator transakcji.}
       tytul: {type: string, description: Tytuł przelewu (pełny).}
-      z_rachunku: {type: string, normalize: [iban], description: Rachunek zleceniodawcy (26 cyfr).}
+      z_rachunku: {type: string, normalize: [iban], pattern: '\d{26}', description: Rachunek zleceniodawcy (26 cyfr).}
