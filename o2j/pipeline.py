@@ -477,9 +477,8 @@ class Pipeline:
             for f in as_completed(futs):
                 r = f.result()
                 if r is None:
-                    if abort.is_set():
-                        for g in futs:
-                            g.cancel()
+                    if fatal:  # bad key / no credits: stop now, do not wait for requests still in flight
+                        break
                     continue
                 done.append(r)
                 n_new += 1
@@ -490,6 +489,9 @@ class Pipeline:
             abort.set()
             ex.shutdown(wait=False, cancel_futures=True)
             raise
+        if fatal:  # finished documents are on disk; unfinished ones get no output, so a rerun resumes them
+            ex.shutdown(wait=False, cancel_futures=True)
+            raise fatal[0]
         ex.shutdown(wait=True)
 
         # case level: documents in the same folder form one case (cross-checks + safe cross-fill)
@@ -521,8 +523,6 @@ class Pipeline:
             if trace_dir:
                 self._write_atomic(trace_dir / case_rel / "_sprawa.json", E.dumps(report))
 
-        if fatal:
-            raise fatal[0]
         return [{"file": str(r["rel"]), "doctype": r["doctype"] if r["matched"] else "NIEDOPASOWANY",
                  "error": r["error"], "elapsed_s": r["trace"].get("elapsed_s"), "resumed": bool(r.get("resumed"))}
                 for r in sorted(done, key=lambda r: str(r["rel"]))]

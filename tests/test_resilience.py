@@ -272,6 +272,25 @@ def test_fatal_error_stops_batch_and_keeps_finished(pipe, tmp_path):
                                                                for n in ("odwolanie.pdf", "pelnomocnictwo.pdf")])
 
 
+def test_fatal_error_does_not_wait_for_documents_in_flight(pipe, tmp_path):
+    inp, out = _input(tmp_path), tmp_path / "out"
+    release = threading.Event()
+    base = _fake_process([], fatal={"sprawa_1/odwolanie.pdf"})
+
+    def process(path, exclude=frozenset()):
+        if path.parent.name != "sprawa_1" or path.name != "odwolanie.pdf":
+            release.wait(10)  # a slow request (e.g. a big scan upload) still in flight
+        else:
+            time.sleep(0.05)
+        return base(path, exclude)
+    pipe.process = process
+    t = time.time()
+    with pytest.raises(api.FatalAPIError):
+        pipe.run_dir(inp, out, None, workers=4, log=lambda *_: None)
+    assert time.time() - t < 2
+    release.set()
+
+
 def test_interrupted_run_keeps_finished_documents(pipe, tmp_path):
     """Ctrl+C in the middle: documents finished so far are on disk (written one by one), no temp files."""
     inp, out = _input(tmp_path, 2), tmp_path / "out"

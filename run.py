@@ -45,6 +45,8 @@ def main(argv=None):
     s = load_settings(profile=a.profile)
     if a.workers is None:
         a.workers = int(os.environ.get("O2J_WORKERS") or (s.get("run") or {}).get("workers") or 8)
+    if os.environ.get("O2J_MAX_CONCURRENCY"):  # cap on API requests in flight (provider with a low rate limit)
+        s["llm"]["max_concurrency"] = int(os.environ["O2J_MAX_CONCURRENCY"])
     print(f"Profil: {s.get('active_profile', '-')}")
     try:
         pipe = Pipeline(s, model=a.model, mode=a.mode)
