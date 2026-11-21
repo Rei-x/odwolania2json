@@ -2,185 +2,317 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<title>Odwołania2JSON</title>
+<title>odwołania → json</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root { --bg:#f6f8f9; --ink:#0b2530; --muted:#5b6b73; --line:#dde5e8; --accent:#e8004f; --teal:#0f7f86;
-          --ok:#1d8a4e; --warn:#b7791f; --info:#2b6cb0; }
-  * { box-sizing: border-box; }
-  body { margin:0; font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); height:100vh; display:flex; flex-direction:column; }
-  header { background:#082631; color:#fff; padding:10px 18px; display:flex; align-items:center; gap:14px; }
-  header h1 { font-size:16px; margin:0; letter-spacing:.3px; }
-  header h1 b { color:var(--accent); }
-  header .sub { color:#9fc3c9; font-size:12px; }
-  main { flex:1; display:grid; grid-template-columns: 260px 1fr 1fr; gap:12px; padding:12px; min-height:0; }
-  .panel { background:#fff; border:1px solid var(--line); border-radius:10px; display:flex; flex-direction:column; min-height:0; }
-  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0; padding:10px 12px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
-  .body { padding:10px 12px; overflow:auto; flex:1; }
-  #drop { border:2px dashed var(--line); border-radius:8px; padding:16px 10px; text-align:center; color:var(--muted); cursor:pointer; margin-bottom:10px; }
-  #drop.over { border-color:var(--teal); background:#effafa; }
-  .doc { padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; gap:8px; align-items:center; }
-  .doc.active { border-color:var(--teal); background:#effafa; }
-  .doc .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .badge { font-size:11px; padding:2px 7px; border-radius:20px; background:#e7eef0; color:var(--ink); white-space:nowrap; }
-  .badge.odwolanie { background:#fde3ec; color:#a0003a; } .badge.pelnomocnictwo { background:#dff4f4; color:#0b6268; }
-  .badge.przelew { background:#fff1d6; color:#8a5a00; } .badge.error { background:#fee; color:#b00; }
-  iframe { border:0; width:100%; height:100%; border-radius:0 0 10px 10px; }
-  .empty { color:var(--muted); text-align:center; margin-top:40px; }
-  .tree { font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .tree .k { color:#7a3e9d; } .tree .s { color:#0b6268; } .tree .n { color:#b45309; } .tree .null { color:#9aa5ab; }
-  .tree .leaf { cursor:pointer; border-radius:4px; padding:0 2px; }
-  .tree .leaf:hover { background:#eef6f7; }
-  .tree .leaf.sel { background:#d7f0f1; }
-  .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:5px; vertical-align:middle; }
-  .dot.located { background:var(--ok); } .dot.inferred { background:var(--warn); } .dot.derived { background:var(--info); }
-  #evidence { border-top:1px solid var(--line); padding:10px 12px; font-size:13px; min-height:90px; background:#fbfcfc; border-radius:0 0 10px 10px; }
-  #evidence .q { background:#fff7cc; padding:1px 2px; }
-  button, .btn { background:var(--teal); color:#fff; border:0; border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; text-decoration:none; }
-  button.ghost { background:#e7eef0; color:var(--ink); }
-  .legend { font-size:11px; color:var(--muted); font-weight:normal; text-transform:none; letter-spacing:0; }
-  .spinner { display:inline-block; width:14px; height:14px; border:2px solid #cfe; border-top-color:var(--teal); border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .meta { font-size:12px; color:var(--muted); margin-bottom:8px; }
+:root{
+  --ink:#0b1a20; --ink2:#41525a; --mute:#8a979d; --line:#e6e9e7; --card:#fff;
+  --bg:#f3f4f1; --accent:#e8004f; --teal:#0f7f86; --amber:#c27803; --ok:#16a34a; --warn:#d97706; --info:#2563eb;
+  --r:18px; --sh:0 1px 2px rgba(11,26,32,.04),0 8px 28px rgba(11,26,32,.07);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+  background:radial-gradient(1200px 600px at 10% -10%,#fde7ef 0,transparent 60%),radial-gradient(900px 500px at 110% 110%,#dff3f3 0,transparent 55%),var(--bg);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.mark{font-weight:800;letter-spacing:-.03em}
+.mark i{font-style:normal;color:var(--accent)}
+
+/* ---------- empty state ---------- */
+#empty{position:fixed;inset:0;display:grid;place-items:center;transition:opacity .35s,transform .35s}
+#empty.gone{opacity:0;transform:scale(.98);pointer-events:none}
+.hero{display:flex;flex-direction:column;align-items:center;gap:28px}
+.hero .mark{font-size:44px}
+.drop{width:min(560px,86vw);aspect-ratio:16/10;border-radius:28px;background:rgba(255,255,255,.75);backdrop-filter:blur(8px);
+  border:1.5px dashed #cfd6d3;display:grid;place-items:center;box-shadow:var(--sh);transition:.2s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 18px 50px rgba(232,0,79,.12)}
+.drop .ic{width:76px;height:76px;margin:0 auto 14px;display:block}
+.drop b{display:block;font-size:18px;text-align:center}
+.drop small{display:block;color:var(--mute);text-align:center;margin-top:4px}
+.types{display:flex;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:99px;background:#fff;box-shadow:var(--sh);font-size:12.5px;color:var(--ink2)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--mute)}
+.t-odwolanie{--c:var(--accent)} .t-pelnomocnictwo{--c:var(--teal)} .t-przelew{--c:var(--amber)} .t-error{--c:#b91c1c} .t-inny{--c:var(--mute)}
+[class*="t-"] .dot{background:var(--c)}
+
+/* ---------- workspace ---------- */
+#app{position:fixed;inset:0;display:grid;grid-template-rows:60px 1fr;opacity:0;transition:opacity .35s}
+#app.on{opacity:1}
+header{display:flex;align-items:center;gap:18px;padding:0 20px}
+header .mark{font-size:19px;white-space:nowrap}
+#tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:4px 2px}
+.tab{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:99px;background:rgba(255,255,255,.6);color:var(--ink2);
+  white-space:nowrap;transition:.15s;font-size:13px}
+.tab:hover{background:#fff}
+.tab.on{background:var(--ink);color:#fff}
+.tab.on .dot{box-shadow:0 0 0 2px var(--ink),0 0 0 3.5px var(--c)}
+.iconbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;box-shadow:var(--sh);transition:.15s}
+.iconbtn:hover{transform:translateY(-1px)}
+.iconbtn svg{width:18px;height:18px}
+main{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 20px 20px;min-height:0}
+
+/* document */
+#doc{overflow:auto;border-radius:var(--r);padding:18px;scroll-behavior:smooth}
+.page{position:relative;margin:0 auto 18px;max-width:760px;background:#fff;border-radius:10px;box-shadow:var(--sh);overflow:hidden}
+.page img{display:block;width:100%;height:auto}
+.page .pn{position:absolute;right:10px;bottom:8px;font-size:11px;color:var(--mute)}
+.hl{position:absolute;border-radius:3px;background:rgba(232,0,79,.16);outline:2px solid rgba(232,0,79,.85);outline-offset:1px;
+  animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(1.25);opacity:0}to{transform:none;opacity:1}}
+
+/* result */
+#res{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.rhead{padding:18px 20px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+.rtitle{display:flex;align-items:center;gap:10px}
+.rtitle h2{margin:0;font-size:22px;letter-spacing:-.02em}
+.rtitle .sw{margin-left:auto;display:flex;background:#f1f3f2;border-radius:99px;padding:3px}
+.sw button{padding:5px 12px;border-radius:99px;font-size:12.5px;color:var(--ink2)}
+.sw button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:#f1f3f2;color:var(--ink2);display:inline-flex;gap:5px;align-items:center}
+.chip svg{width:13px;height:13px}
+.rbody{overflow:auto;flex:1;padding:6px 8px 14px}
+.sec{margin:14px 12px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.row{display:grid;grid-template-columns:minmax(120px,38%) 1fr 14px;gap:12px;align-items:baseline;padding:8px 12px;border-radius:10px;cursor:pointer;transition:background .12s}
+.row:hover{background:#f6f7f6}
+.row.on{background:#fff0f5}
+.row .k{color:var(--ink2);font-size:13px}
+.row .v{font-weight:600;word-break:break-word}
+.row .v.null{color:#c4cbc8;font-weight:400}
+.row .dot{align-self:center;width:7px;height:7px}
+.m-located{background:var(--ok)!important} .m-inferred{background:var(--warn)!important} .m-derived{background:var(--info)!important}
+.ev{grid-column:1/-1;font-size:12.5px;color:var(--ink2);background:#fafafa;border-radius:8px;padding:8px 10px;margin-top:6px;display:none}
+.row.on .ev{display:block}
+.ev mark{background:#ffe1ea;color:var(--ink);border-radius:3px;padding:0 2px}
+.sub{margin:6px 12px 0;font-size:12px;color:var(--mute)}
+pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+.jk{color:#7c3aed}.js{color:#0f766e}.jn{color:#c2410c}.jz{color:#a3aeab}
+.fixes{margin:4px 12px 10px;padding:10px 12px;border-radius:10px;background:#eff6ff;font-size:12.5px;color:#1e3a8a}
+.fixes div{margin-top:3px}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,#eef0ef 25%,#f7f8f7 50%,#eef0ef 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:8px}
+@keyframes sh{to{background-position:-200% 0}}
+.spin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,0,0,.15);border-top-color:var(--c,var(--accent));animation:rot .8s linear infinite;flex:none}
+.tab.on .spin{border-color:rgba(255,255,255,.25);border-top-color:#fff}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+#toast{position:fixed;right:22px;bottom:22px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;box-shadow:var(--sh);
+  display:flex;gap:9px;align-items:center;transform:translateY(20px);opacity:0;transition:.3s;font-size:13px}
+#toast.on{transform:none;opacity:1}
+#toast svg{width:16px;height:16px;color:#4ade80}
+#dragcover{position:fixed;inset:0;background:rgba(232,0,79,.06);border:3px dashed var(--accent);border-radius:20px;margin:10px;display:none;place-items:center;font-weight:700;font-size:20px;color:var(--accent);z-index:9}
+#dragcover.on{display:grid}
+@media (max-width:900px){main{grid-template-columns:1fr}#doc{max-height:45vh}}
 </style>
 </head>
 <body>
-<header>
-  <h1>ODWOŁANIA<b>2JSON</b></h1>
-  <span class="sub">Rozpoznaj · Wyodrębnij · Zwróć JSON — z dowodem dla każdego pola</span>
-</header>
-<main>
-  <section class="panel">
-    <h2>Dokumenty</h2>
-    <div class="body">
-      <div id="drop">Upuść PDF-y sprawy tutaj<br>lub kliknij, aby wybrać<input id="file" type="file" accept=".pdf" multiple hidden></div>
-      <div id="status"></div>
-      <div id="docs"></div>
+<input id="file" type="file" accept=".pdf" multiple hidden>
+
+<section id="empty">
+  <div class="hero">
+    <div class="mark">odwołania <i>→</i> json</div>
+    <div class="drop" id="drop">
+      <div>
+        <svg class="ic" viewBox="0 0 76 76" fill="none">
+          <rect x="12" y="6" width="38" height="50" rx="7" fill="#fff" stroke="#0b1a20" stroke-width="2.2"/>
+          <path d="M20 20h22M20 28h22M20 36h14" stroke="#c9d1ce" stroke-width="2.2" stroke-linecap="round"/>
+          <rect x="34" y="40" width="34" height="26" rx="8" fill="#e8004f"/>
+          <path d="M45 47c-2 0-3 1-3 3v1.5c0 1-1 1.5-2 1.5 1 0 2 .5 2 1.5V56c0 2 1 3 3 3M57 47c2 0 3 1 3 3v1.5c0 1 1 1.5 2 1.5-1 0-2 .5-2 1.5V56c0 2-1 3-3 3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <b>Upuść PDF-y sprawy</b>
+        <small>lub kliknij</small>
+      </div>
     </div>
-  </section>
-  <section class="panel">
-    <h2>Podgląd pliku PDF <span id="pageinfo" class="legend"></span></h2>
-    <div class="body" style="padding:0"><div id="pdfwrap" style="height:100%"><div class="empty">Wgraj dokument, aby zobaczyć podgląd</div></div></div>
-  </section>
-  <section class="panel">
-    <h2>Wynik / JSON
-      <span>
-        <span class="legend"><span class="dot located"></span> w tekście <span class="dot inferred"></span> wywnioskowane <span class="dot derived"></span> z reguły</span>
-        <button class="ghost" id="copy">Kopiuj</button> <a class="btn" id="dl" href="#" download>Pobierz</a>
-      </span>
-    </h2>
-    <div class="body"><div id="meta" class="meta"></div><div id="json" class="tree"><div class="empty">Brak wyniku</div></div></div>
-    <div id="evidence"><span class="legend">Kliknij pole, aby zobaczyć skąd pochodzi wartość (strona i cytat z dokumentu).</span></div>
-  </section>
-</main>
+    <div class="types">
+      <span class="pill t-odwolanie"><span class="dot"></span>odwołanie</span>
+      <span class="pill t-pelnomocnictwo"><span class="dot"></span>pełnomocnictwo</span>
+      <span class="pill t-przelew"><span class="dot"></span>przelew</span>
+    </div>
+  </div>
+</section>
+
+<section id="app">
+  <header>
+    <div class="mark">odwołania <i>→</i> json</div>
+    <nav id="tabs"></nav>
+    <button class="iconbtn" id="add" title="Dodaj PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="iconbtn" id="dl" title="Pobierz JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14"/></svg></button>
+  </header>
+  <main>
+    <div id="doc"></div>
+    <div id="res"></div>
+  </main>
+</section>
+
+<div id="dragcover">Upuść, aby dodać</div>
+<div id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg><span></span></div>
+
 <script>
 const $ = s => document.querySelector(s);
-let session = null, docs = [], current = null;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LABEL = {odwolanie:'Odwołanie', pelnomocnictwo:'Pełnomocnictwo', przelew:'Przelew', inny:'Inny dokument', error:'Błąd'};
+const NICE = {OdwolanieKIO:'Odwołanie', Odwolujacy:'Odwołujący', Zamawiajacy:'Zamawiający', ZamowieniePubliczne:'Zamówienie',
+  przelew_bankowy:'Przelew', mocodawca:'Mocodawca', pelnomocnicy:'Pełnomocnik', podpisujacy:'Podpisujący', pelnomocnik:'Pełnomocnik', data:'Dane'};
+const KEY = {czynnosc_dzien:'data czynności', czynnosc_powod_id:'powód (id)', czynnosc_opis:'czynność', miejscowosc:'miejscowość',
+  'przez-pelnomocnika':'przez pełnomocnika', imie_nazwisko:'imię i nazwisko', numer_bzp:'nr BZP', numer_ted:'nr TED',
+  numer_postepowania:'nr postępowania', tytul:'tytuł', prowadzacy_postepowanie:'prowadzący', data_operacji:'data operacji',
+  na_rachunek:'na rachunek', z_rachunku:'z rachunku', numer_transakcji:'nr transakcji', nazwa:'nazwa', mail:'e-mail', typ:'typ',
+  krs:'KRS', nip:'NIP', regon:'REGON', pesel:'PESEL', kwota:'kwota', data:'data'};
 
-const drop = $('#drop'), input = $('#file');
-drop.onclick = () => input.click();
-drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
-drop.ondragleave = () => drop.classList.remove('over');
-drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); upload(e.dataTransfer.files); };
-input.onchange = () => upload(input.files);
+let docs = [], cur = -1, view = 'dane', selected = null;
 
-async function upload(files) {
+// ---------- upload ----------
+const input = $('#file');
+$('#drop').onclick = $('#add').onclick = () => input.click();
+input.onchange = () => { add([...input.files]); input.value = ''; };
+let dragN = 0;
+addEventListener('dragenter', e => { e.preventDefault(); dragN++; docs.length ? $('#dragcover').classList.add('on') : $('#drop').classList.add('over'); });
+addEventListener('dragleave', () => { if (--dragN <= 0) { dragN = 0; $('#dragcover').classList.remove('on'); $('#drop').classList.remove('over'); } });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => { e.preventDefault(); dragN = 0; $('#dragcover').classList.remove('on'); $('#drop').classList.remove('over');
+  add([...e.dataTransfer.files].filter(f => /\.pdf$/i.test(f.name))); });
+
+function add(files) {
   if (!files.length) return;
-  const fd = new FormData();
-  for (const f of files) fd.append('files', f);
-  $('#status').innerHTML = `<p><span class="spinner"></span> Analiza ${files.length} dokument(ów)…</p>`;
-  try {
-    const r = await fetch('/api/process', { method: 'POST', body: fd });
-    if (!r.ok) throw new Error(await r.text());
-    const data = await r.json();
-    session = data.session;
-    docs = docs.concat(data.documents.map(d => ({ ...d, session })));
-    $('#status').innerHTML = '';
-    renderDocs();
-    select(docs.length - data.documents.length);
-  } catch (e) { $('#status').innerHTML = `<p style="color:#b00">Błąd: ${e.message}</p>`; }
+  $('#empty').classList.add('gone'); $('#app').classList.add('on');
+  const start = docs.length;
+  files.forEach(f => docs.push({ file: f.name, pending: true }));
+  renderTabs(); select(start);
+  let left = files.length;
+  files.forEach((f, i) => {
+    const fd = new FormData(); fd.append('files', f);
+    fetch('/api/process', { method: 'POST', body: fd }).then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t); }))
+      .then(d => Object.assign(docs[start + i], d.documents[0], { pending: false }))
+      .catch(err => Object.assign(docs[start + i], { pending: false, doctype: 'error', error: err.message, result: {}, trace: {} }))
+      .finally(() => { renderTabs(); if (cur === start + i) select(cur); if (--left === 0) toast(`Gotowe · ${files.length} ${files.length === 1 ? 'dokument' : 'dokumenty'}`); });
+  });
 }
 
-function renderDocs() {
-  $('#docs').innerHTML = docs.map((d, i) =>
-    `<div class="doc ${i === current ? 'active' : ''}" onclick="select(${i})">
-       <span class="name" title="${d.file}">${d.file}</span><span class="badge ${d.doctype}">${d.doctype}</span></div>`).join('');
+function toast(t) { const el = $('#toast'); el.querySelector('span').textContent = t; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 2600); }
+
+// ---------- tabs ----------
+function renderTabs() {
+  $('#tabs').innerHTML = docs.map((d, i) => `<button class="tab t-${d.pending ? 'odwolanie' : d.doctype} ${i === cur ? 'on' : ''}" onclick="select(${i})">
+    ${d.pending ? '<span class="spin"></span>' : '<span class="dot"></span>'}${esc(d.file.replace(/\.pdf$/i, ''))}</button>`).join('');
 }
 
+// ---------- select ----------
 function select(i) {
-  current = i; renderDocs();
+  cur = i; selected = null; renderTabs();
   const d = docs[i];
-  showPdf(d, 1);
-  const t = d.trace || {};
-  const cls = t.classification || {};
-  $('#meta').innerHTML = d.error ? `<span style="color:#b00">${d.error}</span>` :
-    `Typ: <b>${d.doctype}</b> (klasyfikacja: ${cls.method || '-'}) · model: ${t.model || '-'} · stron: ${t.pages || '-'}` +
-    (t.ocr_pages && t.ocr_pages.length ? ` · OCR stron: ${t.ocr_pages.join(', ')}` : '') + ` · ${t.elapsed_s || '-'} s` + verif(t.verification);
-  const ev = {};
-  (t.evidence || []).forEach(e => ev[e.field] = e);
-  $('#json').innerHTML = render(d.result, '', ev, 0);
-  const json = JSON.stringify(d.result, null, 2);
-  $('#dl').href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-  $('#dl').download = d.file.replace(/\.pdf$/i, '.json');
-  $('#copy').onclick = () => navigator.clipboard.writeText(json);
-  $('#evidence').innerHTML = '<span class="legend">Kliknij pole, aby zobaczyć skąd pochodzi wartość (strona i cytat z dokumentu).</span>';
+  renderDoc(d); renderRes(d);
 }
 
-function verif(v) {
-  if (!v) return '';
-  const ch = (v.rounds || []).flatMap(r => r.changes || []);
-  const rem = (v.remaining_issues || []).length;
-  let h = `<br>Weryfikacja: ${(v.rounds || []).length} rund(y), poprawek: ${ch.length}` + (rem ? `, <span style="color:#b7791f">otwarte uwagi: ${rem}</span>` : ', <span style="color:#1d8a4e">bez uwag</span>');
-  if (ch.length) h += '<ul style="margin:4px 0 0 16px;padding:0">' + ch.map(c => `<li><b>${esc(c.field)}</b>: ${esc(JSON.stringify(c.before))} → ${esc(JSON.stringify(c.after))} <i>${esc(c.reason || '')}</i></li>`).join('') + '</ul>';
+function renderDoc(d) {
+  const el = $('#doc');
+  if (d.pending || !d.session) { el.innerHTML = `<div class="page"><div class="sk" style="aspect-ratio:1/1.414"></div></div>`; return; }
+  const n = (d.trace && d.trace.pages) || 1;
+  el.innerHTML = Array.from({ length: n }, (_, k) =>
+    `<div class="page" id="p${k + 1}"><img loading="lazy" src="/api/page/${d.session}/${encodeURIComponent(d.file)}/${k + 1}.png" alt=""><span class="pn">${k + 1}/${n}</span></div>`).join('');
+  el.scrollTop = 0;
+}
+
+function evMap(d) { const m = {}; ((d.trace || {}).evidence || []).forEach(e => m[e.field] = e); return m; }
+
+function renderRes(d) {
+  const el = $('#res');
+  if (d.pending) {
+    el.innerHTML = `<div class="rhead"><div class="sk" style="height:26px;width:46%"></div><div class="sk" style="height:18px;width:70%"></div></div>
+      <div class="rbody">${Array.from({ length: 9 }, () => `<div class="row"><div class="sk" style="height:14px"></div><div class="sk" style="height:14px"></div></div>`).join('')}</div>`;
+    return;
+  }
+  const t = d.trace || {};
+  const fixes = ((t.verification || {}).rounds || []).flatMap(r => r.changes || []);
+  const chips = [];
+  if (t.pages) chips.push(icon('page') + `${t.pages} str.`);
+  if (t.elapsed_s) chips.push(icon('clock') + `${t.elapsed_s}s`);
+  if (t.ocr_pages && t.ocr_pages.length) chips.push(icon('scan') + `OCR`);
+  if (fixes.length) chips.push(icon('fix') + `${fixes.length} popr.`);
+  if (t.model) chips.push(icon('chip') + esc(t.model.split('/').pop()));
+  el.innerHTML = `<div class="rhead">
+      <div class="rtitle t-${d.doctype}"><span class="dot" style="width:11px;height:11px"></span><h2>${LABEL[d.doctype] || esc(d.doctype)}</h2>
+        <div class="sw"><button class="${view === 'dane' ? 'on' : ''}" onclick="setView('dane')">Dane</button><button class="${view === 'json' ? 'on' : ''}" onclick="setView('json')">JSON</button></div></div>
+      <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div></div>
+    <div class="rbody">${d.error ? `<p style="padding:16px;color:#b91c1c">${esc(d.error)}</p>` : view === 'json' ? `<pre class="json">${hjson(d.result, 0)}</pre>` :
+      (fixes.length ? `<div class="fixes"><b>Weryfikacja poprawiła:</b>${fixes.map(f => `<div>${esc(f.field)}: <s>${esc(JSON.stringify(f.before))}</s> → ${esc(JSON.stringify(f.after))}</div>`).join('')}</div>` : '') +
+      fields(d.result, '', evMap(d))}</div>`;
+}
+window.setView = v => { view = v; renderRes(docs[cur]); };
+
+function fields(obj, path, ev, depth = 0) {
+  let h = '';
+  for (const [k, v] of Object.entries(obj || {})) {
+    const p = path ? `${path}.${k}` : k;
+    if (Array.isArray(v)) {
+      if (!v.length) { h += `<div class="sec">${NICE[k] || k}</div><div class="row"><span class="k">—</span><span class="v null">brak</span></div>`; continue; }
+      v.forEach((it, i) => {
+        h += `<div class="sec">${NICE[k] || k}${v.length > 1 ? ' ' + (i + 1) : ''}</div>`;
+        h += it && typeof it === 'object' ? fields(it, `${p}[${i}]`, ev, depth + 1) : row(`${p}[${i}]`, k, it, ev);
+      });
+    } else if (v && typeof v === 'object') {
+      h += `<div class="${depth ? 'sub' : 'sec'}">${NICE[k] || k}</div>` + fields(v, p, ev, depth + 1);
+    } else h += row(p, k, v, ev);
+  }
   return h;
 }
-
-function showPdf(d, page) {
-  $('#pdfwrap').innerHTML = `<iframe src="/files/${d.session}/${encodeURIComponent(d.file)}#page=${page}&view=FitH"></iframe>`;
-  $('#pageinfo').textContent = page > 1 ? `strona ${page}` : '';
+function row(p, k, v, ev) {
+  const e = ev[p];
+  return `<div class="row" data-p="${esc(p)}" onclick="pick(this)"><span class="k">${KEY[k] || k.replaceAll('_', ' ')}</span>
+    <span class="v ${v === null ? 'null' : ''}">${v === null ? '—' : esc(v)}</span><span class="dot ${e ? 'm-' + e.method : ''}" style="${e ? '' : 'opacity:0'}"></span>
+    <div class="ev">${evText(e)}</div></div>`;
 }
-
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-function val(v) {
-  if (v === null) return '<span class="null">null</span>';
-  if (typeof v === 'number') return `<span class="n">${v}</span>`;
-  return `<span class="s">"${esc(v)}"</span>`;
+function evText(e) {
+  if (!e) return 'Brak w dokumencie.';
+  if (e.method === 'derived') return 'Wyznaczone regułą z konfiguracji.';
+  if (e.method === 'inferred') return 'Wywnioskowane przez model (brak dosłownego cytatu).';
+  const q = esc(e.quote), c = esc(e.context);
+  return `str. ${e.page} · „…${c.replace(q, `<mark>${q}</mark>`)}…”`;
 }
-function render(x, path, ev, ind) {
-  const pad = '  '.repeat(ind);
-  if (Array.isArray(x)) {
-    if (!x.length) return '[]';
-    return '[\n' + x.map((v, i) => pad + '  ' + render(v, `${path}[${i}]`, ev, ind + 1)).join(',\n') + '\n' + pad + ']';
-  }
-  if (x && typeof x === 'object') {
-    const ks = Object.keys(x);
-    return '{\n' + ks.map(k => {
-      const p = path ? `${path}.${k}` : k;
-      const v = x[k];
-      if (v !== null && typeof v === 'object') return `${pad}  <span class="k">"${k}"</span>: ${render(v, p, ev, ind + 1)}`;
-      const e = ev[p];
-      const dot = e ? `<span class="dot ${e.method}"></span>` : '';
-      return `${pad}  <span class="leaf" data-p="${esc(p)}" onclick="showEv(this)"><span class="k">"${k}"</span>: ${val(v)}${dot}</span>`;
-    }).join(',\n') + '\n' + pad + '}';
-  }
-  return val(x);
-}
-window.showEv = el => {
-  document.querySelectorAll('.leaf.sel').forEach(n => n.classList.remove('sel'));
-  el.classList.add('sel');
-  const d = docs[current], p = el.dataset.p;
-  const e = (d.trace.evidence || []).find(x => x.field === p);
-  if (!e) { $('#evidence').innerHTML = `<b>${esc(p)}</b>: brak wartości w dokumencie (null).`; return; }
-  if (e.method === 'located') {
-    const ctx = esc(e.context).replace(esc(e.quote), `<span class="q">${esc(e.quote)}</span>`);
-    $('#evidence').innerHTML = `<b>${esc(p)}</b> — strona ${e.page}, zgodność ${e.score}%<br>…${ctx}…`;
-    showPdf(d, e.page);
-  } else if (e.method === 'derived') {
-    $('#evidence').innerHTML = `<b>${esc(p)}</b> — wartość wyznaczona regułą z konfiguracji (np. etykieta wybranego powodu).`;
-  } else {
-    $('#evidence').innerHTML = `<b>${esc(p)}</b> — ${esc(e.note || 'wartość wywnioskowana przez model')}.`;
-  }
+window.pick = el => {
+  document.querySelectorAll('.row.on').forEach(r => r !== el && r.classList.remove('on'));
+  el.classList.toggle('on');
+  document.querySelectorAll('.hl').forEach(h => h.remove());
+  if (!el.classList.contains('on')) return;
+  const e = evMap(docs[cur])[el.dataset.p];
+  if (!e || !e.page) return;
+  const pg = $('#p' + e.page);
+  if (!pg) return;
+  (e.rects || []).forEach(([x, y, w, h]) => {
+    const d = document.createElement('div'); d.className = 'hl';
+    Object.assign(d.style, { left: x + '%', top: y + '%', width: w + '%', height: h + '%' });
+    pg.appendChild(d);
+  });
+  const first = pg.querySelector('.hl');
+  const doc = $('#doc');
+  const top = pg.offsetTop + (first ? first.offsetTop - doc.clientHeight / 3 : 0);
+  doc.scrollTo({ top, behavior: 'smooth' });
 };
+
+function hjson(x, ind) {
+  const pad = '  '.repeat(ind);
+  if (x === null) return '<span class="jz">null</span>';
+  if (typeof x === 'number') return `<span class="jn">${x}</span>`;
+  if (typeof x === 'string') return `<span class="js">"${esc(x)}"</span>`;
+  if (Array.isArray(x)) return x.length ? '[\n' + x.map(v => pad + '  ' + hjson(v, ind + 1)).join(',\n') + '\n' + pad + ']' : '[]';
+  return '{\n' + Object.entries(x).map(([k, v]) => `${pad}  <span class="jk">"${esc(k)}"</span>: ${hjson(v, ind + 1)}`).join(',\n') + '\n' + pad + '}';
+}
+
+$('#dl').onclick = () => {
+  const d = docs[cur]; if (!d || d.pending) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d.result, null, 2)], { type: 'application/json' }));
+  a.download = d.file.replace(/\.pdf$/i, '.json'); a.click();
+};
+
+function icon(n) {
+  const P = { page: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>', clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+    scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/>',
+    fix: '<path d="m5 12 4.5 4.5L19 7"/>', chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>' };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
+}
+addEventListener('keydown', e => { if (!docs.length) return; if (e.key === 'ArrowRight') select(Math.min(docs.length - 1, cur + 1)); if (e.key === 'ArrowLeft') select(Math.max(0, cur - 1)); });
 </script>
 </body>
 </html>
