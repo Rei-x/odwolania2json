@@ -118,29 +118,39 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
             pdf = pdfium.PdfDocument(str(path), password="")  # encrypted with empty user password
         n = len(pdf) if max_pages is None else min(len(pdf), max_pages)
         for i in range(n):
+            p0 = pdf[i]  # content text WITHOUT annotations decides about OCR (a signature stamp is not content)
+            tp0 = p0.get_textpage()
+            content = tp0.get_text_range()
+            tp0.close()
+            p0.close()
             page = flat_page(pdf, i)
             tp = page.get_textpage()
             text = fix_mojibake(tp.get_text_range().replace("\r\n", "\n").replace("\r", "\n"))
             tp.close()
-            garbled = len(text.strip()) >= min_chars and text_quality(text) < garbage_threshold
-            need = (len(text.strip()) < min_chars or garbled) and ocr is not None and i < ocr_max_pages
+            garbled = len(content.strip()) >= min_chars and text_quality(text) < garbage_threshold
+            need = (len(content.strip()) < min_chars or garbled) and ocr is not None and i < ocr_max_pages
             png = render_png(page, dpi) if need else None
-            raw.append((text, png))
+            # keep annotation-only text (e.g. e-signature stamp) to append after OCR
+            extra = text if not content.strip() else ""  # page has no own text (scan) -> text = annotations only
+            raw.append((text, png, extra))
             page.close()
         pdf.close()
     if prep:  # e.g. auto-orientation / deskew of scanned pages before OCR
         from .preprocess import png_steps
-        raw = [(t, png_steps(prep, png) if png is not None else None) for t, png in raw]
+        raw = [(t, png_steps(prep, png) if png is not None else None, x) for t, png, x in raw]
     doc = Document(path=path)
-    todo = [i for i, (_, png) in enumerate(raw) if png is not None]
+    todo = [i for i, (_, png, _x) in enumerate(raw) if png is not None]
     ocr_text = {}
     if todo:
         from concurrent.futures import ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=len(todo)) as ex:
             ocr_text = dict(zip(todo, ex.map(lambda i: ocr(raw[i][1]), todo)))
-    for i, (text, _) in enumerate(raw):
+    for i, (text, png, extra) in enumerate(raw):
         source = "ocr" if i in ocr_text else "text"
-        doc.pages.append(Page(i + 1, (ocr_text.get(i, text) or "").strip(), source, raw[i][1]))
+        t = ocr_text.get(i, text) or ""
+        if i in ocr_text and extra.strip() and extra.strip() not in t:
+            t = t.rstrip() + "\n" + extra.strip()  # e.g. "Dokument podpisany przez ..." stamp
+        doc.pages.append(Page(i + 1, t.strip(), source, png))
     return doc
 
 
