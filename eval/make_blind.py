@@ -57,7 +57,7 @@ POWOD = {1: "Decyzja o odrzuceniu oferty", 2: "Ogłoszenie wyboru oferty", 3: "D
          10: "Zaniechanie unieważnienia postępowania", 11: "Opis przedmiotu zamówienia (OPZ)",
          12: "Projektowane postanowienia umowy"}  # official dictionary: data/schemas/czynnosc_powod_id_dict.md
 # reason 12 is absent from training data; a few blind cases with an SWZ-type source are switched to it
-POWOD_OVERRIDE: dict[str, int] = {}
+POWOD_OVERRIDE: dict[str, int] = {"blind_03": 12, "blind_15": 12}
 
 # ============================================================================ pools
 FIRST_M = ["Adam", "Bartłomiej", "Cezary", "Damian", "Dariusz", "Edward", "Filip", "Grzegorz", "Henryk", "Igor",

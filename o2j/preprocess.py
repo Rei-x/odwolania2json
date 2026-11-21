@@ -98,14 +98,12 @@ def orient(im: Image.Image) -> Image.Image:
     # 0 vs 90: text lines -> strong row-profile variance; compare best-deskew-ish in both orientations
     rows, cols = np.var(ink.sum(axis=1)) / ink.shape[1], np.var(ink.sum(axis=0)) / ink.shape[0]
     rot = 0
-    if cols > 1.3 * rows:
-        # rotated 90 or 270: try both, choose the more upright
+    # Only 90/270 is detected reliably (row/column profile ratio: upright <= ~4, rotated >= ~5).
+    # 0-vs-180 heuristics proved unreliable on real scans, so upside-down pages are left to the VLM.
+    if rows > 0 and cols > 5.0 * rows:
         a90 = np.rot90(ink, 1)   # counter-clockwise
         a270 = np.rot90(ink, 3)
         rot = 90 if _upright_score(a90) >= _upright_score(a270) else 270
-    else:
-        if _upright_score(np.rot90(ink, 2)) > _upright_score(ink):
-            rot = 180
     if rot == 0:
         return im
     return im.rotate(rot, expand=True)
@@ -127,7 +125,13 @@ def up(im: Image.Image) -> Image.Image:
     return im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)
 
 
-STEPS = {"denoise": denoise, "flat": flat, "orient": orient, "deskew": deskew, "up": up}
+def doc_ori(im: Image.Image) -> Image.Image:
+    """SOTA 4-way orientation with PP-LCNet_x1_0_doc_ori (ONNX, CPU)."""
+    from .orientation import correct
+    return correct(im)[0]
+
+
+STEPS = {"denoise": denoise, "flat": flat, "orient": orient, "doc_ori": doc_ori, "deskew": deskew, "up": up}
 
 
 def apply(steps, im: Image.Image) -> Image.Image:
