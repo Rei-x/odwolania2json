@@ -486,3 +486,13 @@
 .lp .corpus span { color: var(--ink2); font-size: 15px }
 .lp .hero-bird { width: 76px; height: 76px; margin: 0 0 20px -4px }
 @media (max-width: 900px) { .lp .hero-bird { width: 56px; height: 56px; margin-bottom: 14px } }
+.lp .drop { margin-top: 30px; max-width: 520px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 18px; row-gap: 4px; align-items: center;
+  padding: 22px 26px; border-radius: 20px; border: 2px dashed rgb(255 255 255 / .32); background: rgb(255 255 255 / .04); color: var(--white); cursor: pointer; transition: border-color .2s, background .2s }
+.lp .drop svg { grid-row: 1 / 3; width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: var(--acc); color: var(--white) }
+.lp .drop-t { font-size: 20px; font-weight: 700; letter-spacing: -.01em }
+.lp .drop-s { font: 500 12.5px/1.3 var(--font-mono); color: rgb(255 255 255 / .6) }
+.lp .drop:hover, .lp .drop.over { border-color: var(--acc-l); background: color-mix(in oklab, var(--acc) 14%, transparent) }
+.lp .drop:focus-visible { outline: 3px solid var(--acc-l); outline-offset: 3px }
+.lp .try-sample { align-self: flex-start; margin-top: 12px; font-size: 14px; color: rgb(255 255 255 / .62); text-decoration: underline; text-underline-offset: 3px }
+.lp .try-sample:hover { color: var(--white) }
+@media (max-width: 520px) { .lp .drop { padding: 18px; column-gap: 14px } .lp .drop-t { font-size: 18px } }
