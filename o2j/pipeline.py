@@ -57,7 +57,10 @@ class Pipeline:
             return self._process_deterministic(pdf_path, doc, full, load_error, t0)
         doctype, cls_info = classify(full, pdf_path, self.specs, self.llm,
                                      float(self.s.get("classification", {}).get("min_score", 3)),
-                                     self.s.get("classification", {}).get("mode", "llm_confirm"))
+                                     self.s.get("classification", {}).get("mode", "llm_confirm"),
+                                     model=self.s.get("classification", {}).get("model"),
+                                     vote_models=self.s.get("classification", {}).get("vote_models"),
+                                     use_filename=bool(self.s.get("classification", {}).get("use_filename", False)))
         trace = {"file": str(pdf_path), "doctype": doctype, "classification": cls_info, "load_error": load_error,
                  "pages": len(doc.pages), "ocr_pages": [p.number for p in doc.pages if p.source == "ocr"]}
         if doctype not in self.specs:

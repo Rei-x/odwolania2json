@@ -10,20 +10,22 @@ from o2j.classify import classify  # noqa: E402
 from o2j.llm import COST  # noqa: E402
 from o2j.pipeline import Pipeline  # noqa: E402
 
-TRUTH = {"odwolanie.pdf": "odwolanie", "pelnomocnictwo.pdf": "pelnomocnictwo", "potwierdzenie_przelewu.pdf": "przelew"}
+TRUTH = {"odwolanie.pdf": "odwolanie", "pelnomocnictwo.pdf": "pelnomocnictwo", "potwierdzenie_przelewu.pdf": "przelew",
+         "przelew.pdf": "przelew"}
 
 
 def main(neg_dir: str | None = None):
     pipe = Pipeline()
-    items = [(f, TRUTH[f.name]) for f in sorted((ROOT / "data/train").glob("*/*.pdf"))]
+    items = [(f, TRUTH.get(f.name, "inny")) for f in sorted((ROOT / "data/train").glob("*/*.pdf"))]  # others = negatives
     if neg_dir:
         items += [(f, "inny") for f in sorted(Path(neg_dir).glob("*")) if f.suffix.lower() in P.SUPPORTED_EXT]
 
     def one(it):
         f, t = it
         doc = P.load(f, ocr=pipe._ocr, ocr_max_pages=1)
+        c = pipe.s.get("classification", {})
         typ, info = classify(doc.text(), Path("dokument.pdf"), pipe.specs, pipe.llm, 3,
-                             pipe.s.get("classification", {}).get("mode", "llm_confirm"))
+                             c.get("mode", "llm_confirm"), model=c.get("model"), vote_models=c.get("vote_models"))
         return f, t, typ
 
     res = list(ThreadPoolExecutor(16).map(one, items))

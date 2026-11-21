@@ -28,10 +28,12 @@ def rule_scores(text: str, filename: str, specs: dict[str, DocSpec]) -> dict[str
 
 
 def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_score: float = 3,
-             mode: str = "llm_confirm") -> tuple[str, dict]:
-    """mode: rules (keywords only) | llm_confirm (keywords as prior, LLM decides incl. 'inny')."""
+             mode: str = "llm_confirm", model: str | None = None, vote_models: list | None = None,
+             use_filename: bool = False) -> tuple[str, dict]:
+    """mode: rules (keywords only) | llm_confirm (rules + LLM vote, 'inny' allowed).
+    The file name is ignored by default (organiser: file names may be arbitrary)."""
     head = text[:6000]
-    scores = rule_scores(head, path.name, specs)
+    scores = rule_scores(head, path.name if use_filename else "", specs)
     ranked = sorted(scores.items(), key=lambda x: -x[1])
     best, best_s = ranked[0]
     second_s = ranked[1][1] if len(ranked) > 1 else 0
@@ -47,14 +49,22 @@ def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_sco
               "dokumenty jedynie wspominające o odwołaniach, przelewach czy pełnomocnictwach (faktury, prezentacje, "
               "wyroki, wyciągi, korespondencja) to 'inny'. Odpowiedz wyłącznie JSON.")
     opts = "\n".join(f"- {n}: {s.description}" for n, s in specs.items()) + "\n- inny: każdy inny dokument"
-    user = f"Typy:\n{opts}\n\nNazwa pliku: {path.name}\nDokument (początek):\n{head[:5000]}\n\nZwróć {{\"typ\": <jeden z {names}>}}."
+    user = f"Typy:\n{opts}\n\nDokument (początek):\n{head[:5000]}\n\nZwróć {{\"typ\": <jeden z {names}>}}."
     schema = {"type": "object", "properties": {"typ": {"enum": names}}, "required": ["typ"], "additionalProperties": False}
-    try:
-        out, _ = llm.extract_json(system, user, schema, name="classification")
-        typ = out.get("typ")
-        if typ in names:
-            info.update(method="llm" if not confident else "rules+llm", llm_choice=typ)
-            return typ, info
-    except Exception as e:  # noqa: BLE001
-        info["llm_error"] = str(e)
-    return (best if confident else "inny"), info
+    models = [model] + [m for m in (vote_models or []) if m != model]
+    choices = []
+    for m in models:  # small models disagree sometimes -> vote of rules + models
+        try:
+            out, _ = llm.extract_json(system, user, schema, name="classification", model=m)
+            if out.get("typ") in names:
+                choices.append(out["typ"])
+        except Exception as e:  # noqa: BLE001
+            info.setdefault("llm_errors", []).append(str(e)[:200])
+    if not choices:
+        return (best if confident else "inny"), info
+    votes = choices + ([best] if confident else [])
+    from collections import Counter
+    cnt = Counter(votes).most_common()
+    typ = cnt[0][0] if len(cnt) == 1 or cnt[0][1] > cnt[1][1] else choices[0]  # tie -> primary model
+    info.update(method="llm" if not confident else "rules+llm", llm_choice=choices[0], votes=votes)
+    return typ, info

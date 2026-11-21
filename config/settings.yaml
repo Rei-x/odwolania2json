@@ -41,6 +41,7 @@ router:                              # tryb automatyczny: eskalacja tylko trudny
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
 classification:
+  use_filename: false               # README UZP: nazwa pliku może być dowolna — nie sugerujemy się nią
   mode: llm_confirm                  # rules | llm_confirm (LLM potwierdza typ, odrzuca dokumenty spoza puli)
   min_score: 3                       # poniżej => klasyfikacja przez LLM
 paths:
@@ -81,6 +82,7 @@ profiles:
     verify: {max_rounds: 0}
   ekonomiczny:                       # Ministral 3B (Mistral, EU) — najmniejszy model
     llm: {model: mistralai/ministral-3b-2512}
+    classification: {model: mistralai/ministral-8b-2512, vote_models: [mistralai/ministral-3b-2512]}
     ocr: {model: mistralai/ministral-3b-2512, reasoning: null}
     verify: {max_rounds: 0}
   standard:                          # Ministral 8B (Mistral, EU) + weryfikacja i naprawa
@@ -88,6 +90,7 @@ profiles:
     ocr: {model: mistralai/ministral-8b-2512, reasoning: null}
   auto:                              # reguły + Ministral 3B; dokumenty trudne eskalują do Ministral 8B
     llm: {model: mistralai/ministral-3b-2512}
+    classification: {model: mistralai/ministral-8b-2512, vote_models: [mistralai/ministral-3b-2512]}   # typ: reguły + 8B + 3B
     ocr: {model: mistralai/ministral-8b-2512, reasoning: null}
     router:
       enabled: true

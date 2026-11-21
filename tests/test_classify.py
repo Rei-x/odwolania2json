@@ -65,7 +65,7 @@ class _LLM:
     def __init__(self, answer=None, exc=None):
         self.answer, self.exc, self.calls = answer, exc, 0
 
-    def extract_json(self, system, user, schema, name=None, images=None):
+    def extract_json(self, system, user, schema, name=None, images=None, model=None, temperature=None):
         self.calls += 1
         if self.exc:
             raise self.exc
@@ -86,7 +86,7 @@ def test_negatives_rejected_by_llm_path(specs, path):
 def test_llm_failure_falls_back_to_confident_rules_or_inny(specs):
     llm = _LLM(exc=RuntimeError("offline"))
     typ, info = classify("PEŁNOMOCNICTWO\nMocodawca udziela pełnomocnictwa", Path("x.pdf"), specs, llm)
-    assert typ == "pelnomocnictwo" and "llm_error" in info
+    assert typ == "pelnomocnictwo" and info.get("llm_errors")
     typ, _ = classify("Jakiś przelew bankowy", Path("x.pdf"), specs, llm)
     assert typ == "inny"
 
