@@ -6,8 +6,9 @@ llm:
   temperature: 0
   max_tokens: 32000                  # modele reasoningowe zużywają część limitu na myślenie
   structured_output: json_schema     # json_schema | json_object
-  timeout: 180
-  retries: 5
+  timeout: 60                        # s na wywołanie; najdłuższe zmierzone: ~30 s (ekstrakcja 8B), zastój => ponowienie
+  retries: 2                         # z krótkim backoffem (o2j/llm.py)
+  hedge_after: 40                    # brak odpowiedzi po 40 s => równoległe drugie zapytanie, wygrywa pierwsze
   extra_body: null                   # np. {provider: {order: [...]}} dla OpenRouter
 ocr:
   min_chars_per_page: 40             # mniej znaków => strona traktowana jako skan
@@ -19,7 +20,10 @@ ocr:
   preprocess: [doc_ori]              # przed OCR: doc_ori (PP-LCNet, 0/90/180/270), deskew, flat, denoise, up, orient (heurystyka)
   attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
-  max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)
+  max_pages: 3                       # OCR tylko pierwszych N stron: w skanach UZP i danych treningowych wszystkie pola są na str. 1-2
+  timeout: 60                        # s na stronę (gęsta strona: ~1400 tokenów, do ~42 s u wolnego dostawcy)
+  attempts: 3
+  hedge_after: 30                    # strona bez odpowiedzi po 30 s => drugie zapytanie (ogon opóźnień dostawcy)
 postprocess:
   snap_to_text: true                 # popraw drobne błędy przepisywania wg tekstu dokumentu
   rules_fill: true                   # puste pola uzupełnij regułami YAML (gdy wartość jest w tekście)
@@ -32,7 +36,7 @@ extraction:
   ocr_engine: none                   # tylko dla deterministic: none | paddle (lokalny OCR); vlm wymagałby LLM
 router:                              # tryb automatyczny: eskalacja tylko trudnych dokumentów
   enabled: false                     # włączany profilem `auto`
-  escalate_if: {disputed_fields: 1, remaining_issues: 1, ocr: true, novelty: 40}
+  escalate_if: {disputed_fields: 1, remaining_issues: 1, ocr: false, novelty: 40}   # skany: od razu scan_model
   escalation:                        # kaskada: kolejne poziomy uruchamiane tylko gdy poprzedni nie potwierdza wyniku
     levels:
       - [deepseek/deepseek-v4.1-flash]
@@ -44,6 +48,7 @@ classification:
   use_filename: false               # README UZP: nazwa pliku może być dowolna — nie sugerujemy się nią
   mode: llm_confirm                  # rules | llm_confirm (LLM potwierdza typ, odrzuca dokumenty spoza puli)
   min_score: 3                       # poniżej => klasyfikacja przez LLM
+  skip_llm_margin: 7                 # llm_confirm: przewaga reguł >= 7 nad drugim typem => bez pytania LLM (eval/cls_margin.py)
 paths:
   doctypes: config/doctypes
   train: data/train                  # źródło przykładów few-shot
@@ -74,7 +79,7 @@ providers:
   mistralai/ministral-3b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}
 
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
-profile: auto                      # domyślnie: reguły + Ministral 3B -> 8B (średnia 5.5B -> 20 pkt)
+profile: auto                      # domyślnie: reguły + Ministral 3B -> 8B; skany od razu 8B
 profiles:
   deterministyczny:                  # bez LLM: reguły z YAML (najtańszy, w pełni powtarzalny)
     extraction: {mode: deterministic}
@@ -94,6 +99,7 @@ profiles:
     ocr: {model: mistralai/ministral-8b-2512, reasoning: null}
     router:
       enabled: true
+      scan_model: mistralai/ministral-8b-2512   # dokumenty z OCR: od razu 8B (bez przebiegu 3B i eskalacji)
       escalation: {levels: [[mistralai/ministral-8b-2512]], include_deterministic: true}
   maksymalny:                        # głosowanie małych modeli (średnia <= 8B) + reguły jako głos rozstrzygający
     llm: {model: mistralai/ministral-8b-2512}

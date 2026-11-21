@@ -1014,7 +1014,7 @@ def infer(texts: list[str], llm, *, model: str | None = None, taken=frozenset(),
         parts.append(f"### PRZYKŁAD {i + 1}\n{t[:cap]}")
     user = "Przykładowe dokumenty nowego typu:\n\n" + "\n\n".join(parts)
     proposal, meta = llm.extract_json(INFER_SYSTEM, user, infer_schema(), name="doctype_proposal", model=model,
-                                      temperature=0)
+                                      temperature=0, timeout=240)  # long JSON proposal, often a large model
     spec, warns = build_inferred_spec(proposal, texts, taken=taken, pages=pages, reference=reference, specs=specs,
                                       min_score=min_score)
     if not spec["fields"]:

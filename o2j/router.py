@@ -3,7 +3,7 @@
 Signals (generic — nothing learned from a particular dataset):
   * disagreement between two independent extractors: deterministic YAML rules vs LLM (per field)
   * fields still flagged by verification (format / not found in text)
-  * OCR / broken text layer used
+  * OCR / broken text layer used (off in profile `auto`: scans go straight to `router.scan_model`)
   * layout novelty: low similarity to the nearest known example (organiser examples + memory)
 Escalation re-extracts with stronger model(s) and resolves every field by vote (first pass + strong runs
 [+ deterministic rules as a tie-breaking voter]).
@@ -54,6 +54,19 @@ def difficulty(llm_result: dict, det_result: dict | None, remaining_issues: list
         reasons.append(f"nowy układ dokumentu (podobieństwo do znanych przykładów {100 - novelty:.0f}%)")
     return {"escalate": bool(reasons), "reasons": reasons, "disputed": disputed, "flagged": flagged,
             "novelty": novelty}
+
+
+def remaining_levels(cfg: dict, first_model: str | None) -> list[list[str]]:
+    """Escalation levels still above the model that ran the first pass (all levels for the default model).
+    A first pass on the scan model skips the levels up to and including the one made of that model alone."""
+    esc = cfg.get("escalation") or {}
+    levels = [lv if isinstance(lv, list) else [lv] for lv in (esc.get("levels") or [])]
+    if first_model is None:
+        return levels
+    for i in range(len(levels) - 1, -1, -1):
+        if levels[i] == [first_model]:
+            return levels[i + 1:]
+    return levels
 
 
 def escalate(pipe, spec, system: str, user: str, images, doc, first: dict, det_result: dict | None,

@@ -36,9 +36,12 @@ def rule_matches(text: str, specs: dict[str, DocSpec]) -> dict[str, list[str]]:
 
 def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_score: float = 3,
              mode: str = "llm_confirm", model: str | None = None, vote_models: list | None = None,
-             use_filename: bool = False) -> tuple[str, dict]:
+             use_filename: bool = False, skip_llm_margin: float | None = None) -> tuple[str, dict]:
     """mode: rules (keywords only) | llm_confirm (rules + LLM vote, 'inny' allowed).
-    The file name is ignored by default (organiser: file names may be arbitrary)."""
+    The file name is ignored by default (organiser: file names may be arbitrary).
+    skip_llm_margin: in llm_confirm mode, a rule winner leading the runner-up by at least this much keyword
+    score is accepted without asking the LLM (None = always ask). Out-of-scope look-alikes (invoices,
+    judgments, e-mails about an appeal) score lower margins, so they still get the LLM vote."""
     head = text[:6000]
     scores = rule_scores(head, path.name if use_filename else "", specs)
     ranked = sorted(scores.items(), key=lambda x: -x[1])
@@ -47,8 +50,12 @@ def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_sco
     info = {"method": "rules", "scores": scores}
     confident = best_s >= min_score and best_s - second_s >= 2
     info["confident"] = confident
+    info["margin"] = best_s - second_s
     if llm is None or (mode == "rules" and confident):
         return (best if best_s > 0 else "inny"), info
+    if confident and skip_llm_margin is not None and best_s - second_s >= float(skip_llm_margin):
+        info["llm_skipped"] = f"reguły pewne (przewaga {best_s - second_s:g} >= {float(skip_llm_margin):g})"
+        return best, info
     if not head.strip():
         return (best if best_s > 0 else "inny"), info  # nothing to read: rely on filename hint
     names = list(specs) + ["inny"]
@@ -59,14 +66,26 @@ def classify(text: str, path: Path, specs: dict[str, DocSpec], llm=None, min_sco
     user = f"Typy:\n{opts}\n\nDokument (początek):\n{head[:5000]}\n\nZwróć {{\"typ\": <jeden z {names}>}}."
     schema = {"type": "object", "properties": {"typ": {"enum": names}}, "required": ["typ"], "additionalProperties": False}
     models = [model] + [m for m in (vote_models or []) if m != model]
-    choices = []
-    for m in models:  # small models disagree sometimes -> vote of rules + models
+
+    def ask(m):
         try:
             out, _ = llm.extract_json(system, user, schema, name="classification", model=m)
-            if out.get("typ") in names:
-                choices.append(out["typ"])
+            return out.get("typ") if out.get("typ") in names else None, None
         except Exception as e:  # noqa: BLE001
-            info.setdefault("llm_errors", []).append(str(e)[:200])
+            return None, str(e)[:200]
+    # small models disagree sometimes -> vote of rules + models; the models are asked concurrently
+    if len(models) > 1:
+        from concurrent.futures import ThreadPoolExecutor
+
+        from .tracing import bind
+        with ThreadPoolExecutor(max_workers=len(models)) as ex:
+            answers = list(ex.map(bind(ask), models))
+    else:
+        answers = [ask(m) for m in models]
+    choices = [typ for typ, _ in answers if typ]
+    for _, err in answers:
+        if err:
+            info.setdefault("llm_errors", []).append(err)
     if not choices:
         return (best if confident else "inny"), info
     votes = choices + ([best] if confident else [])

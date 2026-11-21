@@ -32,7 +32,7 @@ class FakeLLM:
         self.proposal = proposal
         self.calls = []
 
-    def extract_json(self, system, user, schema, name="extraction", images=None, model=None, temperature=None):
+    def extract_json(self, system, user, schema, name="extraction", images=None, model=None, temperature=None, timeout=None):
         self.calls.append({"schema": schema, "model": model, "temperature": temperature, "user": user})
         return self.proposal, {"model": model or "fake", "usage": {}, "attempts": 1}
 

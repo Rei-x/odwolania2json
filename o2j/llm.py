@@ -31,6 +31,33 @@ def track(resp):
         COST["completion_tokens"] += int(d.get("completion_tokens") or 0)
 
 
+def hedged(fn, after: float | None):
+    """fn() with a hedge against provider tail latency: if there is no answer after `after` seconds, one
+    duplicate request is started and whichever succeeds first wins (the other is left to finish in the
+    background). after = None/0 -> plain call. Errors surface only when every started request failed."""
+    if not after or float(after) <= 0:
+        return fn()
+    from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+
+    from .tracing import bind
+    ex = ThreadPoolExecutor(max_workers=2, thread_name_prefix="o2j-hedge")
+    try:
+        pending = {ex.submit(bind(fn))}
+        done, _ = wait(pending, timeout=float(after))
+        if not done:
+            pending.add(ex.submit(bind(fn)))
+        err = None
+        while pending:
+            done, pending = wait(pending, return_when=FIRST_COMPLETED)
+            for f in done:
+                if f.exception() is None:
+                    return f.result()
+                err = f.exception()
+        raise err
+    finally:
+        ex.shutdown(wait=False)
+
+
 PROVIDERS: dict = {}  # model -> OpenRouter provider routing (EU pinning), filled from settings.providers
 
 
@@ -55,7 +82,7 @@ class LLM:
         self.model = cfg["model"]
         PROVIDERS.update(cfg.get("providers") or {})
         self.client = OpenAI(base_url=cfg["base_url"], api_key=cfg.get("api_key") or "none",
-                             timeout=float(cfg.get("timeout", 180)))
+                             timeout=float(cfg.get("timeout", 180)), max_retries=0)  # retries: _chat (backoff)
 
     def _chat(self, messages, **kw):
         last = None
@@ -63,26 +90,32 @@ class LLM:
             try:
                 extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"),
                                          kw.get("model", self.model))
-                resp = self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
-                                                           extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
-                track(resp)
-                return resp
+                def call(extra=extra):
+                    r = self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
+                                                            extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
+                    track(r)  # also the losing hedge request: it is billed
+                    return r
+                return hedged(call, None if "timeout" in kw else self.cfg.get("hedge_after"))
             except Exception as e:  # noqa: BLE001  (rate limits, timeouts, 5xx)
                 if getattr(e, "status_code", None) in (401, 402, 403):
                     raise RuntimeError(f"LLM API odrzuciło żądanie (klucz/środki): {e}") from e
                 if getattr(e, "status_code", None) == 404 and "image" in str(e).lower():
                     raise ImageNotSupported(str(e)) from e  # text-only model: no point retrying
                 last = e
-                time.sleep(min(30, 2 ** attempt + random.random()))
+                if attempt < int(self.cfg.get("retries", 2)):
+                    time.sleep(min(10, 2 ** attempt + random.random()))
         raise last
 
     def extract_json(self, system: str, user: str, schema: dict | None, name: str = "extraction",
                      images: list[bytes] | None = None, model: str | None = None,
-                     temperature: float | None = None) -> tuple[dict, dict]:
+                     temperature: float | None = None, timeout: float | None = None) -> tuple[dict, dict]:
+        """timeout: per-call budget for long generations (e.g. the doctype wizard); disables hedging."""
         kw = dict(temperature=self.cfg.get("temperature", 0) if temperature is None else temperature,
                   max_tokens=int(self.cfg.get("max_tokens", 4000)))
         if model:
             kw["model"] = model
+        if timeout:
+            kw["timeout"] = float(timeout)
         mode = self.cfg.get("structured_output", "json_schema")
         if schema is not None and mode == "json_schema":
             kw["response_format"] = {"type": "json_schema",

@@ -98,7 +98,7 @@ def _set(result: dict, path: str, value):
 
 
 def repair(llm, spec, doc_text: str, result: dict, issues: list[dict],
-           images: list[bytes] | None = None) -> tuple[dict, list[dict]]:
+           images: list[bytes] | None = None, model: str | None = None) -> tuple[dict, list[dict]]:
     system = REPAIR_SYSTEM.format(guide=spec.field_guide(), instructions=spec.instructions.strip() or "-")
     user = (f"### DOKUMENT\n{doc_text}\n\n### WYNIK EKSTRAKCJI\n{E.dumps(result)}\n\n"
             f"### PODEJRZANE POLA\n" + "\n".join(f"- {i['field']} = {json.dumps(i['value'], ensure_ascii=False)}: {i['issue']}"
@@ -111,7 +111,7 @@ def repair(llm, spec, doc_text: str, result: dict, issues: list[dict],
         "required": ["poprawki"], "additionalProperties": False}
     if images:
         user += "\n\nTekst pochodzi z OCR i może być niepełny lub błędny — rozstrzygaj na podstawie dołączonych obrazów stron."
-    out, _ = llm.extract_json(system, user, schema, name="repair", images=images)
+    out, _ = llm.extract_json(system, user, schema, name="repair", images=images, model=model)
     flagged = {i["field"] for i in issues}
     raw = json.loads(json.dumps(result))
     changes = []

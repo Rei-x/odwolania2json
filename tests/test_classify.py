@@ -113,3 +113,48 @@ def test_letter_spaced_heading_classifies(specs, heading, expected):
 def test_filename_hint(specs):
     assert rule_scores("", "pelnomocnictwo_skan.pdf", specs)["pelnomocnictwo"] == 2.0
     assert set(rule_scores("", "dokument.pdf", specs).values()) == {0.0}
+
+
+def test_skip_llm_when_rule_margin_is_large(specs):
+    text = _head(REFERENCE_DOCS[0])
+    scores = sorted(rule_scores(text, "", specs).values(), reverse=True)
+    llm = _LLM("inny")
+    typ, info = classify(text, Path("dokument.pdf"), specs, llm, skip_llm_margin=scores[0] - scores[1])
+    assert typ == EXPECTED[REFERENCE_DOCS[0].name] and llm.calls == 0 and info["llm_skipped"]
+    # margin just below the threshold -> the LLM is still asked (and may say "inny")
+    typ, info = classify(text, Path("dokument.pdf"), specs, llm, skip_llm_margin=scores[0] - scores[1] + 1)
+    assert typ == "inny" and llm.calls == 1 and "llm_skipped" not in info
+
+
+@pytest.mark.parametrize("path", NEGATIVES, ids=lambda p: p.name)
+def test_configured_skip_margin_never_skips_negatives(specs, path):
+    """With the configured margin, no out-of-scope training document bypasses the LLM vote."""
+    from o2j.config import load_settings
+    margin = load_settings()["classification"]["skip_llm_margin"]
+    llm = _LLM("inny")
+    typ, info = classify(_head(path), Path("dokument.pdf"), specs, llm, skip_llm_margin=margin)
+    assert "llm_skipped" not in info and typ == "inny"
+
+
+def test_llm_votes_run_concurrently_and_keep_primary_first(specs):
+    import threading
+    import time
+
+    class _Slow:
+        def __init__(self):
+            self.active = self.peak = 0
+            self.lock = threading.Lock()
+
+        def extract_json(self, system, user, schema, name=None, images=None, model=None, temperature=None):
+            with self.lock:
+                self.active += 1
+                self.peak = max(self.peak, self.active)
+            time.sleep(0.05)
+            with self.lock:
+                self.active -= 1
+            return {"typ": "inny" if model == "big" else "pelnomocnictwo"}, {}
+
+    llm = _Slow()
+    typ, info = classify("Jakiś przelew bankowy", Path("x.pdf"), specs, llm, model="big", vote_models=["small"])
+    assert llm.peak == 2 and info["llm_choice"] == "inny" and info["votes"] == ["inny", "pelnomocnictwo"]
+    assert typ == "inny"  # tie -> primary model
