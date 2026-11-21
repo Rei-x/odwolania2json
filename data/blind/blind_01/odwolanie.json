@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-09-09",
+    "czynnosc_dzien": "2026-08-30",
+    "czynnosc_powod_id": 5,
+    "czynnosc_opis": "Modyfikacja treści SWZ",
+    "miejscowosc": "Zielona Góra"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9995831480",
+      "nazwa": "Ardento Facility Management sp.j.",
+      "nip": "9990549562",
+      "regon": "999851595",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Monika Nowak",
+        "nazwa": "Kancelaria Adwokacka Monika Nowak",
+        "mail": "m.nowak@nowaklegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9997360051",
+      "nazwa": "Ternum Quorvent sp. z o.o.",
+      "nip": "9995338114",
+      "regon": "999843472",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999682",
+    "numer_postepowania": "ZOZ-301/2026",
+    "numer_ted": "999051-2026",
+    "tytul": "Remont dachu i elewacji zabytkowego budynku ratusza w Lisowie"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9991487687",
+        "nazwa": "Lumexa Ekologia S.A.",
+        "nip": "9992196582",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Konrad Andrzejewski"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993255519",
+        "nazwa": "HEXALIA-TRANS sp. z o.o.",
+        "nip": "9999609142",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Szymon Lis"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Wiktor Kalinowski",
+      "pesel": "68011331599"
+    },
+    {
+      "imie_nazwisko": "Paweł Gajewski",
+      "pesel": "67030619918"
+    }
+  ]
+}

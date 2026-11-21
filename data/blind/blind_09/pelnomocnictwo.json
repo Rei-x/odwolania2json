@@ -1,0 +1,31 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994977267",
+        "nazwa": "Silvanta Telekom sp.j.",
+        "nip": "9997887492",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Jacek Chmielewski"
+        },
+        {
+          "imie_nazwisko": "Przemysław Krajewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Norbert Kaczmarczyk",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Cezary Sowa",
+      "pesel": null
+    }
+  ]
+}

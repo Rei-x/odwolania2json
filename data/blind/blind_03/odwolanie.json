@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-02-14",
+    "czynnosc_powod_id": 12,
+    "czynnosc_opis": "Projektowane postanowienia umowy",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992176429",
+      "nazwa": "Pentrix Logistyka Spółka Akcyjna",
+      "nip": "9999919227",
+      "regon": "999717075",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Mikołaj Domagała",
+        "nazwa": "Kancelaria Radcy Prawnego Mikołaj Domagała",
+        "mail": "biuro@domagalalegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9990557883",
+      "nazwa": "Lorvik Medical sp. z o.o.",
+      "nip": "9992431008",
+      "regon": "999810254",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2025/BZP00999974",
+    "numer_postepowania": "Or.271.55.2026",
+    "numer_ted": null,
+    "tytul": "Budowa hali sportowej z zapleczem szatniowym przy szkole podstawowej w Jeziorany Małe"
+  }
+}

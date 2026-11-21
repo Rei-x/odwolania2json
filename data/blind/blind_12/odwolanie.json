@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": null,
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9996298645",
+      "nazwa": "Morvex Logistyka sp. z o.o. sp.k.",
+      "nip": "9994552147",
+      "regon": "999823050",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Dominika Wójcik",
+        "nazwa": "Wójcik & Pietrzycka Adwokaci i Radcowie Prawni s.c.",
+        "mail": "kontakt@wojcikkancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Zarząd Dróg Powiatowych w Zawierzycach",
+      "nip": "9994315559",
+      "regon": "999576522",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999250",
+    "numer_postepowania": "DAZ-9/2026",
+    "numer_ted": "999759-2026",
+    "tytul": "Usługa kompleksowego żywienia pacjentów szpitala"
+  }
+}

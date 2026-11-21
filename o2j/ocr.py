@@ -55,7 +55,7 @@ class VlmOCR:
         self.base_url = cfg.get("base_url") or llm_cfg["base_url"]
         self.extra = {}
         if cfg.get("reasoning") == "off":
-            self.extra["reasoning"] = {"enabled": False}
+            self.extra["reasoning"] = {"effort": "none"}  # {"enabled": False} is ignored by some models
         elif cfg.get("reasoning"):
             self.extra["reasoning"] = {"effort": cfg["reasoning"]}
 

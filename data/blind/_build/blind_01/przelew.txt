@@ -1,0 +1,24 @@
+# POMORSKI BANK SPÓŁDZIELCZY
+# Szczegóły operacji
+
+>> Potwierdzenie przelewu z bankowości internetowej
+
+Z rachunku: PL94445042176052464706584637
+
+Nazwa nadawcy: Ardento Facility Management sp.j., al. Niepodległości 75, 89-728 Toruń
+
+Na rachunek: PL26965371648170420990849149
+
+Nazwa odbiorcy: Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+
+Kwota: 34,00 zł
+
+Data realizacji: 2026-09-08
+
+Tytułem: OPŁATA SKARBOWA PEŁNOMOCNICTWO NOWAK ZOZ-301/2026
+
+Nr transakcji: CEN2609082623482
+
+Status operacji: zrealizowana
+
+~~ Operacja została zrealizowana zgodnie ze zleceniem nadawcy. Niniejszy wydruk potwierdza wykonanie przelewu i został sporządzony automatycznie w systemie bankowości internetowej. Treść tytułu operacji pochodzi od zleceniodawcy.

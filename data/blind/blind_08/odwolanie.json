@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-03-12",
+    "czynnosc_powod_id": 11,
+    "czynnosc_opis": "Opis przedmiotu zamówienia (OPZ)",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999265229",
+      "nazwa": "Pentrix Solvadi S.A.",
+      "nip": "9992074620",
+      "regon": "999967955",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Anna Mazur",
+        "nazwa": "Mazur Laskowski i Wspólnicy Kancelaria Prawna sp.k.",
+        "mail": "kancelaria@mazurlegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Centrum Usług Wspólnych w Strzelinie Wielkim",
+      "nip": "9992622694",
+      "regon": "999891258",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "BZP.IV.261.50.2026",
+    "numer_ted": "999361-2026",
+    "tytul": "Rozbudowa oczyszczalni ścieków wraz z modernizacją części osadowej"
+  }
+}

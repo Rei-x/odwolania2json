@@ -1,0 +1,26 @@
+# POTWIERDZENIE TRANSAKCJI / TRANSACTION CONFIRMATION
+
+>> Bank Hanzeatycki S.A.
+>> Status operacji / Transaction status: ZREALIZOWANA / COMPLETED
+
+Nadawca / Ordering party || Rachunek nadawcy / Debit account
+Silvanta Telekom sp.j. || 78 0078 5505 3439 2379 3337 3591
+ul. Składowa 110, 85-540 Bydgoszcz ||
+
+Beneficjent / Beneficiary || Rachunek beneficjenta / Beneficiary account
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika || 17 2454 6789 6921 7176 9048 3690
+ul. Obozowa 57, 01-161 Warszawa ||
+
+Kwota / Amount || Data / Value date
+200,00 PLN || 2 października 2026
+
+## Tytuł / Details
+Oplata skarbowa - pelnomocnictwo KIO - ZP.271.122.2026
+
+Ref. || CEN2610021727608
+Prowizja / Fee || 0,00 PLN
+Saldo po operacji / Balance after transaction || 184 320,75 PLN
+
+Data wygenerowania potwierdzenia: 04.10.2026
+
+~~ Dokument potwierdza zrealizowanie transakci i został wygenerowany elektronicznie w systemie bankowości internetowej Banku Hanzeatyckiego S.A. Nie wymaga podpisu ani pieczęci.

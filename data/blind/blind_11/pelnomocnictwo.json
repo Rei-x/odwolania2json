@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9994690338",
+        "nazwa": "Lorvik Telekom sp. z o.o.",
+        "nip": "9996852439",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Paweł Wójcik"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Przemysław Czarnecki",
+      "pesel": null
+    }
+  ]
+}

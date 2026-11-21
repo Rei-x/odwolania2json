@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Wiktor Zalewski",
+        "krs": null,
+        "nazwa": "Usługi Remontowo-Budowlane Wiktor Zalewski",
+        "nip": "9992432887",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Wiktor Zalewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Jacek Nawrocki",
+      "pesel": null
+    }
+  ]
+}

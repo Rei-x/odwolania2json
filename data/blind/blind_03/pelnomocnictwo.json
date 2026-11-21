@@ -1,0 +1,24 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992176429",
+        "nazwa": "Pentrix Logistyka Spółka Akcyjna",
+        "nip": "9999919227",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Kinga Szczepańska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Mikołaj Domagała",
+      "pesel": null
+    }
+  ]
+}

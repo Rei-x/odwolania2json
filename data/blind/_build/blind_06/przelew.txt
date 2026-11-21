@@ -1,0 +1,18 @@
+mBank Spółdzielczy Kujawy
+# Potwierdzenie przelewu
+
+Status operacji: zrealizowana
+Rodzaj operacji: przelew z rachunku
+
+Nadawca || Odbiorca
+Pentrix Rotavia sp.j. || Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Szkolna 77/18, 57-790 Wrocław || ul. Obozowa 57, 01-161 Warszawa
+Rachunek: 04 8734 9768 2080 6005 2349 1157 || Rachunek: 20 0732 7021 8435 4946 2962 6845
+
+Kwota: 51,00 PLN
+Data operacji: 13 kwietnia 2026
+Tytuł: opłata skarbowa od pełnomocnictwa dla Żaneta Gajewska w postępowaniu przed KIO w przetargu Or.271.41.2026 CEN2604137010421 KIO-ODW
+Identyfikator: CEN2604137010421
+Dane dodatkowe: Kategoria: opłaty urzędowe
+
+~~ Dokument stanowi potwierdzenie wykonania operacji w bankowości internetowej. Treść tytułu przelewu została podana przez zleceniodawcę.

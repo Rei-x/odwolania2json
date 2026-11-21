@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9999770561",
+        "nazwa": "Lorvik Data Center sp. k.",
+        "nip": "9990630927",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Malwina Zalewska"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9991226024",
+        "nazwa": "PENTRIX-SERWIS Spółka z ograniczoną odpowiedzialnością",
+        "nip": "9999912260",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Wojciech Sobolewski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Paulina Rogalska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Sebastian Kozieł",
+      "pesel": null
+    }
+  ]
+}

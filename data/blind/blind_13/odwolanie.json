@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-05-18",
+    "czynnosc_powod_id": 7,
+    "czynnosc_opis": "Zaniechanie odrzucenia oferty",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992014303",
+      "nazwa": "Delcora Energia Spółka Akcyjna",
+      "nip": "9993723061",
+      "regon": "999574055",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Iwona Krajewska",
+        "nazwa": "Kancelaria Adwokacka Iwona Krajewska",
+        "mail": "i.krajewska@krajewska.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9997847780",
+      "nazwa": "Silvanta Utrzymanie Zieleni sp. z o.o.",
+      "nip": "9996362729",
+      "regon": "999636939",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999792",
+    "numer_postepowania": "SA.270.2.55.2026",
+    "numer_ted": null,
+    "tytul": "Modernizacja oświetlenia ulicznego na terenie gminy z zastosowaniem technologii LED"
+  }
+}

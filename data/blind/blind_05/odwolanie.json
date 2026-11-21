@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-06-03",
+    "czynnosc_dzien": "2026-05-26",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": "Katowice"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Usługi Remontowo-Budowlane Wiktor Zalewski",
+      "nip": "9992432887",
+      "regon": "999703860",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Jacek Nawrocki",
+        "nazwa": "Kancelaria Prawna Nawrocki i Partnerzy sp.p.",
+        "mail": "kontakt@nawrockiprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9996977705",
+      "nazwa": "Zakład Gospodarki Komunalnej w Kaliszanach sp. z o.o.",
+      "nip": "9991752816",
+      "regon": "999409853",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999950",
+    "numer_postepowania": "DZP/PN/165/2026",
+    "numer_ted": "999435-2026",
+    "tytul": "Zimowe utrzymanie dróg wojewódzkich w sezonach 2026/2027 i 2027/2028"
+  }
+}

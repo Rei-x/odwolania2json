@@ -1,0 +1,14 @@
+# POTWIERDZENIE WYKONANIA PRZELEWU
+>> Bank Nadwiślański S.A.
+
+Zleceniodawca || Usługi Remontowo-Budowlane Wiktor Zalewski, ul. Leśna 142, 10-668 Białystok
+Rachunek zleceniodawcy || PL34796579920892980240164101
+Odbiorca || Urząd Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+Rachunek odbiorcy || PL42925195255670510866668545
+Kwota || 20 000,00 zł
+Data operacji || 02.06.2026
+Tytuł przelewu || wpis od odwołania w postępowaniu DZP/PN/165/2026 - Usługi Remontowo-Budowlane Wiktor Zalewski
+Numer referencyjny || CEN2606021469749
+Status || ZREALIZOWANO
+
+~~ Dokument wygenerowany automatycznie w systemie bankowości internetowej. Potwierdza zrealizowanie przedstawionej operacji i nie wymaga podpisu ani pieczęci banku.

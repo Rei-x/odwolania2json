@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-05-12",
+    "czynnosc_dzien": "2026-05-02",
+    "czynnosc_powod_id": 3,
+    "czynnosc_opis": "Decyzja o wykluczeniu wykonawcy",
+    "miejscowosc": "Lublin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9993085834",
+      "nazwa": "Fennix Morvex Spółka z ograniczoną odpowiedzialnością",
+      "nip": "9992706066",
+      "regon": "999602828",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Ewelina Dąbrowska",
+        "nazwa": "Dąbrowska & Wilk Adwokaci i Radcowie Prawni s.c.",
+        "mail": "sekretariat@dabrowskakancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Gmina Mokrany",
+      "nip": "9998532609",
+      "regon": "999998045",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999408",
+    "numer_postepowania": "DZP/PN/369/2026",
+    "numer_ted": null,
+    "tytul": "Usługa ochrony fizycznej osób i mienia oraz monitoringu obiektów"
+  }
+}

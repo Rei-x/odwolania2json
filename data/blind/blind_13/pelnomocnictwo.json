@@ -1,0 +1,31 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992014303",
+        "nazwa": "Delcora Energia Spółka Akcyjna",
+        "nip": "9993723061",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Edward Andrzejewski"
+        },
+        {
+          "imie_nazwisko": "Danuta Nowicka"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Iwona Krajewska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Radosław Grabowiecki",
+      "pesel": null
+    }
+  ]
+}

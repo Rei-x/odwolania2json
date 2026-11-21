@@ -1,0 +1,22 @@
+# Potwierdzenie przelewu krajowego (Elixir)
+>> NovaBank Polska S.A.
+
+## Dane zleceniodawcy
+Usługi Remontowo-Budowlane Wiktor Bielecki
+ul. Długa 116/34, 31-244 Kraków
+Rachunek nadawcy: PL47118338448426193833043933
+
+## Dane odbiorcy
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Obozowa 57, 01-161 Warszawa
+Rachunek odbiorcy: PL14048566699255233031619982
+
+## Szczegóły przelewu
+Kwota przelewu || 100 PLN
+Data operacji || 1 lipca 2026
+Tytuł przelewu || OPŁATA SKARBOWA PEŁNOMOCNICTWO KOWALEWSKI IR.272.22.2026
+Numer transakcji || NB/20260701/441500
+Status operacji || zrealizowana
+
+~~ Dokument potwierdza wykonanie powyższej operacji i został wygenerowany automatycznie w bankowości internetowej NovaBank Polska S.A.
+~~ Wydruk ma charakter informacyjny i nie wymaga podpisu ani pieczęci banku. Treść tytułu przelewu została podana przez zleceniodawcę.

@@ -1,0 +1,32 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9999265229",
+        "nazwa": "Pentrix Solvadi S.A.",
+        "nip": "9992074620",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Elżbieta Wójcik"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Anna Mazur",
+      "pesel": "83051980882"
+    },
+    {
+      "imie_nazwisko": "Zbigniew Laskowski",
+      "pesel": "68090924019"
+    },
+    {
+      "imie_nazwisko": "Żaneta Kubiak",
+      "pesel": "81011724329"
+    }
+  ]
+}

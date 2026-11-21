@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-10",
+    "czynnosc_dzien": "2026-07-02",
+    "czynnosc_powod_id": 8,
+    "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy",
+    "miejscowosc": "Nowy Sącz"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Przedsiębiorstwo Handlowo-Usługowe TERVALIS Dominika Sobolewska",
+      "nip": "9996780208",
+      "regon": "999496770",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Edward Tomaszewski",
+        "nazwa": "Galvora Legal Tomaszewski sp. k.",
+        "mail": "biuro@tomaszewskiprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Szpital Specjalistyczny im. dr. Władysława Biegańskiego w Olszanach",
+      "nip": "9998013861",
+      "regon": "999490849",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999924",
+    "numer_postepowania": "SA.270.2.2.2026",
+    "numer_ted": "999904-2026",
+    "tytul": "Dostawa i montaż wyposażenia pracowni dydaktycznych w ramach projektu edukacyjnego"
+  }
+}

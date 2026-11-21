@@ -1,0 +1,17 @@
+# POTWIERDZENIE WYKONANIA PRZELEWU
+
+>> Bank Nadwiślański S.A.
+
+## Szczegóły operacji
+
+Zleceniodawca || Delcora Energia Spółka Akcyjna, ul. Mickiewicza 162, 14-475 Białystok
+Rachunek zleceniodawcy || 04271272081205075703367507
+Odbiorca || Urząd Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+Rachunek odbiorcy || 59369389493487781847193671
+Kwota || 7 500,00 PLN
+Data operacji || 25 maja 2026
+Tytuł przelewu || wpis od odwołania w postępowaniu SA.270.2.55.2026 - Delcora Energia Spółka Akcyjna
+Numer referencyjny || CEN2605254666092
+Status || ZREALIZOWANO
+
+~~ Dokument został wygenerowany automatycznie w systemie bankowości internetowej i potwierdza wykonanie powyższej operacji. Nie wymaga podpisu ani pieczęci banku.

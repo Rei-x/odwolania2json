@@ -1,0 +1,997 @@
+{
+  "seed": 20261121,
+  "generator": "eval/make_blind.py",
+  "model": "moonshotai/kimi-k3.1-pro",
+  "cases": {
+    "blind_01": {
+      "source_case": "przyklad_46",
+      "difficulties": [
+        "notice_alt",
+        "letterhead",
+        "declined_names"
+      ],
+      "inherited_structure": [
+        "consortium (leader first)",
+        "2 attorneys"
+      ],
+      "params": {
+        "notice_alt": true,
+        "letterhead": true,
+        "declined": true
+      },
+      "czynnosc_powod_id": 5,
+      "header": {
+        "mode": "top",
+        "fmt": "long",
+        "line": "Zielona Góra, 9 września 2026 r."
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "34,00 zł",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Monika Nowak",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Leszek Pietrzycki"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999682",
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999051-2026"
+          ],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_02": {
+      "source_case": "przyklad_20",
+      "difficulties": [
+        "id_format"
+      ],
+      "inherited_structure": [
+        "2 attorneys"
+      ],
+      "params": {
+        "id_format": true
+      },
+      "czynnosc_powod_id": 9,
+      "header": {
+        "mode": "top",
+        "fmt": "longnr",
+        "line": "Elbląg, 23 września 2026"
+      },
+      "bank": "NovaBank Polska S.A.",
+      "amount_notation": "17,00 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Katarzyna Lewandowska",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Łukasz Gołąb"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 7,
+          "tries": 0
+        }
+      }
+    },
+    "blind_03": {
+      "source_case": "przyklad_28",
+      "difficulties": [
+        "bank_layout"
+      ],
+      "inherited_structure": [
+        "no_header_date"
+      ],
+      "params": {
+        "bank_layout": "three_col"
+      },
+      "czynnosc_powod_id": 12,
+      "header": {
+        "mode": "none",
+        "fmt": "long",
+        "line": null
+      },
+      "bank": "Bank Łużycki S.A.",
+      "amount_notation": "100,00 zł",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Mikołaj Domagała"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 4,
+          "tries": 0
+        }
+      }
+    },
+    "blind_04": {
+      "source_case": "przyklad_34",
+      "difficulties": [
+        "multi_zam",
+        "no_notice"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "multi_zam": {
+          "n": 2,
+          "prowadzacy": 1
+        },
+        "no_notice": true
+      },
+      "czynnosc_powod_id": 2,
+      "header": {
+        "mode": "none",
+        "fmt": "long",
+        "line": null
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "100,00 PLN",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Lidia Zalewska",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Alicja Żak"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 4,
+          "tries": 0
+        }
+      }
+    },
+    "blind_05": {
+      "source_case": "przyklad_52",
+      "difficulties": [
+        "platform_ids",
+        "act_style",
+        "order_labels"
+      ],
+      "inherited_structure": [
+        "sole_trader"
+      ],
+      "params": {
+        "act_style": "list",
+        "zam_first": true
+      },
+      "czynnosc_powod_id": 2,
+      "header": {
+        "mode": "top",
+        "fmt": "dotsnr",
+        "line": "Katowice, 03.06.2026"
+      },
+      "bank": "Bank Nadwiślański S.A.",
+      "amount_notation": "20 000,00 zł",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999950"
+          ],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_06": {
+      "source_case": "przyklad_11",
+      "difficulties": [
+        "przelew_title_noise",
+        "long_odwolanie",
+        "bank_layout"
+      ],
+      "inherited_structure": [],
+      "params": {
+        "title_noise": true,
+        "long": true,
+        "bank_layout": "tabela dwukolumnowa 'Nadawca || Odbiorca' – w kolumnach nazw"
+      },
+      "czynnosc_powod_id": 10,
+      "header": {
+        "mode": "after_parties",
+        "fmt": "dots",
+        "line": "Lublin, dnia 15.04.2026 r."
+      },
+      "bank": "mBank Spółdzielczy Kujawy",
+      "amount_notation": "51,00 PLN",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 11,
+          "tries": 0
+        }
+      }
+    },
+    "blind_07": {
+      "source_case": "przyklad_33",
+      "difficulties": [
+        "consortium",
+        "no_act_date",
+        "amount_notation"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "leader_last": true,
+        "amount_style": "pre"
+      },
+      "czynnosc_powod_id": 2,
+      "header": {
+        "mode": "none",
+        "fmt": "dotsnr",
+        "line": null
+      },
+      "bank": "NovaBank Polska S.A.",
+      "amount_notation": "PLN 17,00",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999490"
+          ],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_08": {
+      "source_case": "przyklad_09",
+      "difficulties": [
+        "attorneys_pesel",
+        "no_header_date",
+        "parties_table"
+      ],
+      "inherited_structure": [
+        "2 attorneys"
+      ],
+      "params": {
+        "parties_table": true
+      },
+      "czynnosc_powod_id": 11,
+      "header": {
+        "mode": "none",
+        "fmt": "dots",
+        "line": null
+      },
+      "bank": "Bank Nadwiślański S.A.",
+      "amount_notation": "100 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999361-2026"
+          ],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_09": {
+      "source_case": "przyklad_01",
+      "difficulties": [
+        "signatories_attest",
+        "distractors",
+        "bank_layout"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "signatories": true,
+        "distractors": true,
+        "bank_layout": "bilingual"
+      },
+      "czynnosc_powod_id": 9,
+      "header": {
+        "mode": "none",
+        "fmt": "roku",
+        "line": null
+      },
+      "bank": "Bank Hanzeatycki S.A.",
+      "amount_notation": "200,00 PLN",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_10": {
+      "source_case": "przyklad_59",
+      "difficulties": [
+        "sole_trader",
+        "header_format",
+        "id_format"
+      ],
+      "inherited_structure": [
+        "multi_zamawiajacy (prowadzący labelled first)",
+        "2 attorneys"
+      ],
+      "params": {
+        "header_fmt": "compact",
+        "id_format": true
+      },
+      "czynnosc_powod_id": 8,
+      "header": {
+        "mode": "top",
+        "fmt": "compact",
+        "line": "Gdańsk, 03.07.2026r."
+      },
+      "bank": "NovaBank Polska S.A.",
+      "amount_notation": "100 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999632"
+          ],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_11": {
+      "source_case": "przyklad_19",
+      "difficulties": [
+        "order_labels",
+        "przelew_title_noise"
+      ],
+      "inherited_structure": [
+        "no_header_date"
+      ],
+      "params": {
+        "zam_first": true,
+        "title_noise": true
+      },
+      "czynnosc_powod_id": 6,
+      "header": {
+        "mode": "none",
+        "fmt": "longnr",
+        "line": null
+      },
+      "bank": "NovaBank Polska S.A.",
+      "amount_notation": "17,00 zł",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_12": {
+      "source_case": "przyklad_36",
+      "difficulties": [
+        "no_act_date",
+        "parties_table",
+        "bank_layout"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "parties_table": true,
+        "bank_layout": "krótki tekst ciągły w formie zaświadczenia: 'Bank potwierdza"
+      },
+      "czynnosc_powod_id": 11,
+      "header": {
+        "mode": "none",
+        "fmt": "dotsnr",
+        "line": null
+      },
+      "bank": "Credit Mazovia Bank S.A.",
+      "amount_notation": "15 000,00 zł",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_13": {
+      "source_case": "przyklad_56",
+      "difficulties": [
+        "signatories_attest",
+        "declined_names"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "signatories": true,
+        "declined": true
+      },
+      "czynnosc_powod_id": 7,
+      "header": {
+        "mode": "none",
+        "fmt": "dotsnr",
+        "line": null
+      },
+      "bank": "Bank Nadwiślański S.A.",
+      "amount_notation": "7 500,00 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Iwona Krajewska",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Radosław Grabowiecki"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999792"
+          ],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_14": {
+      "source_case": "przyklad_48",
+      "difficulties": [
+        "act_style",
+        "amount_notation",
+        "long_odwolanie"
+      ],
+      "inherited_structure": [
+        "consortium (leader first)",
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "act_style": "list",
+        "amount_style": "dotk",
+        "long": true
+      },
+      "czynnosc_powod_id": 9,
+      "header": {
+        "mode": "none",
+        "fmt": "long",
+        "line": null
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "200,00 zł",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Paulina Rogalska",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Sebastian Kozieł"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999957"
+          ],
+          "pages": 20,
+          "tries": 0
+        }
+      }
+    },
+    "blind_15": {
+      "source_case": "przyklad_54",
+      "difficulties": [
+        "multi_zam",
+        "no_header_date",
+        "distractors"
+      ],
+      "inherited_structure": [
+        "2 attorneys"
+      ],
+      "params": {
+        "multi_zam": {
+          "n": 2,
+          "prowadzacy": "none"
+        },
+        "distractors": true
+      },
+      "czynnosc_powod_id": 12,
+      "header": {
+        "mode": "none",
+        "fmt": "longnr",
+        "line": null
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "34,00 PLN",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999381"
+          ],
+          "pages": 4,
+          "tries": 0
+        }
+      }
+    },
+    "blind_16": {
+      "source_case": "przyklad_31",
+      "difficulties": [
+        "sole_trader",
+        "header_format",
+        "letterhead"
+      ],
+      "inherited_structure": [
+        "2 attorneys"
+      ],
+      "params": {
+        "header_fmt": "roku",
+        "letterhead": true
+      },
+      "czynnosc_powod_id": 8,
+      "header": {
+        "mode": "after_parties",
+        "fmt": "roku",
+        "line": "Nowy Sącz, dnia 10 lipca 2026 roku"
+      },
+      "bank": "NovaBank Polska S.A.",
+      "amount_notation": "51,00 zł",
+      "checks": {
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999924",
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999904-2026"
+          ],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_17": {
+      "source_case": "przyklad_49",
+      "difficulties": [
+        "consortium",
+        "attorneys_pesel",
+        "notice_alt"
+      ],
+      "inherited_structure": [
+        "consortium (leader first)",
+        "2 attorneys"
+      ],
+      "params": {
+        "leader_last": true,
+        "notice_alt": true
+      },
+      "czynnosc_powod_id": 10,
+      "header": {
+        "mode": "top",
+        "fmt": "dots",
+        "line": "Płock, dnia 11.10.2026 r."
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "200,00 zł",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Wiktor Kalinowski",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Paweł Gajewski"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999047",
+            "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999092-2026"
+          ],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    },
+    "blind_18": {
+      "source_case": "przyklad_22",
+      "difficulties": [
+        "no_notice",
+        "platform_ids",
+        "bank_layout"
+      ],
+      "inherited_structure": [
+        "no_header_date",
+        "2 attorneys"
+      ],
+      "params": {
+        "no_notice": true,
+        "bank_layout": "wyciąg/historia operacji – pojedyncza pozycja w tabeli z kol"
+      },
+      "czynnosc_powod_id": 9,
+      "header": {
+        "mode": "none",
+        "fmt": "longnr",
+        "line": null
+      },
+      "bank": "Śląski Bank Rzemiosła",
+      "amount_notation": "15 000,00 zł",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 5,
+          "tries": 0
+        }
+      }
+    },
+    "blind_19": {
+      "source_case": "przyklad_41",
+      "difficulties": [
+        "attorneys_pesel",
+        "no_act_date"
+      ],
+      "inherited_structure": [
+        "consortium (leader first)",
+        "no_header_date"
+      ],
+      "params": {},
+      "czynnosc_powod_id": 1,
+      "header": {
+        "mode": "none",
+        "fmt": "dots",
+        "line": null
+      },
+      "bank": "Bank Nadwiślański S.A.",
+      "amount_notation": "15 000,00 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Konrad Sikora",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Konrad Pietrzak"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 3,
+          "tries": 0
+        }
+      }
+    },
+    "blind_20": {
+      "source_case": "przyklad_39",
+      "difficulties": [
+        "signatories_attest",
+        "bank_layout",
+        "amount_notation"
+      ],
+      "inherited_structure": [
+        "2 attorneys"
+      ],
+      "params": {
+        "signatories": true,
+        "bank_layout": "lista linii 'Etykieta: wartość' bez tabeli; etykiety: 'Z rac",
+        "amount_style": "neg"
+      },
+      "czynnosc_powod_id": 3,
+      "header": {
+        "mode": "after_parties",
+        "fmt": "roku",
+        "line": "Lublin, dnia 12 maja 2026 roku"
+      },
+      "bank": "Pomorski Bank Spółdzielczy",
+      "amount_notation": "-15 000,00 PLN",
+      "checks": {
+        "przelew": {
+          "doc": "przelew",
+          "errors": [],
+          "notes": [],
+          "pages": 1,
+          "tries": 0
+        },
+        "pelnomocnictwo": {
+          "doc": "pelnomocnictwo",
+          "errors": [],
+          "notes": [
+            "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Ewelina Dąbrowska",
+            "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Agata Wilk"
+          ],
+          "pages": 1,
+          "tries": 0
+        },
+        "odwolanie": {
+          "doc": "odwolanie",
+          "errors": [],
+          "notes": [],
+          "pages": 6,
+          "tries": 0
+        }
+      }
+    }
+  },
+  "negatives": {
+    "faktura_uslugi_prawne": {
+      "expected": {},
+      "kind": "FAKTURA VAT wystawiona przez kancelarię dla wykonawcy za 'sporządzenie odwołania"
+    },
+    "ogloszenie_o_zamowieniu": {
+      "expected": {},
+      "kind": "OGŁOSZENIE O ZAMÓWIENIU w Biuletynie Zamówień Publicznych (układ sekcji: SEKCJA "
+    },
+    "wyrok_KIO": {
+      "expected": {},
+      "kind": "fragment (pierwsze 2 strony) ORZECZENIA Krajowej Izby Odwoławczej"
+    }
+  }
+}

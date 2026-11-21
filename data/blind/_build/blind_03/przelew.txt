@@ -1,0 +1,17 @@
+# Bank Łużycki S.A.
+
+# Potwierdzenie realizacji zlecenia
+
+Pole || Wartość || Uwagi
+Status operacji || Zrealizowana || zgodnie z dyspozycją
+Zleceniodawca || Pentrix Logistyka Spółka Akcyjna, ul. Piłsudskiego 18A, 46-436 Częstochowa || Nadawca
+Rachunek zleceniodawcy || 02 2316 1640 9784 8260 4589 8686 || IBAN
+Odbiorca || Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa || Beneficjent
+Rachunek odbiorcy || 42 5269 2810 9881 2588 1504 7816 || IBAN
+Kwota || 100,00 zł || PLN
+Data operacji || 24 lutego 2026 || Data realizacji
+Tytuł zlecenia || opłata skarbowa od pełnomocnictwa dla Mikołaj Domagała w postępowaniu przed KIO w przetargu Or.271.55.2026 CEN2602249128029 || Tytuł przelewu
+Numer referencyjny || CEN2602249128029 || Numer transakcji
+Sposób złożenia || Bankowość internetowa || Zlecenie elektroniczne
+
+~~ Dokument wygenerowany automatycznie w serwisie bankowości internetowej. Nie wymaga podpisu ani pieczęci banku.

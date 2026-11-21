@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-10-13",
+    "czynnosc_powod_id": 12,
+    "czynnosc_opis": "Projektowane postanowienia umowy",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9991834518",
+      "nazwa": "Solvadi Elbrix S.A.",
+      "nip": "9995552712",
+      "regon": "999833261",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Alicja Urban",
+        "nazwa": "Kancelaria Radcy Prawnego Alicja Urban",
+        "mail": "kontakt@urbankancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9994026594",
+      "nazwa": "Przedsiębiorstwo Wodociągów i Kanalizacji w Rudniku Górnym sp. z o.o.",
+      "nip": "9994628241",
+      "regon": "999709101",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": null,
+      "nazwa": "Zarząd Dróg Powiatowych w Przytocznie",
+      "nip": "9997451197",
+      "regon": "999728676",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999381",
+    "numer_postepowania": "Or.271.13.2026",
+    "numer_ted": "999572-2026",
+    "tytul": "Termomodernizacja budynków użyteczności publicznej wraz z montażem instalacji fotowoltaicznych"
+  }
+}

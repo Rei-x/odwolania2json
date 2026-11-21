@@ -1,0 +1,23 @@
+>> NovaBank Polska S.A.
+# Potwierdzenie przelewu krajowego (Elixir)
+~~ Wydruk z bankowości internetowej
+
+## Dane zleceniodawcy
+OSTRAVIA-INVEST sp. z o.o.
+ul. Mickiewicza 96, 14-222 Olsztyn
+Rachunek nadawcy: PL92892733107210981925892683
+
+## Dane odbiorcy
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Obozowa 57, 01-161 Warszawa
+Rachunek odbiorcy: PL46283697008861023830381625
+
+## Szczegóły przelewu
+Kwota przelewu || 17,00 PLN
+Data operacji || 2026-09-22
+Tytuł przelewu || Oplata skarbowa - pelnomocnictwo KIO - DAZ-336/2026
+Numer referencyjny transakcji || NB/20260922/134514
+Status operacji || zrealizowana
+Kanał realizacji || bankowość internetowa
+
+~~ Dokument został wygenerowany automatycznie przez system NovaBank Polska S.A. i potwierdza zrealizowanie przedstawionej operacji.

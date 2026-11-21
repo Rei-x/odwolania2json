@@ -1,0 +1,30 @@
+# Potwierdzenie przelewu krajowego (Elixir)
+
+>> NovaBank Polska S.A.
+>> Wydruk z bankowości internetowej
+
+Niniejszy dokument potwierdza zrealizowanie zlecenia przelewu krajowego w systemie Elixir.
+
+## Dane zleceniodawcy
+
+Ternum Data Center Spółka Akcyjna
+ul. Kolejowa 89A, 87-524 Toruń
+Rachunek nadawcy: PL40 8086 3103 4057 2768 8212 5046
+
+## Dane odbiorcy
+
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Obozowa 57, 01-161 Warszawa
+Rachunek odbiorcy: PL88 4023 9234 0191 9800 3430 7221
+
+## Szczegóły przelewu
+
+Kwota przelewu || PLN 17,00
+Data operacji || 17 sierpnia 2026
+Tytuł przelewu || Oplata skarbowa - pelnomocnictwo KIO - ZP.271.378.2026
+Numer transakcji || NB/20260817/965953
+Status operacji || Zrealizowana
+Rodzaj operacji || Przelew krajowy Elixir
+Kanał realizacji || Bankowość internetowa
+
+~~ Dokument stanowi potwierdzenie wykonania operacji i został wygenerowany w serwisie bankowości internetowej NovaBank Polska S.A. Nie wymaga podpisu ani pieczęci banku.

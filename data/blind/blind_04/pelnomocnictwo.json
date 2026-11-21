@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9990460784",
+        "nazwa": "Lorvik Lorvik S.A.",
+        "nip": "9997923503",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Karolina Jaworek"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Lidia Zalewska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Alicja Żak",
+      "pesel": null
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-11-17",
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9990460784",
+      "nazwa": "Lorvik Lorvik S.A.",
+      "nip": "9997923503",
+      "regon": "999993941",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Lidia Zalewska",
+        "nazwa": "Kancelaria Radcy Prawnego Lidia Zalewska",
+        "mail": "kancelaria@zalewskalegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Centrum Usług Wspólnych w Zawierzycach",
+      "nip": "9995340631",
+      "regon": "999958169",
+      "prowadzacy_postepowanie": 0
+    },
+    {
+      "krs": "9992679407",
+      "nazwa": "Przedsiębiorstwo Wodociągów i Kanalizacji w Wierzbnicy sp. z o.o.",
+      "nip": "9991428903",
+      "regon": "999226868",
+      "prowadzacy_postepowanie": 1
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "ZP.271.354.2026",
+    "numer_ted": null,
+    "tytul": "Świadczenie usług przewozu uczniów do szkół w roku szkolnym 2026/2027"
+  }
+}

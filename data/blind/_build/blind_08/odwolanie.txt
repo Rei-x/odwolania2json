@@ -1,0 +1,129 @@
+>> Do Prezesa Krajowej Izby Odwoławczej
+
+Odwołujący || Zamawiający
+Pentrix Solvadi S.A. || Centrum Usług Wspólnych w Strzelinie Wielkim
+ul. Graniczna 133, 68-625 Poznań || ul. Słoneczna 114/10, 57-153 Strzelin Wielki
+KRS: 9999265229 || NIP: 9992622694
+NIP: 9992074620 || REGON: 999891258
+REGON: 999967955 || e-mail: zamowienia@wielkim.example
+Pełnomocnicy: r. pr. Anna Mazur, adw. Zbigniew Laskowski, adw. Żaneta Kubiak || —
+Adres pełnomocników: Mazur Laskowski i Wspólnicy Kancelaria Prawna sp.k., ul. Kościuszki 72A, 83-776 Elbląg || —
+tel. 000 000 000, e-mail: kancelaria@mazurlegal.example || —
+
+## Postępowanie o udzielenie zamówienia publicznego
+
+Przedmiot zamówienia: Rozbudowa oczyszczalni ścieków wraz z modernizacją części osadowej
+
+Znak sprawy: BZP.IV.261.50.2026
+
+Ogłoszenie w Dzienniku Urzędowym Unii Europejskiej: 2026/S 117-999361
+
+# ODWOŁANIE
+
+Działając w imieniu i na rzecz Pentrix Solvadi S.A., na podstawie załączonego pełnomocnictwa, wnoszę odwołanie na podstawie art. 513 pkt 1 i 2 w związku z art. 515 ust. 1 i ust. 2 pkt 1 ustawy z dnia 11 września 2019 r. – Prawo zamówień publicznych, zwaną dalej „ustawą Pzp”, zaskarżając czynności Zamawiającego oraz zaniechanie działań, do których był on zobowiązany, w zakresie i na zasadach przedstawionych poniżej.
+
+## A. ŻĄDANIA ODWOŁUJĄCEGO
+
+Odwołujący wnosi o:
+
+1. uwzględnienie odwołania w całości;
+
+2. uchylenie czynności Zamawiającego polegającej na nadaniu wiążącej treści opisowi przedmiotu zamówienia, udostępnionemu w dniu 12.03.2026 r., w części obejmującej wymagania techniczne i funkcjonalne wskazane w zarzucie pierwszym;
+
+3. nakazanie Zamawiającemu usunięcia z opisu przedmiotu zamówienia wymagań naruszających uczciwą konkurencję oraz ponowne, rzetelne sformułowanie tych wymagań w sposób oparty na obiektywnych, proporcjonalnych i sprawdzalnych parametrach;
+
+4. nakazanie Zamawiającemu powtórzenia czynności związanych z udostępnieniem dokumentacji postępowania w zakresie koniecznym dla zapewnienia wykonawcom rzeczywistej możliwości przygotowania ofert na zasadach równego traktowania;
+
+5. zasądzenie od Zamawiającego na rzecz Odwołującego kosztów postępowania odwoławczego, w tym kosztów zastępstwa prawnego, według norm przepisanych.
+
+## B. STAN FAKTYCZNY ISTOTNY DLA OCENY ZARZUTÓW
+
+### B.1. Przebieg postępowania i wymiana stanowisk
+
+Ogłoszenie o zamówieniu opublikowano w dniu 03.02.2026 r., a pierwotny termin składania ofert wyznaczono na 16.02.2026 r. Dokumentacja przedstawiała przedsięwzięcie jako złożone zadanie inżynieryjne obejmujące zarówno rozbudowę obiektu, jak i modernizację części osadowej, co samo w sobie wymagało opisu umożliwiającego porównanie technicznie odmiennych, lecz funkcjonalnie równoważnych rozwiązań.
+
+Pismem z dnia 08.03.2026 r. Zamawiający wezwał Odwołującego do złożenia wyjaśnień. Odwołujący przekazał wyjaśnienia w dniu 10.03.2026 r., wskazując w nich, że poszczególne wymagania techniczne i funkcjonalne nie pozostają w adekwatnym związku z celem zamówienia, a ich łączne zastosowanie zawęża możliwość zaoferowania rozwiązań równoważnych. W odpowiedzi, w dniu 12.03.2026 r., Zamawiający udostępnił opis przedmiotu zamówienia utrzymujący zaskarżone wymagania, bez przedstawienia merytorycznego uzasadnienia ich konieczności.
+
+### B.2. Istota spornych wymagań
+
+Sporny opis przedmiotu zamówienia nie ogranicza się do określenia rezultatu użytkowego, który ma zostać osiągnięty wskutek realizacji zamówienia. Łączy natomiast wymagania dotyczące struktury rozwiązania, sposobu jego konfiguracji oraz szczegółowych cech technicznych w taki sposób, że zgodność oferty z dokumentacją zależy nie od wykazania osiągnięcia wymaganych parametrów eksploatacyjnych, lecz od przyjęcia z góry określonej koncepcji technicznej.
+
+Taka konstrukcja opisu ma doniosłość wykraczającą poza redakcyjną precyzję dokumentacji. Wyznacza ona bowiem granice dopuszczalnej konkurencji, a zatem powinna podlegać szczególnie rygorystycznej ocenie pod kątem konieczności, proporcjonalności oraz związku z przedmiotem zamówienia. Odwołujący nie kwestionuje uprawnienia Zamawiającego do żądania wysokiej jakości, trwałości i niezawodności; zaskarża natomiast stosowanie tych celów jako ogólnego usprawiedliwienia dla wymagań, których techniczna niezbędność nie została wykazana.
+
+---
+
+## C. ZARZUTY I ICH UZASADNIENIE
+
+### C.1. Zarzut pierwszy: opis przedmiotu zamówienia naruszający uczciwą konkurencję
+
+Odwołujący zarzuca, że czynność z dnia 12.03.2026 r., polegająca na nadaniu wiążącej treści opisowi przedmiotu zamówienia, naruszyła art. 16 ust. 1 i 2, art. 17 ust. 1 oraz art. 99 ust. 1 i 2 ustawy Pzp, a w konsekwencji zasadę uczciwej konkurencji i równego traktowania wykonawców.
+
+#### C.1.1. Brak obiektywnego uzasadnienia dla łącznego stosowania wymagań technicznych i funkcjonalnych
+
+Zamawiający nie wykazał, dlaczego realizacja zamówienia wymaga jednoczesnego spełnienia wszystkich szczegółowych cech przyjętych w opisie, ani dlaczego rezultat użytkowy nie mógłby zostać osiągnięty przez rozwiązania o odmiennej architekturze technicznej. Samo odwołanie się do specyfiki oczyszczalni nie zastępuje analizy, która powinna wykazywać związek każdego istotnego wymagania z potrzebami Zamawiającego oraz z warunkami funkcjonowania obiektu.
+
+Opis przedmiotu zamówienia powinien być dokonany w sposób jednoznaczny i wyczerpujący, lecz dyrektywa ta nie uzasadnia narzucania wykonawcom rozwiązań szerszych niż jest to konieczne. Wymóg jednoznaczności dotyczy możliwości ustalenia oczekiwanego rezultatu, a nie uprawnienia do zastępowania parametrów funkcjonalnych szczegółową recepturą techniczną pozbawioną adekwatnego uzasadnienia.
+
+#### C.1.2. Formalnie dostępna równoważność nie usuwa naruszenia
+
+Nawet jeżeli dokumentacja dopuszcza w abstrakcyjnym sformułowaniu rozwiązania równoważne, wykonawca nie jest w stanie ustalić, według jakich mierzalnych parametrów Zamawiający uzna taką równoważność. Brak jest bowiem przejrzystego odniesienia pomiędzy poszczególnymi cechami rozwiązania a wymaganym skutkiem funkcjonalnym. W praktyce ciężar wykazania równoważności staje się zatem nie do spełnienia, ponieważ wykonawca musi odtwarzać nie parametry użytkowe, lecz całą przyjętą przez Zamawiającego koncepcję.
+
+W ten sposób pozorna neutralność opisu prowadzi do rzeczywistego ograniczenia konkurencji. Wykonawca oferujący technicznie sprawdzone rozwiązanie alternatywne ponosi nieprzewidywalne ryzyko odrzucenia oferty, podczas gdy wykonawca dysponujący rozwiązaniem odpowiadającym przyjętej konfiguracji uzyskuje przewagę niezwiązaną z jakością, ceną ani efektywnością realizacji.
+
+### C.2. Zarzut drugi: pozostawienie wyjaśnień Odwołującego bez merytorycznego rozpatrzenia
+
+Odwołujący zarzuca ponadto, że Zamawiający, utrzymując sporne wymagania po złożeniu wyjaśnień w dniu 10.03.2026 r., zaniechał rzetelnej weryfikacji dokumentacji i naruszył art. 16 ust. 1 oraz art. 17 ust. 1 ustawy Pzp.
+
+Wezwanie z dnia 08.03.2026 r. nie mogło pełnić wyłącznie funkcji formalnej. Skoro Zamawiający zażądał wyjaśnień, był obowiązany odnieść się do przedstawionych w nich konkretnych zastrzeżeń, w szczególności wskazać techniczne przesłanki uzasadniające utrzymanie opisu oraz wyjaśnić, w jaki sposób zapewniona zostanie rzeczywista dopuszczalność rozwiązań równoważnych. Tymczasem czynność z dnia 12.03.2026 r. nie usuwa wskazanych wątpliwości i nie zawiera uzasadnienia pozwalającego zweryfikować racjonalność decyzji.
+
+Zaniechanie to ma samodzielne znaczenie prawne. Pozbawia ono Odwołującego możliwości świadomego przygotowania oferty oraz uniemożliwia sprawdzenie, czy dokumentacja została ukształtowana w wyniku oceny rzeczywistych potrzeb Zamawiającego, czy też jedynie utrwalono wcześniej przyjęte założenia. Obowiązek rzetelnego przygotowania postępowania obejmuje bowiem nie tylko redakcję dokumentów, lecz także reagowanie na ujawnione nieprawidłowości.
+
+### C.3. Zarzut trzeci: uprzywilejowanie określonego kręgu rozwiązań i wykonawców
+
+Odwołujący zarzuca również naruszenie art. 16 ust. 2 oraz art. 99 ust. 2 ustawy Pzp przez sformułowanie wymagań w sposób mogący uprzywilejować VELMORA-TECH sp. k., ul. Fabryczna 41, 33-606 Kraków, KRS: 9998468002, NIP: 9997291701, REGON: 999721421, jako wykonawcę dysponującego rozwiązaniem odpowiadającym narzuconej konfiguracji technicznej.
+
+Zarzut nie opiera się na samym fakcie uczestnictwa tego podmiotu w postępowaniu ani na domniemaniu jego zamiarów. Istotą zastrzeżenia jest obiektywny skutek opisu: jeżeli wymagania odtwarzają cechy określonego rozwiązania, a jednocześnie nie określają sprawdzalnych warunków równoważności, przewaga konkurencyjna wynika z samej konstrukcji dokumentacji. Zamawiający jest zobowiązany usuwać takie okoliczności niezależnie od tego, czy działał z zamiarem faworyzacji.
+
+---
+
+## D. INTERES ODWOŁUJĄCEGO I POTRZEBA OCHRONY
+
+Odwołujący posiada interes w uzyskaniu zamówienia, ponieważ zamierzał złożyć ofertę i dysponuje możliwościami pozwalającymi na realizację przedmiotu zamówienia przy zastosowaniu rozwiązań spełniających wymagane funkcje użytkowe. Sposób opisania przedmiotu zamówienia bezpośrednio ogranicza jego możliwość konkurowania, a zatem zachodzi zarówno interes w uzyskaniu zamówienia, jak i interes w usunięciu czynności niezgodnych z ustawą Pzp.
+
+Pozostawienie zaskarżonych wymagań spowodowałoby, że ocena ofert odbywałaby się na podstawie dokumentacji ograniczającej konkurencję już na etapie jej formułowania. Późniejsza kontrola nie przywróciłaby wykonawcom utraconej możliwości przygotowania ofert w warunkach rzetelnej rywalizacji. Ochrona udzielona na obecnym etapie jest zatem skuteczna i konieczna.
+
+## E. WNIOSKI DOWODOWE
+
+Na poparcie powyższych twierdzeń Odwołujący wnosi o przeprowadzenie dowodu z:
+
+1. dokumentacji postępowania, w szczególności opisu przedmiotu zamówienia udostępnionego w dniu 12.03.2026 r. – na okoliczność treści i wzajemnego powiązania zaskarżonych wymagań;
+
+2. pisma Zamawiającego z dnia 08.03.2026 r. oraz wyjaśnień Odwołującego złożonych w dniu 10.03.2026 r. – na okoliczność zakresu zgłoszonych zastrzeżeń i sposobu ich rozpatrzenia;
+
+3. ogłoszenia o zamówieniu i pozostałych dokumentów udostępnionych wykonawcom – na okoliczność przebiegu postępowania oraz braku obiektywnego uzasadnienia spornych wymagań;
+
+4. ofert i dokumentów składanych przez wykonawców, w zakresie niezbędnym do oceny rzeczywistego wpływu opisu na konkurencję – na okoliczność możliwości przedstawienia rozwiązań równoważnych.
+
+Mając na względzie powyższe, Odwołujący wnosi o uwzględnienie żądań wskazanych w punkcie A oraz o przeprowadzenie postępowania w sposób zapewniający pełną kontrolę zaskarżonych czynności i zaniechań.
+
+## Załączniki
+
+1. Pełnomocnictwo wraz z dokumentami potwierdzającymi umocowanie osób je udzielających.
+
+2. Odpis pełnomocnictwa dla Zamawiającego.
+
+3. Pismo Zamawiającego z dnia 08.03.2026 r.
+
+4. Wyjaśnienia Odwołującego złożone w dniu 10.03.2026 r.
+
+5. Opis przedmiotu zamówienia udostępniony w dniu 12.03.2026 r.
+
+6. Dowód uiszczenia wpisu od odwołania.
+
+r. pr. Anna Mazur
+
+adw. Zbigniew Laskowski
+
+adw. Żaneta Kubiak
+
+~~ Odwołujący: Pentrix Solvadi S.A. | Znak sprawy: BZP.IV.261.50.2026 | Strona 3 z 3

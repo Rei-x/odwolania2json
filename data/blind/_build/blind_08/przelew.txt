@@ -1,0 +1,15 @@
+# POTWIERDZENIE WYKONANIA PRZELEWU
+
+## Bank Nadwiślański S.A.
+
+Zleceniodawca || Pentrix Solvadi S.A., ul. Graniczna 133, 68-625 Poznań
+Rachunek zleceniodawcy || PL26 0271 6377 2608 2804 7165 4786
+Odbiorca || Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+Rachunek odbiorcy || PL36 0870 5382 6192 5797 0891 8542
+Kwota || 100 PLN
+Data operacji || 2026-03-14
+Tytuł przelewu || opłata skarbowa od pełnomocnictwa dla Anna Mazur i Zbigniew Laskowski i Żaneta Kubiak w postępowaniu przed KIO w przetargu BZP.IV.261.50.2026 CEN2603141672428
+Numer referencyjny || CEN2603141672428
+Status || ZREALIZOWANO
+
+~~ Dokument wygenerowany automatycznie w systemie bankowości internetowej Banku Nadwiślańskiego S.A. Potwierdza wykonanie powyższej operacji.

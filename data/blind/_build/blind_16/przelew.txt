@@ -1,0 +1,29 @@
+# NovaBank Polska S.A.
+# Potwierdzenie przelewu krajowego (Elixir)
+
+>> Wydruk z bankowości internetowej
+
+## Dane zleceniodawcy
+
+Przedsiębiorstwo Handlowo-Usługowe TERVALIS Dominika Sobolewska
+ul. Kwiatowa 167, 33-118 Tarnów
+Rachunek nadawcy: 48 1861 4783 3443 8189 5620 6275
+
+## Dane odbiorcy
+
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Obozowa 57, 01-161 Warszawa
+Rachunek odbiorcy: 50 9027 0772 4652 3683 9550 2424
+
+## Szczegóły przelewu
+
+Kwota || 51,00 zł
+Data operacji || 08.07.2026
+Tytuł przelewu || OPŁATA SKARBOWA PEŁNOMOCNICTWO TOMASZEWSKI SA.270.2.2.2026
+Numer referencyjny transakcji || NB/20260708/355420
+Status operacji || Zrealizowana
+Waluta || PLN
+System rozliczeniowy || Elixir
+Sposób złożenia zlecenia || Bankowość internetowa
+
+~~ Dokument stanowi potwierdzenie wykonania zlecenia płatniczego i został sporządzony elektronicznie.

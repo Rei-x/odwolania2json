@@ -1,0 +1,45 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-07-03",
+    "czynnosc_dzien": "2026-06-27",
+    "czynnosc_powod_id": 8,
+    "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy",
+    "miejscowosc": "Gdańsk"
+  },
+  "Odwolujacy": [
+    {
+      "krs": null,
+      "nazwa": "Usługi Remontowo-Budowlane Wiktor Bielecki",
+      "nip": "9995321740",
+      "regon": "999636916",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Norbert Kowalewski",
+        "nazwa": "Kancelaria Prawna Kowalewski i Partnerzy sp.p.",
+        "mail": "kancelaria@kowalewskilegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9993769915",
+      "nazwa": "Szpital Specjalistyczny im. Ludwika Rydygiera w Kaliszanach",
+      "nip": "9995459958",
+      "regon": "999397096",
+      "prowadzacy_postepowanie": 1
+    },
+    {
+      "krs": "9999738262",
+      "nazwa": "Powiatowe Centrum Medyczne w Krzemienicy sp. z o.o.",
+      "nip": "9990297238",
+      "regon": "999990440",
+      "prowadzacy_postepowanie": 0
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999632",
+    "numer_postepowania": "IR.272.22.2026",
+    "numer_ted": "999523-2026",
+    "tytul": "Usługa ochrony fizycznej osób i mienia oraz monitoringu obiektów"
+  }
+}

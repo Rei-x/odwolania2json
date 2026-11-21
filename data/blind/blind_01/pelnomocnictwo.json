@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9995831480",
+        "nazwa": "Ardento Facility Management sp.j.",
+        "nip": "9990549562",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Hanna Krawczyk"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9998706532",
+        "nazwa": "KELVIO-BUD S.A.",
+        "nip": "9999670667",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Robert Sikora"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Monika Nowak",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Leszek Pietrzycki",
+      "pesel": null
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# Pomorski Bank Spółdzielczy
+
+## Szczegóły operacji
+
+Status operacji: zrealizowana
+
+Z rachunku: 09837294162951306065884498
+
+Nazwa nadawcy: Fennix Morvex Spółka z ograniczoną odpowiedzialnością, ul. Przemysłowa 179/13, 02-958 Warszawa
+
+Na rachunek: 14347715898094510625191661
+
+Nazwa odbiorcy: Urząd Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+
+Kwota: -15 000,00 PLN
+
+Data realizacji: 12 maja 2026
+
+Tytułem: WPIS OD ODWOLANIA, ZAMAWIAJACY: GMINA MOKRANY, DZP/PN/369/2026
+
+Nr transakcji: CEN2605127845325
+
+~~ Niniejszy wydruk potwierdza wykonanie operacji i obciążenie rachunku nadawcy wskazaną kwotą.
+
+~~ Dokument wygenerowany elektronicznie w bankowości internetowej. Nie wymaga podpisu ani pieczęci.

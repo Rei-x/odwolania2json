@@ -1,0 +1,25 @@
+# ŚLĄSKI BANK RZEMIOSŁA
+# POTWIERDZENIE OPERACJI – HISTORIA RACHUNKU
+
+>> Status operacji: zrealizowana
+
+## Historia operacji
+
+Data księgowania || Opis operacji || Winien || Ma
+2026-05-08 || Przelew z rachunku || 15 000,00 zł ||
+
+## Szczegóły pozycji
+
+Zleceniodawca: Kelvio Lorvik sp. z o.o., ul. Kolejowa 75, 28-864 Radom
+
+Rachunek nadawcy: PL73027116174822362343197276
+
+Odbiorca: Urząd Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+
+Rachunek odbiorcy: PL30089617388050219260598913
+
+Tytuł: Wpis od odwołania - ZOZ-276/2026
+
+Numer referencyjny: CEN2605089494501
+
+~~ Wydruk z bankowości internetowej. Dokument przedstawia zrealizowaną operację widoczną w historii rachunku.

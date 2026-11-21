@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993590421",
+        "nazwa": "Marbex Drogi i Mosty sp. z o.o. sp.k.",
+        "nip": "9997262415",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Krzysztof Bąk"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9997027122",
+        "nazwa": "Ternum Data Center Spółka Akcyjna",
+        "nip": "9993023381",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Mateusz Lewandowski"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Marcin Olszewski",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Mateusz Sobolewski",
+      "pesel": null
+    }
+  ]
+}

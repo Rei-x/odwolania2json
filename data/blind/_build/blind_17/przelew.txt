@@ -1,0 +1,16 @@
+# Szczegóły operacji
+Pomorski Bank Spółdzielczy
+
+## Potwierdzenie przelewu
+
+Z rachunku: 96 4134 4441 6482 3340 9836 7107
+Nazwa nadawcy: HEXALIA-TRANS sp. z o.o., ul. Lipowa 174, 13-155 Olsztyn
+Na rachunek: 08 3342 6217 0971 9728 7828 3025
+Nazwa odbiorcy: Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+Kwota: 200,00 zł
+Data realizacji: 11 października 2026
+Tytułem: Oplata skarbowa - pelnomocnictwo KIO - BZP.IV.261.73.2026
+Nr transakcji: CEN2610116196564
+Status operacji: zrealizowana
+
+~~ Wydruk sporządzony w systemie bankowości internetowej. Dokument stanowi potwierdzenie wykonania operacji i nie wymaga podpisu ani pieczęci banku.

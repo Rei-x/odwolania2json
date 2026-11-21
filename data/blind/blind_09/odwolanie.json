@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-09-27",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9994977267",
+      "nazwa": "Silvanta Telekom sp.j.",
+      "nip": "9997887492",
+      "regon": "999796287",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Norbert Kaczmarczyk",
+        "nazwa": "Varsko Legal Kaczmarczyk sp. k.",
+        "mail": "kontakt@kaczmarczyklegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9998700685",
+      "nazwa": "Marbex Serwis sp. z o.o.",
+      "nip": "9991657130",
+      "regon": "999225544",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999815",
+    "numer_postepowania": "ZP.271.122.2026",
+    "numer_ted": "999674-2026",
+    "tytul": "Przebudowa drogi powiatowej nr 1452 wraz z budową chodnika i kanalizacji deszczowej na odcinku Strzelin Wielki – Mokrany"
+  }
+}

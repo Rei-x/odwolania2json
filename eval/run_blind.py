@@ -1,8 +1,9 @@
-"""Final evaluation on the frozen BLIND test set (data/blind/blind_NN).
+"""Final evaluation on the frozen BLIND test set (data/blind/blind_NN + data/blind/blind_negatywne).
 
 Runs the pipeline on every PDF, scores with eval.score and prints ONLY aggregate numbers:
 overall F1, per-doctype F1 and LLM cost. Per-field errors are hidden unless --details is given
 (they are always written to <out>/errors.tsv only with --details, so nothing leaks by default).
+Out-of-scope documents (GT {}) add FP for every extracted field; their correct-rejection count is printed.
 
 Blind cases are not in data/train, so no few-shot exclusion is needed.
 

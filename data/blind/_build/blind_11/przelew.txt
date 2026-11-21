@@ -1,0 +1,30 @@
+>> NovaBank Polska S.A.
+>> Wydruk z bankowości internetowej
+
+# Potwierdzenie przelewu krajowego (Elixir)
+
+Status operacji: zrealizowana
+
+## Dane zleceniodawcy
+
+Lorvik Telekom sp. z o.o.
+ul. Słoneczna 135A, 83-108 Toruń
+Rachunek: 68 5455 3699 8600 0808 0428 8932
+
+## Dane odbiorcy
+
+Urząd m.st. Warszawy – Centrum Obsługi Podatnika
+ul. Obozowa 57, 01-161 Warszawa
+Rachunek: 70 4590 4539 2266 8677 1243 1076
+
+## Szczegóły przelewu
+
+Data operacji || 22 września 2026
+Kwota || 17,00 zł
+Waluta || PLN
+Tytuł przelewu || OPŁATA SKARBOWA PEŁNOMOCNICTWO CZARNECKI Or.271.73.2026 KIO-ODW
+Dane dodatkowe || Kategoria: opłaty urzędowe
+Numer transakcji || NB/20260922/365879
+Sposób realizacji || Przelew krajowy Elixir
+
+~~ Dokument wygenerowany automatycznie w systemie bankowości internetowej NovaBank Polska S.A. Nie wymaga podpisu ani pieczęci.

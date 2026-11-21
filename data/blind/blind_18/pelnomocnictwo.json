@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9992480192",
+        "nazwa": "Kelvio Lorvik sp. z o.o.",
+        "nip": "9998225273",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Gabriela Pietrzycka"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Konrad Nowicki",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Michał Nowicki",
+      "pesel": null
+    }
+  ]
+}

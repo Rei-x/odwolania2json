@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": null,
+    "czynnosc_powod_id": 2,
+    "czynnosc_opis": "Ogłoszenie wyboru oferty",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9997027122",
+      "nazwa": "Ternum Data Center Spółka Akcyjna",
+      "nip": "9993023381",
+      "regon": "999979705",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Marcin Olszewski",
+        "nazwa": "Ardento Legal Olszewski sp. k.",
+        "mail": "biuro@olszewskiprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9991909432",
+      "nazwa": "Zakład Gospodarki Komunalnej w Wierzbnicy sp. z o.o.",
+      "nip": "9995180736",
+      "regon": "999143964",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999490",
+    "numer_postepowania": "ZP.271.378.2026",
+    "numer_ted": "999190-2026",
+    "tytul": "Dostawa odczynników laboratoryjnych wraz z dzierżawą analizatorów biochemicznych"
+  }
+}

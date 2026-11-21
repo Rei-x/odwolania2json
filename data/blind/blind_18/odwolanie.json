@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-05-06",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9992480192",
+      "nazwa": "Kelvio Lorvik sp. z o.o.",
+      "nip": "9998225273",
+      "regon": "999626036",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Konrad Nowicki",
+        "nazwa": "Delcora Legal Nowicki sp. k.",
+        "mail": "k.nowicki@nowickikancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Zarząd Dróg Powiatowych w Mokranach",
+      "nip": "9991735723",
+      "regon": "999471881",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "ZOZ-276/2026",
+    "numer_ted": null,
+    "tytul": "Dostawa paliw płynnych do pojazdów i urządzeń zamawiającego w formie bezgotówkowej"
+  }
+}

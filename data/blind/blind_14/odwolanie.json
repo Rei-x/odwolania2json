@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-03-05",
+    "czynnosc_powod_id": 9,
+    "czynnosc_opis": "Decyzja o unieważnieniu postępowania",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9999770561",
+      "nazwa": "Lorvik Data Center sp. k.",
+      "nip": "9990630927",
+      "regon": "999051966",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Paulina Rogalska",
+        "nazwa": "Kancelaria Prawna Rogalska i Partnerzy sp.p.",
+        "mail": "kontakt@rogalskakancelaria.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Zarząd Dróg Powiatowych w Czarnolesiu",
+      "nip": "9991075072",
+      "regon": "999725360",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999957",
+    "numer_postepowania": "WZP-382/2026",
+    "numer_ted": null,
+    "tytul": "Remont dachu i elewacji zabytkowego budynku ratusza w Mokranach"
+  }
+}

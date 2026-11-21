@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": null,
+    "czynnosc_powod_id": 1,
+    "czynnosc_opis": "Decyzja o odrzuceniu oferty",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9998085455",
+      "nazwa": "Zortan Systemy IT sp.j.",
+      "nip": "9994740937",
+      "regon": "999898668",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Konrad Sikora",
+        "nazwa": "Kancelaria Radcy Prawnego Konrad Sikora",
+        "mail": "biuro@sikoraprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": null,
+      "nazwa": "Gmina Lisowo",
+      "nip": "9994932335",
+      "regon": "999963466",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "ZDP/ZP-78/2026",
+    "numer_ted": "999329-2026",
+    "tytul": "Pełnienie funkcji inżyniera kontraktu dla zadania budowy obwodnicy Krzemienica"
+  }
+}

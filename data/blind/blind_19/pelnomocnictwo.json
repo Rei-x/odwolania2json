@@ -1,0 +1,42 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9998085455",
+        "nazwa": "Zortan Systemy IT sp.j.",
+        "nip": "9994740937",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Paweł Wilk"
+        }
+      ]
+    },
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993774074",
+        "nazwa": "MIRKON-BUD Spółka Akcyjna",
+        "nip": "9991935511",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Alicja Żurawska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Konrad Sikora",
+      "pesel": "78071727410"
+    },
+    {
+      "imie_nazwisko": "Konrad Pietrzak",
+      "pesel": "82110911977"
+    }
+  ]
+}

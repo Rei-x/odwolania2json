@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-10-11",
+    "czynnosc_dzien": "2026-10-07",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Płock"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9993255519",
+      "nazwa": "HEXALIA-TRANS sp. z o.o.",
+      "nip": "9999609142",
+      "regon": "999413406",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Wiktor Kalinowski",
+        "nazwa": "Kancelaria Prawna Kalinowski i Partnerzy sp.p.",
+        "mail": "kontakt@kalinowskiprawo.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9997122987",
+      "nazwa": "Miejskie Przedsiębiorstwo Komunikacyjne w Przytocznie S.A.",
+      "nip": "9994319221",
+      "regon": "999354649",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999047",
+    "numer_postepowania": "BZP.IV.261.73.2026",
+    "numer_ted": "999092-2026",
+    "tytul": "Wdrożenie zintegrowanego systemu informatycznego klasy ERP wraz z usługą utrzymania"
+  }
+}

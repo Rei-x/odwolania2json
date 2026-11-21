@@ -58,6 +58,10 @@ POWOD = {1: "Decyzja o odrzuceniu oferty", 2: "Ogłoszenie wyboru oferty", 3: "D
          12: "Projektowane postanowienia umowy"}  # official dictionary: data/schemas/czynnosc_powod_id_dict.md
 # reason 12 is absent from training data; a few blind cases with an SWZ-type source are switched to it
 POWOD_OVERRIDE: dict[str, int] = {"blind_03": 12, "blind_15": 12}
+# extra bank-layout / amount difficulties assigned after the seeded draw (keeps all other facts unchanged):
+# case -> (BANKS index, amount style or None)
+BANK_OVERRIDE: dict[str, tuple[int, str | None]] = {"blind_06": (7, None), "blind_12": (4, None), "blind_18": (6, None),
+                                                    "blind_20": (1, "neg")}
 
 # ============================================================================ pools
 FIRST_M = ["Adam", "Bartłomiej", "Cezary", "Damian", "Dariusz", "Edward", "Filip", "Grzegorz", "Henryk", "Igor",
@@ -673,6 +677,20 @@ def build_case(idx: int, source: str, diffs: list[str]) -> dict:
                         f"Oplata skarbowa - pelnomocnictwo KIO - {C['nr_post']}",
                         f"OPŁATA SKARBOWA PEŁNOMOCNICTWO {C['att'][0]['last'].upper()} {C['nr_post']}"])
     C["przelew"].update(tytul=tyt + C["przelew"]["suffix"], recipient=rec)
+    if C["id"] in BANK_OVERRIDE:
+        bi, am = BANK_OVERRIDE[C["id"]]
+        nb = BANKS[bi]
+        if nb["nr"] == "none":
+            assert nr is None or nr not in C["przelew"]["tytul"]
+            C["przelew"]["nr"] = None
+        C["przelew"]["bank"] = nb
+        C["flags"]["bank_layout"] = nb["layout"].split(" (")[0][:60]
+        if "bank_layout" not in C["diffs"]:
+            C["diffs"] = C["diffs"] + ["bank_layout"]
+        if am:
+            C["przelew"]["amount_style"] = C["flags"]["amount_style"] = am
+            if "amount_notation" not in C["diffs"]:
+                C["diffs"] = C["diffs"] + ["amount_notation"]
     members = C["partners"][:C["leader_pos"]] + [C["odw"]] + C["partners"][C["leader_pos"]:]
     C["members"] = members
     if C["signers"] is None:
@@ -988,12 +1006,17 @@ def render(markup: str, out: Path, style: dict):
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+    from reportlab.lib.fonts import addMapping
     fam = style["font"]
     reg, bold = f"B-{fam}", f"B-{fam}-Bold"
-    if reg not in pdfmetrics.getRegisteredFontNames():
-        sup = "/System/Library/Fonts/Supplemental/"
-        pdfmetrics.registerFont(TTFont(reg, sup + FONTS[fam][0]))
-        pdfmetrics.registerFont(TTFont(bold, sup + FONTS[fam][1]))
+    with _LOCK:
+        if reg not in pdfmetrics.getRegisteredFontNames():
+            sup = "/System/Library/Fonts/Supplemental/"
+            pdfmetrics.registerFont(TTFont(reg, sup + FONTS[fam][0]))
+            pdfmetrics.registerFont(TTFont(bold, sup + FONTS[fam][1]))
+            for b, i, f in ((0, 0, reg), (1, 0, bold), (0, 1, reg), (1, 1, bold)):
+                addMapping(reg, b, i, f)
+                addMapping(bold, b, i, f)
     fs = style["size"]
     body = ParagraphStyle("b", fontName=reg, fontSize=fs, leading=fs * 1.32,
                           alignment=TA_JUSTIFY if style["justify"] else TA_LEFT, spaceAfter=fs * 0.25)
@@ -1305,7 +1328,7 @@ def insert_before_petitum(markup, extra):
 
 NEG_DIR = OUT / "blind_negatywne"
 NEGATIVES = {
-    "postanowienie_KIO": "fragment (pierwsze 2 strony) ORZECZENIA Krajowej Izby Odwoławczej – wyrok z sygnaturą akt KIO, składem "
+    "wyrok_KIO": "fragment (pierwsze 2 strony) ORZECZENIA Krajowej Izby Odwoławczej – wyrok z sygnaturą akt KIO, składem "
                          "orzekającym, rozstrzygnięciem (sentencja: uwzględnia/oddala odwołanie, koszty, wpis) i początkiem uzasadnienia. "
                          "Wymienia odwołującego, zamawiającego, przystępującego, tytuł i numer postępowania. To NIE jest odwołanie, tylko orzeczenie Izby.",
     "faktura_uslugi_prawne": "FAKTURA VAT wystawiona przez kancelarię dla wykonawcy za 'sporządzenie odwołania do KIO i reprezentację' – "

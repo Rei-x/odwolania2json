@@ -1,0 +1,25 @@
+>> Pomorski Bank Spółdzielczy
+
+# Szczegóły operacji
+
+## Potwierdzenie przelewu
+
+Status operacji: zrealizowana
+
+Z rachunku: PL54 4079 0623 1872 1547 2333 4221
+
+Nazwa nadawcy: Lorvik Lorvik S.A., ul. Wojska Polskiego 73, 42-209 Gliwice
+
+Na rachunek: PL19 0719 4821 5380 9971 2678 8699
+
+Nazwa odbiorcy: Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+
+Kwota: 100,00 PLN
+
+Data realizacji: 18 listopada 2026
+
+Tytułem: OPŁATA SKARBOWA PEŁNOMOCNICTWO ZALEWSKA ZP.271.354.2026
+
+Nr transakcji: CEN2611184520634
+
+~~ Dokument wygenerowany automatycznie w systemie bankowości internetowej. Potwierdza zrealizowanie przedstawionej operacji i nie wymaga podpisu ani pieczęci banku.

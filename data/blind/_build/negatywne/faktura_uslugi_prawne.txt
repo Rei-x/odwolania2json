@@ -1,0 +1,38 @@
+>> Miejsce wystawienia: Koszalin
+>> Data wystawienia: 24 kwietnia 2026 r.
+>> Data wykonania usługi: 24 kwietnia 2026 r.
+# FAKTURA VAT NR FV 12/04/2026
+>> ORYGINAŁ
+
+## Sprzedawca
+Kancelaria Prawna Szewczyk i Pietrzycki sp.p., ul. Składowa 4/32, 76-204 Koszalin
+NIP: 9991278591
+Adwokat Jacek Szewczyk, radca prawny Maciej Pietrzycki
+
+## Nabywca
+Ternum Technologie sp.k., ul. Składowa 4/32, 76-204 Koszalin
+NIP: 9991857194, KRS: 9994552739, REGON: 999417781
+
+## Pozycje faktury
+Lp. i opis usługi || Wartość netto / VAT || Wartość brutto
+1. Sporządzenie odwołania do Krajowej Izby Odwoławczej oraz reprezentacja nabywcy w postępowaniu odwoławczym – usługa prawna, 1 szt. || 8 000,00 zł / 1 840,00 zł, stawka 23% || 9 840,00 zł
+Razem || 8 000,00 zł / 1 840,00 zł || 9 840,00 zł
+
+## Szczegóły świadczenia
+Usługa dotyczy postępowania o udzielenie zamówienia publicznego prowadzonego przez Zespół Szkół Technicznych w Jezioranach Małych, ul. Długa 40, 11-848 Jeziorany Małe, NIP: 9992590847, REGON: 999383450.
+Tytuł zamówienia: Termomodernizacja budynków użyteczności publicznej wraz z montażem instalacji fotowoltaicznych.
+Numer postępowania: BZP.IV.261.67.2026; numer BZP: 2026/BZP 00999366.
+Wynagrodzenie obejmuje analizę dokumentacji i stanowiska zamawiającego, przygotowanie oraz podpisanie odwołania, udział w czynnościach procesowych i reprezentację Ternum Technologie sp.k. przed Krajową Izbą Odwoławczą do wydania rozstrzygnięcia, w tym w zakresie stanowiska innego wykonawcy: Kelvio Inżynieria sp.j., ul. Hutnicza 165/35, 29-602 Radom, KRS: 9995646499, NIP: 9991278591, REGON: 999735506.
+
+## Płatność
+Do zapłaty: 9 840,00 zł
+Słownie: dziewięć tysięcy osiemset czterdzieści złotych 00/100
+Termin płatności: 8 maja 2026 r.
+Forma płatności: przelew bankowy
+Numer rachunku: PL84 2567 0498 3258 3074 1319 2742
+Tytuł przelewu: FV 12/04/2026 – BZP.IV.261.67.2026
+
+Wystawił: Maciej Pietrzycki
+
+~~ Faktura dokumentuje wykonanie usługi prawnej i stanowi podstawę do zapłaty. Nie jest potwierdzeniem dokonania przelewu ani pełnomocnictwem do reprezentowania nabywcy.
+~~ Dokument wystawiony elektronicznie; dane i oznaczenia mają charakter fikcyjny.

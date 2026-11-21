@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": "Dominika Sobolewska",
+        "krs": null,
+        "nazwa": "Przedsiębiorstwo Handlowo-Usługowe TERVALIS Dominika Sobolewska",
+        "nip": "9996780208",
+        "typ": "osoba_fizyczna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Dominika Sobolewska"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Edward Tomaszewski",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Katarzyna Żurawska",
+      "pesel": null
+    }
+  ]
+}

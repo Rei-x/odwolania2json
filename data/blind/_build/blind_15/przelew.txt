@@ -1,0 +1,19 @@
+# Szczegóły operacji
+
+Pomorski Bank Spółdzielczy — potwierdzenie przelewu z bankowości internetowej
+
+Z rachunku: PL15 2563 9105 4185 5234 3045 3687
+Nazwa nadawcy: Solvadi Elbrix S.A., ul. Mickiewicza 50/17, 43-627 Częstochowa
+Na rachunek: PL11 4115 9883 3540 6121 6926 8164
+Nazwa odbiorcy: Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+Kwota: 34,00 PLN
+Data realizacji: 17.10.2026
+Tytułem: Oplata skarbowa - pelnomocnictwo KIO - Or.271.13.2026
+Nr transakcji: CEN2610179008109
+
+Status operacji: zrealizowana
+Prowizja: 0,00 PLN
+Saldo po operacji: 18 742,65 PLN
+Data wygenerowania potwierdzenia: 20.10.2026
+
+~~ Dokument sporządzony automatycznie w systemie bankowości internetowej. Treść tytułu operacji została wprowadzona przez zleceniodawcę.

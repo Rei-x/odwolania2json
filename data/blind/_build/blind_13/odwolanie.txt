@@ -1,0 +1,127 @@
+>> Krajowa Izba Odwoławcza przy Prezesie Urzędu Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+
+## Odwołujący
+
+Delcora Energia Spółka Akcyjna, ul. Mickiewicza 162, 14-475 Białystok, KRS: 9992014303, NIP: 9993723061, REGON: 999574055, reprezentowana w niniejszym postępowaniu przez adwokata Iwonę Krajewską oraz adwokata Radosława Grabowieckiego.
+
+Adres pełnomocników do doręczeń: Kancelaria Adwokacka Iwona Krajewska, ul. Hutnicza 144, 31-255 Kraków, tel. 000 000 000, e-mail: i.krajewska@krajewska.example.
+
+## Zamawiający
+
+Silvanta Utrzymanie Zieleni sp. z o.o., ul. Jana Pawła II 112/6, 17-610 Białystok, KRS: 9997847780, NIP: 9996362729, REGON: 999636939, e-mail: zamowienia@zieleni.example.
+
+## Wykonawca, którego dotyczy zaskarżone zaniechanie
+
+Morvex Systemy IT S.A., ul. Słoneczna 53A, 89-673 Toruń, KRS: 9996738091, NIP: 9990606515, REGON: 999073241.
+
+## Oznaczenie postępowania
+
+Postępowanie o udzielenie zamówienia publicznego pn. „Modernizacja oświetlenia ulicznego na terenie gminy z zastosowaniem technologii LED”, znak sprawy: SA.270.2.55.2026, ogłoszenie w Biuletynie Zamówień Publicznych: 2026/BZP 00999792.
+
+# ODWOŁANIE
+
+Działając w imieniu i na rzecz Delcora Energia Spółka Akcyjna, reprezentowanej przez adwokata Iwonę Krajewską oraz adwokata Radosława Grabowieckiego, na podstawie udzielonych pełnomocnictw oraz art. 505 ust. 1 i art. 513 ustawy z dnia 11 września 2019 r. – Prawo zamówień publicznych, zwaną dalej „ustawą Pzp”, wnoszę odwołanie od czynności i zaniechań Zamawiającego w postępowaniu oznaczonym znakiem SA.270.2.55.2026.
+
+## A. Zaskarżone czynności i zaniechania oraz zarzuty
+
+Odwołaniem objęte jest przede wszystkim zaniechanie odrzucenia oferty wykonawcy Morvex Systemy IT S.A., które nastąpiło w dniu 18.05.2026, pomimo że oferta ta nie odpowiadała wymaganiom określonym w dokumentach zamówienia, a przedstawione następnie wyjaśnienia nie usuwały stwierdzonej niezgodności, lecz zmieniały znaczenie pierwotnego oświadczenia wykonawcy.
+
+Zaskarżonemu zaniechaniu oraz sposobowi dokonania oceny ofert zarzucam:
+
+1. naruszenie art. 226 ust. 1 pkt 2 lit. c ustawy Pzp w związku z art. 16 ustawy Pzp, polegające na zaniechaniu odrzucenia oferty Morvex Systemy IT S.A. mimo jej niezgodności z wymaganiami Zamawiającego;
+
+2. naruszenie art. 226 ust. 3 i art. 226 ust. 4 ustawy Pzp poprzez wykorzystanie trybu wyjaśnień do uzupełnienia i zmiany treści oferty w zakresie mającym istotne znaczenie dla jej oceny, zamiast ograniczenia się do wyjaśnienia treści już w niej zawartych;
+
+3. naruszenie art. 7 ust. 1, art. 16 oraz art. 17 ustawy Pzp przez przyjęcie nierzetelnej i nierównej metody oceny ofert, polegającej na przyznaniu Morvex Systemy IT S.A. możliwości skutecznego usunięcia wady, która winna skutkować odrzuceniem oferty, przy jednoczesnym zaniechaniu obiektywnej weryfikacji zgodności tej oferty z dokumentami zamówienia.
+
+## B. Stan faktyczny istotny dla rozstrzygnięcia
+
+Ogłoszenie o zamówieniu zostało opublikowane w dniu 01.03.2026. Dokumenty zamówienia określały wiążące wymagania dotyczące przedmiotu zamówienia oraz sposobu wykazania przez wykonawców zdolności do jego należytej realizacji. Wymagania te miały charakter jednakowo obowiązujący wszystkich uczestników postępowania i nie mogły zostać zastąpione indywidualnie negocjowanym zakresem świadczenia na etapie wyjaśniania ofert.
+
+Termin składania ofert upłynął w dniu 02.05.2026. Z treści oferty Morvex Systemy IT S.A. nie wynikało w sposób jednoznaczny i kompletny, że wykonawca przyjmuje wszystkie wymagania Zamawiającego oraz że zaproponowane przez niego rozwiązanie zapewni ich realizację. Brak ten nie stanowił drobnej nieścisłości redakcyjnej ani omyłki mogącej zostać usuniętej bez wpływu na ocenę merytoryczną oferty, lecz dotyczył samego zakresu zobowiązania wykonawcy.
+
+Pismem z dnia 14.05.2026 Zamawiający wezwał wykonawcę do złożenia wyjaśnień. Morvex Systemy IT S.A. złożył wyjaśnienia w dniu 16.05.2026, wprowadzając jednak informacje, które nie znajdowały pokrycia w pierwotnej treści oferty i dopiero na tym etapie miały wykazać jej zgodność z wymaganiami. W konsekwencji wyjaśnienia nie objaśniły istniejącego oświadczenia, ale uzupełniły jego treść w istotnym zakresie.
+
+Mimo powyższego, w dniu 18.05.2026, Zamawiający zaniechał odrzucenia oferty Morvex Systemy IT S.A. i przyjął, że oferta ta może podlegać dalszej ocenie. Stanowisko to jest nie do pogodzenia z obowiązkiem odrzucenia oferty niezgodnej z wymaganiami oraz narusza interes Odwołującej, która złożyła ofertę przy założeniu, że wszystkie oferty będą badane według jednolitych, z góry ustalonych i wiążących kryteriów.
+
+~~ Odwołanie – SA.270.2.55.2026 | Strona 1 z 3
+
+---
+
+## C. Uzasadnienie zarzutów
+
+### C.1. Obowiązek odrzucenia oferty niezgodnej z wymaganiami
+
+Przepis art. 226 ust. 1 pkt 2 lit. c ustawy Pzp ustanawia bezwzględny obowiązek odrzucenia oferty, której treść nie odpowiada wymaganiom określonym w dokumentach zamówienia. Zamawiający nie dysponuje w tym zakresie swobodą uznaniową i nie może uznać stwierdzonej niezgodności za bez znaczenia jedynie dlatego, że wykonawca na późniejszym etapie deklaruje gotowość do przyjęcia wymaganego zakresu świadczenia.
+
+W rozpoznawanej sprawie wada oferty Morvex Systemy IT S.A. istniała już w chwili upływu terminu składania ofert. Jej istota polegała na braku jednoznacznego przyjęcia wymagań dokumentów zamówienia, a zatem na okoliczności mającej bezpośrednie przełożenie na treść zobowiązania, porównywalność ofert oraz ocenę zdolności wykonawcy do realizacji zamówienia. Zaniechanie reakcji na tę wadę w dniu 18.05.2026 stanowiło zatem naruszenie normy kompetencyjnej, a nie jedynie usterkę sposobu opisania oceny.
+
+Odwołująca podkreśla, że obowiązek odrzucenia oferty służy ochronie nie tylko interesu Zamawiającego, ale również integralności całego postępowania. Dopuszczenie do dalszej oceny oferty niezgodnej z wymaganiami wypacza porównanie ofert, ponieważ wykonawca składający ofertę niekompletną uzyskuje możliwość dostosowania jej treści do oczekiwań wskazanych już po terminie składania ofert, czego nie mogą uczynić pozostali uczestnicy.
+
+### C.2. Niedopuszczalność zastąpienia oceny oferty jej istotnym uzupełnieniem
+
+Instytucja wyjaśniania treści ofert ma charakter pomocniczy i nie może prowadzić do zmiany ich istotnych elementów. Granica dopuszczalności wyjaśnień przebiega pomiędzy objaśnieniem treści już zawartej w ofercie a przedstawieniem nowej treści, która dopiero w połączeniu z wyjaśnieniem pozwala uznać ofertę za zgodną z wymaganiami. W drugim przypadku Zamawiający nie wyjaśnia oferty, lecz umożliwia jej naprawę po terminie, w którym oferty powinny być już kompletne i wiążące.
+
+Wyjaśnienia złożone w dniu 16.05.2026 miały właśnie taki charakter naprawczy. Nie wskazywały jedynie na istniejące wcześniej elementy oferty ani nie usuwały wątpliwości interpretacyjnych, lecz wprowadzały zapewnienia niezbędne do uznania oferty za zgodną z dokumentami zamówienia. Ich przyjęcie jako podstawy dalszej oceny naruszyło art. 226 ust. 3 i 4 ustawy Pzp.
+
+Wezwanie z dnia 14.05.2026 nie mogło samo w sobie zalegalizować takiego postępowania. Zamawiający nie nabywa bowiem uprawnienia do zmiany granic dopuszczalnych wyjaśnień przez samo skierowanie wezwania do wykonawcy. Wręcz przeciwnie, treść odpowiedzi powinna zostać poddana kontroli pod kątem tego, czy pozostaje ona w granicach wyjaśnienia, czy też zmienia ofertę w sposób niedopuszczalny. Zamawiający zaniechał takiej kontroli.
+
+### C.3. Naruszenie zasady równego traktowania i rzetelności oceny
+
+Zasada równego traktowania wykonawców wymaga, aby oferty były przygotowywane i oceniane na tych samych warunkach. Obejmuje ona również obowiązek jednakowego reagowania na braki i niezgodności ofert. Wykonawca, który przedstawił ofertę niezgodną z wymaganiami, nie może znaleźć się w korzystniejszym położeniu od wykonawcy, który złożył ofertę kompletną w terminie, jedynie z powodu późniejszego przyjęcia jego dodatkowych oświadczeń.
+
+Przyjęte przez Zamawiającego rozumowanie prowadziłoby do wniosku, że każdy brak dotyczący istotnego zakresu oferty mógłby zostać usunięty na wezwanie, a obowiązek odrzucenia oferty stałby się w praktyce iluzoryczny. Taka wykładnia pozbawiałaby dokumenty zamówienia funkcji wiążącego wzorca i uzależniałaby wynik postępowania od zakresu indywidualnych wyjaśnień, zamiast od obiektywnego porównania ofert złożonych w terminie.
+
+Naruszenie art. 16 i art. 17 ustawy Pzp pozostaje przy tym w ścisłym związku z naruszeniem art. 7 ust. 1 ustawy Pzp. Rzetelne prowadzenie postępowania wymaga nie tylko formalnego wykonania kolejnych czynności, ale także logicznego, spójnego i możliwego do zweryfikowania uzasadnienia oceny. W niniejszej sprawie Zamawiający nie wykazał, na jakiej podstawie pierwotna niezgodność oferty przestała istnieć, ani dlaczego uznał, że nowe oświadczenia wykonawcy mieszczą się w dopuszczalnym zakresie wyjaśnień.
+
+~~ Odwołanie – SA.270.2.55.2026 | Strona 2 z 3
+
+---
+
+## D. Interes Odwołującej i skutki naruszeń
+
+Delcora Energia Spółka Akcyjna posiada interes w uwzględnieniu odwołania, ponieważ jest uczestnikiem postępowania, a zaskarżone zaniechanie może powodować dla niej szkodę poprzez dopuszczenie do dalszej oceny oferty, która winna zostać odrzucona. Naruszenie przepisów regulujących ocenę ofert ma bezpośredni wpływ na warunki konkurencji oraz na możliwość uzyskania zamówienia przez wykonawcę, którego oferta odpowiada wymaganiom i została złożona z zachowaniem wszystkich wiążących zasad.
+
+Nie jest konieczne wykazywanie, że usunięcie naruszeń z góry przesądziłoby końcowy wynik postępowania. Wystarczające jest, że zaniechanie odrzucenia wadliwej oferty oraz niedopuszczalne uwzględnienie wyjaśnień zmieniły prawidłowy przebieg oceny i naruszyły szansę Odwołującej na uzyskanie zamówienia w postępowaniu prowadzonym zgodnie z ustawą.
+
+## E. Wnioski dowodowe
+
+Wnoszę o przeprowadzenie dowodu z:
+
+1. dokumentacji postępowania oznaczonego znakiem SA.270.2.55.2026, w szczególności ogłoszenia o zamówieniu, dokumentów zamówienia, oferty Morvex Systemy IT S.A., protokołu postępowania oraz dokumentacji oceny ofert – na okoliczność treści wymagań, zakresu niezgodności oferty i sposobu jej oceny;
+
+2. wezwania Zamawiającego z dnia 14.05.2026 oraz wyjaśnień złożonych przez Morvex Systemy IT S.A. w dniu 16.05.2026 – na okoliczność zakresu żądanych informacji i tego, czy odpowiedź wykonawcy jedynie wyjaśniała ofertę, czy istotnie ją uzupełniała;
+
+3. dokumentacji czynności podjętych w dniu 18.05.2026 – na okoliczność zaniechania odrzucenia oferty Morvex Systemy IT S.A. oraz podstaw uznania jej za mogącą podlegać dalszej ocenie;
+
+4. oferty Odwołującej wraz z dokumentami stanowiącymi jej załączniki – na okoliczność zachowania przez Delcora Energia Spółka Akcyjna wymagań postępowania i posiadanego interesu we wniesieniu odwołania.
+
+## F. Żądanie odwołania
+
+Mając na uwadze powyższe, wnoszę o:
+
+1. uwzględnienie odwołania w całości;
+
+2. unieważnienie zaskarżonego zaniechania odrzucenia oferty Morvex Systemy IT S.A. z dnia 18.05.2026 oraz pozostałych zaskarżonych czynności w zakresie objętym zarzutami;
+
+3. nakazanie Zamawiającemu ponownego dokonania oceny ofert z zachowaniem przepisów ustawy Pzp, w szczególności przez zbadanie zgodności oferty Morvex Systemy IT S.A. z wymaganiami dokumentów zamówienia według jej treści istniejącej w chwili upływu terminu składania ofert oraz bez przyznawania wyjaśnieniom skutku istotnej zmiany lub uzupełnienia oferty;
+
+4. zasądzenie od Zamawiającego na rzecz Odwołującej kosztów postępowania odwoławczego, w tym kosztów wynagrodzenia pełnomocników, na podstawie rachunku przedłożonego w postępowaniu.
+
+## Załączniki
+
+1. Pełnomocnictwo udzielone adwokatowi Iwonie Krajewskiej wraz z potwierdzeniem jego udzielenia.
+
+2. Pełnomocnictwo udzielone adwokatowi Radosławowi Grabowieckiemu wraz z potwierdzeniem jego udzielenia.
+
+3. Dokument potwierdzający reprezentację Odwołującej.
+
+4. Dowód uiszczenia wpisu od odwołania.
+
+5. Odpis odwołania wraz z załącznikami dla Zamawiającego.
+
+Iwona Krajewska, adwokat
+
+Radosław Grabowiecki, adwokat
+
+~~ Odwołanie – SA.270.2.55.2026 | Strona 3 z 3

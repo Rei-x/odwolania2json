@@ -1,0 +1,25 @@
+# Szczegóły operacji
+
+## Pomorski Bank Spółdzielczy
+
+Potwierdzenie przelewu z rachunku – wydruk z bankowości internetowej
+
+Z rachunku: PL43 2439 9691 4955 5831 6792 1017
+
+Nazwa nadawcy: Lorvik Data Center sp. k., ul. Polna 117, 62-703 Zielona Góra
+
+Na rachunek: PL34 9897 3436 6949 0044 0148 4902
+
+Nazwa odbiorcy: Urząd m.st. Warszawy – Centrum Obsługi Podatnika, ul. Obozowa 57, 01-161 Warszawa
+
+Kwota: 200,00 zł
+
+Data realizacji: 10 marca 2026
+
+Tytułem: Oplata skarbowa - pelnomocnictwo KIO - WZP-382/2026
+
+Nr transakcji: CEN2603109156037
+
+Status operacji: zrealizowana
+
+~~ Dokument wygenerowany automatycznie w systemie bankowości internetowej. Przedstawione informacje potwierdzają wykonanie operacji zgodnie ze zleceniem nadawcy.

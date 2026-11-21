@@ -1,0 +1,28 @@
+{
+  "mocodawca": [
+    {
+      "data": {
+        "imie_nazwisko": null,
+        "krs": "9993897178",
+        "nazwa": "OSTRAVIA-INVEST sp. z o.o.",
+        "nip": "9990286861",
+        "typ": "osoba_prawna"
+      },
+      "podpisujacy": [
+        {
+          "imie_nazwisko": "Adam Pietrzak"
+        }
+      ]
+    }
+  ],
+  "pelnomocnicy": [
+    {
+      "imie_nazwisko": "Katarzyna Lewandowska",
+      "pesel": null
+    },
+    {
+      "imie_nazwisko": "Łukasz Gołąb",
+      "pesel": null
+    }
+  ]
+}

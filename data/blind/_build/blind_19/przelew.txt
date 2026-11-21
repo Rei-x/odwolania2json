@@ -1,0 +1,16 @@
+# POTWIERDZENIE WYKONANIA PRZELEWU
+
+>> Bank Nadwiślański S.A.
+>> Wydruk z bankowości internetowej
+
+Zleceniodawca || Zortan Systemy IT sp.j., ul. Kościuszki 178/34, 49-874 Opole
+Rachunek zleceniodawcy || 74377643535181900808181386
+Odbiorca || Urząd Zamówień Publicznych, ul. Postępu 17A, 02-676 Warszawa
+Rachunek odbiorcy || 72791478688119958117708783
+Kwota || 15 000,00 PLN
+Data operacji || 2026-10-04
+Tytuł przelewu || WPIS OD ODWOLANIA, ZAMAWIAJACY: GMINA LISOWO, ZDP/ZP-78/2026
+Numer referencyjny || CEN2610041108038
+Status || ZREALIZOWANO
+
+~~ Dokument został wygenerowany automatycznie przez system bankowości internetowej Banku Nadwiślańskiego S.A. i potwierdza zrealizowanie przedstawionej operacji. Treść tytułu przelewu została podana przez zleceniodawcę.

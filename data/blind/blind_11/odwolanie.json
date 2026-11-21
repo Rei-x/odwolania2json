@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": null,
+    "czynnosc_dzien": "2026-09-12",
+    "czynnosc_powod_id": 6,
+    "czynnosc_opis": "Odpowiedzi/wyjaśnienia do SWZ",
+    "miejscowosc": null
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9994690338",
+      "nazwa": "Lorvik Telekom sp. z o.o.",
+      "nip": "9996852439",
+      "regon": "999530922",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Przemysław Czarnecki",
+        "nazwa": "Czarnecki & Makowski Adwokaci i Radcowie Prawni s.c.",
+        "mail": "kancelaria@czarneckilegal.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9999118622",
+      "nazwa": "Powiatowe Centrum Medyczne w Łęgowie sp. z o.o.",
+      "nip": "9998325709",
+      "regon": "999090802",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": "2026/BZP00999764",
+    "numer_postepowania": "Or.271.73.2026",
+    "numer_ted": "999987-2026",
+    "tytul": "Dostawa sprzętu komputerowego i oprogramowania biurowego dla jednostek organizacyjnych"
+  }
+}

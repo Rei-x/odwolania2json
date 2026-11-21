@@ -1,0 +1,511 @@
+{
+  "blind_01": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Monika Nowak",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Leszek Pietrzycki"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999682",
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999051-2026"
+      ],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_02": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Katarzyna Lewandowska",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Łukasz Gołąb"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 7,
+      "tries": 0
+    }
+  },
+  "blind_03": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Mikołaj Domagała"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 4,
+      "tries": 0
+    }
+  },
+  "blind_04": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Lidia Zalewska",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Alicja Żak"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 4,
+      "tries": 0
+    }
+  },
+  "blind_05": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999950"
+      ],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_06": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 11,
+      "tries": 0
+    }
+  },
+  "blind_07": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999490"
+      ],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_08": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999361-2026"
+      ],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_09": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_10": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999632"
+      ],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_11": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_12": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_14": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Paulina Rogalska",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Sebastian Kozieł"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999957"
+      ],
+      "pages": 20,
+      "tries": 0
+    }
+  },
+  "blind_13": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Iwona Krajewska",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Radosław Grabowiecki"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999792"
+      ],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_15": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999381"
+      ],
+      "pages": 4,
+      "tries": 0
+    }
+  },
+  "blind_16": {
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999924",
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999904-2026"
+      ],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_17": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Wiktor Kalinowski",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Paweł Gajewski"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_bzp=2026/BZP00999047",
+        "gt_check (oczekiwane – inny format): ZamowieniePubliczne.numer_ted=999092-2026"
+      ],
+      "pages": 6,
+      "tries": 0
+    }
+  },
+  "blind_18": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 5,
+      "tries": 0
+    }
+  },
+  "blind_19": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Konrad Sikora",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Konrad Pietrzak"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 3,
+      "tries": 0
+    }
+  },
+  "blind_20": {
+    "przelew": {
+      "doc": "przelew",
+      "errors": [],
+      "notes": [],
+      "pages": 1,
+      "tries": 0
+    },
+    "pelnomocnictwo": {
+      "doc": "pelnomocnictwo",
+      "errors": [],
+      "notes": [
+        "gt_check (oczekiwane – inny format): pelnomocnicy[0].imie_nazwisko=Ewelina Dąbrowska",
+        "gt_check (oczekiwane – inny format): pelnomocnicy[1].imie_nazwisko=Agata Wilk"
+      ],
+      "pages": 1,
+      "tries": 0
+    },
+    "odwolanie": {
+      "doc": "odwolanie",
+      "errors": [],
+      "notes": [],
+      "pages": 6,
+      "tries": 0
+    }
+  }
+}

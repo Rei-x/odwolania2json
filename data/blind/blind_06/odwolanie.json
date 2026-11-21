@@ -1,0 +1,38 @@
+{
+  "OdwolanieKIO": {
+    "data": "2026-04-15",
+    "czynnosc_dzien": "2026-04-12",
+    "czynnosc_powod_id": 10,
+    "czynnosc_opis": "Zaniechanie unieważnienia postępowania",
+    "miejscowosc": "Lublin"
+  },
+  "Odwolujacy": [
+    {
+      "krs": "9997904224",
+      "nazwa": "Pentrix Rotavia sp.j.",
+      "nip": "9996414343",
+      "regon": "999960373",
+      "przez-pelnomocnika": 1,
+      "pelnomocnik": {
+        "imie_nazwisko": "Żaneta Gajewska",
+        "nazwa": "Kastrel Legal Gajewska sp. k.",
+        "mail": "kancelaria@gajewska.example"
+      }
+    }
+  ],
+  "Zamawiajacy": [
+    {
+      "krs": "9995566530",
+      "nazwa": "Wirtana Logistyka sp.j.",
+      "nip": "9993117685",
+      "regon": "999482672",
+      "prowadzacy_postepowanie": null
+    }
+  ],
+  "ZamowieniePubliczne": {
+    "numer_bzp": null,
+    "numer_postepowania": "Or.271.41.2026",
+    "numer_ted": "999184-2026",
+    "tytul": "Remont dachu i elewacji zabytkowego budynku ratusza w Łęgowie"
+  }
+}
