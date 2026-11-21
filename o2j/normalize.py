@@ -151,7 +151,11 @@ def person(v):
         prev = s
         s = re.sub(rf"^{TITLES}\s+", "", s, flags=re.I)
         s = re.sub(rf",?\s+{TITLES}$", "", s, flags=re.I)
-    return s.strip(" ,") or None
+    s = s.strip(" ,")
+    if s and s.isupper() and len(s) > 3:  # "MARTYNA MIKUSEK" -> "Martyna Mikusek"
+        s = "-".join(w.capitalize() for w in s.lower().split("-"))
+        s = " ".join(w[:1].upper() + w[1:] for w in s.split(" "))
+    return s or None
 
 
 def city(v):

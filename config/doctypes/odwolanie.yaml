@@ -20,7 +20,8 @@ instructions: |
     Zwykle opisuje ją zdanie typu "Zamawiający w dniu <data> <czynność>" albo pierwsza pozycja listy
     "czynności i zaniechań Zamawiającego, polegających na: 1) ...". Nagłówki "Zarzut nr 1 naruszenia ..."
     opisują naruszone przepisy, a nie czynność — nie klasyfikuj na ich podstawie, jeśli czynność jest wskazana wprost.
-  - "data" i "miejscowosc" pochodzą z nagłówka pierwszej strony (np. "Koszalin, 16 czerwca 2026 roku").
+  - "data" i "miejscowosc" pochodzą WYŁĄCZNIE z nagłówka na początku pierwszej strony (np. "Koszalin, 16 czerwca 2026 roku").
+    Jeśli takiej linii nagłówka nie ma — oba pola null, nawet gdy miejscowość i data występują przy podpisie na końcu pisma.
   - Odwołujący/Zamawiający: dane identyfikacyjne (KRS/NIP/REGON) bierz tylko z bloku danego podmiotu.
   - Konsorcjum odwołujących: podaj Lidera konsorcjum.
   - Przedsiębiorca będący osobą fizyczną: nazwa = sama nazwa firmy (np. "MERIDIAN KONSULTING Patryk Mazur"),
@@ -29,7 +30,8 @@ instructions: |
     Gdy wskazano kilku pełnomocników — podaj tylko PIERWSZEGO.
   - pelnomocnik.nazwa: podmiot zatrudniający pełnomocnika — zwykle kancelaria; gdy pełnomocnik jest pracownikiem
     lub członkiem organu odwołującego (albo lidera konsorcjum), wpisz nazwę tego podmiotu.
-  - Numery BZP/TED/postępowania przepisz z dokumentu; nie myl numeru TED z BZP.
+  - Numery BZP/TED/postępowania przepisz z sekcji opisującej to postępowanie (zwykle "dotyczy: ..." na pierwszej stronie);
+    nie bierz numerów innych, wcześniej wspomnianych postępowań; nie myl numeru TED z BZP.
 fields:
   OdwolanieKIO:
     type: object

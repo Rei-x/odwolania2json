@@ -42,9 +42,11 @@ def few_shot_examples(spec: DocSpec, train_dir: Path, query_text: str, exclude: 
     if not k or not ex or not train_dir or not train_dir.exists():
         return []
     cands = []
-    for case in sorted(train_dir.iterdir()):
-        pdf, js = case / ex["pdf"], case / ex["json"]
-        if case.name in exclude or not pdf.exists() or not js.exists():
+    names = ex["pdf"] if isinstance(ex["pdf"], list) else [ex["pdf"]]
+    for case in sorted(p for p in train_dir.iterdir() if p.is_dir()):
+        pdf = next((case / n for n in names if (case / n).exists()), None)
+        js = case / ex["json"]
+        if case.name in exclude or pdf is None or not js.exists():
             continue
         cands.append((case.name, pdf, js))
     q = query_text[:3000]
@@ -94,8 +96,10 @@ def _pp(node: dict, v, parent):
         return _pp_object(node["properties"], v if isinstance(v, dict) else {})
     if t == "array":
         items = v if isinstance(v, list) else ([] if v is None else [v])
-        res = [_pp(node["items"], it, None) for it in items]
-        return [r for r in res if not _all_null(r)]
+        res = [r for r in (_pp(node["items"], it, None) for it in items) if not _all_null(r)]
+        if node.get("dedupe") == "person":
+            res = _dedupe_people(res)
+        return res
     if t == "enum":
         vals = [e["value"] if isinstance(e, dict) else e for e in node["values"]]
         if v in vals:
@@ -113,6 +117,26 @@ def _pp(node: dict, v, parent):
 def fill_ratio(result) -> float:
     vals = [v for _, v in _leaves(result)]
     return sum(v is not None for v in vals) / max(1, len(vals))
+
+
+def _person_key(item):
+    name = next((v for v in (item.values() if isinstance(item, dict) else [item]) if isinstance(v, str)), None)
+    if not name:
+        return None
+    toks = name.lower().split()
+    return (toks[0], toks[-1]) if len(toks) >= 2 else tuple(toks)
+
+
+def _dedupe_people(items: list) -> list:
+    """'Paweł Wierzowiecki' (signature block) and 'Paweł Stanisław Wierzowiecki' (e-signature stamp) are one person."""
+    out, seen = [], {}
+    for it in items:
+        k = _person_key(it)
+        if k is None or k not in seen:
+            if k is not None:
+                seen[k] = len(out)
+            out.append(it)
+    return out
 
 
 def _all_null(x) -> bool:

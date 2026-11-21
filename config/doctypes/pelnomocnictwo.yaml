@@ -12,6 +12,7 @@ classify:
   filename: ['pelnomoc', 'pełnomoc']
 pages: 3
 few_shot: 2
+page_images: [last]   # obraz ostatniej strony (podpisy graficzne/elektroniczne)
 examples: {pdf: pelnomocnictwo.pdf, json: pelnomocnictwo.json}   # pliki w każdym folderze data/train/<sprawa>/
 instructions: |
   - Mocodawców może być kilku (np. konsorcjum udzielające pełnomocnictwa wspólnie) — każdy osobno.
@@ -20,7 +21,9 @@ instructions: |
     (bez dopisków typu "prowadzący działalność gospodarczą pod firmą").
   - podpisujacy: osoby podpisane w imieniu danego mocodawcy (pod "Mocodawca:" / "W imieniu ..."), bez stanowisk.
     Liczą się też pieczęcie podpisu elektronicznego: "Dokument podpisany przez X; Firma", "Signed by / Podpisano przez: X",
-    "Podpisany elektronicznie przez X" — podaj samo imię i nazwisko X (bez nazwy firmy), w pełnym brzmieniu jak w dokumencie.
+    "Podpisany elektronicznie przez X" — podaj samo imię i nazwisko X (bez nazwy firmy).
+    Ta sama osoba w bloku podpisu i w pieczęci elektronicznej to JEDEN podpisujący — podaj zapis z bloku podpisu.
+    Pełnomocnik podpisujący "Pełnomocnictwo przyjmuję" NIE jest podpisującym w imieniu mocodawcy.
   - pelnomocnicy: imię i nazwisko w mianowniku, bez tytułów (adw., r.pr.); PESEL tylko jeśli podany.
     Gdy pełnomocnikiem jest podmiot (np. spółka – lider konsorcjum), wpisz jego nazwę w imie_nazwisko.
   - Nie wymyślaj danych — brak = null.
@@ -40,12 +43,14 @@ fields:
             typ: {type: enum, values: [osoba_prawna, osoba_fizyczna], description: Typ mocodawcy.}
         podpisujacy:
           type: array
+          dedupe: person
           items:
             type: object
             properties:
               imie_nazwisko: {type: string, normalize: [person], single_person: true, description: Imię i nazwisko osoby podpisującej w imieniu mocodawcy.}
   pelnomocnicy:
     type: array
+    dedupe: person
     items:
       type: object
       properties:

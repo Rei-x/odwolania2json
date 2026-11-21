@@ -114,5 +114,16 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
     return doc
 
 
+def render_page_png(path: Path, i: int, dpi: int = 150) -> bytes | None:
+    if path.suffix.lower() != ".pdf":
+        return None
+    with _PDFIUM_LOCK:
+        pdf = pdfium.PdfDocument(str(path))
+        try:
+            return render_png(flat_page(pdf, i), dpi)
+        finally:
+            pdf.close()
+
+
 def png_data_url(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode()

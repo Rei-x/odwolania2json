@@ -57,6 +57,14 @@ class Pipeline:
             if images:
                 user += ("\n\nUWAGA: tekst dokumentu pochodzi z OCR skanu i może zawierać błędy odczytu. "
                          "Dołączono obrazy stron — w razie wątpliwości (cyfry, nazwiska, polskie znaki) rozstrzygaj na podstawie obrazu.")
+        want = spec.raw.get("page_images") or []
+        if want and not images and doc.pages:
+            idx = sorted({len(doc.pages) - 1 if w == "last" else int(w) - 1 for w in want if str(w) == "last" or str(w).isdigit()})
+            images = [P.render_page_png(pdf_path, i) for i in idx if 0 <= i < len(doc.pages)]
+            images = [im for im in images if im]
+            if images:
+                user += ("\n\nDołączono obraz strony dokumentu (np. z graficznym podpisem). Odczytuj z niego tylko to, "
+                         "czego brakuje w tekście (np. nazwiska podpisujących); nie zgaduj nieczytelnych podpisów.")
         trace["images_attached"] = len(images or [])
         raw, meta = self.llm.extract_json(system, user, spec.json_schema(), name=doctype, images=images)
         result = E.postprocess(spec, raw)
@@ -149,7 +157,10 @@ def build_gt(train_dir: Path, specs, gt_dir: Path, cases: list[str] | None = Non
     for case in sorted(train_dir.iterdir()):
         if not case.is_dir() or (cases and case.name not in cases):
             continue
-        mapped = {(spec.raw.get("examples") or {}).get("pdf") for spec in specs.values()}
+        mapped = set()
+        for spec in specs.values():
+            v = (spec.raw.get("examples") or {}).get("pdf")
+            mapped |= set(v if isinstance(v, list) else [v])
         for pdf in case.glob("*.pdf"):
             if pdf.name not in mapped:
                 out = gt_dir / case.name / (pdf.stem + ".json")
@@ -157,8 +168,10 @@ def build_gt(train_dir: Path, specs, gt_dir: Path, cases: list[str] | None = Non
                 out.write_text("{}", encoding="utf-8")
         for spec in specs.values():
             ex = spec.raw.get("examples") or {}
-            pdf, js = case / ex.get("pdf", "_"), case / ex.get("json", "_")
+            names = ex.get("pdf") if isinstance(ex.get("pdf"), list) else [ex.get("pdf", "_")]
+            pdf = next((case / n for n in names if (case / n).exists()), case / "_")
+            js = case / ex.get("json", "_")
             if pdf.exists() and js.exists():
-                out = gt_dir / case.name / (Path(ex["pdf"]).stem + ".json")
+                out = gt_dir / case.name / (pdf.stem + ".json")
                 out.parent.mkdir(parents=True, exist_ok=True)
                 out.write_text(js.read_text(encoding="utf-8"), encoding="utf-8")
