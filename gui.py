@@ -151,6 +151,10 @@ async def process(files: list[UploadFile] = File(...), case: str | None = Form(N
         if not name.lower().endswith(".pdf"):
             continue
         path = d / name
+        k = 2
+        while path.exists():  # several cases uploaded together often reuse names (odwolanie.pdf …)
+            path = d / f"{Path(name).stem} ({k}){Path(name).suffix}"
+            k += 1
         path.write_bytes(await f.read())
         out.append(await run_in_threadpool(_one, sid, path, profile))
     if not out:

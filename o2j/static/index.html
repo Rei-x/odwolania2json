@@ -39,9 +39,16 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 /* ---------- workspace ---------- */
 #app{position:fixed;inset:0;display:grid;grid-template-rows:60px 1fr;opacity:0;transition:opacity .35s}
 #app.on{opacity:1}
-header{display:flex;align-items:center;gap:18px;padding:0 20px}
+header{display:flex;align-items:center;gap:14px;padding:0 20px;min-width:0}
+header > *{flex:none}
 header .mark{font-size:19px;white-space:nowrap}
-#tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:4px 2px}
+#tabs{display:flex;gap:6px;overflow-x:auto;flex:1 1 auto;min-width:0;scrollbar-width:none;padding:4px 2px;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+#tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;max-width:210px}
+.tab .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ndocs{font-size:12px;color:var(--mute);white-space:nowrap}
+@media (max-width:1150px){header .mark{display:none}}
 .tab{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:99px;background:rgba(255,255,255,.6);color:var(--ink2);
   white-space:nowrap;transition:.15s;font-size:13px}
 .tab:hover{background:#fff}
@@ -64,7 +71,7 @@ main{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 20px 20px;min
 /* result */
 #res{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .rhead{padding:18px 20px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
-.rtitle{display:flex;align-items:center;gap:10px}
+.rtitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap;row-gap:8px}
 .rtitle h2{margin:0;font-size:22px;letter-spacing:-.02em}
 .rtitle .sw{margin-left:auto;display:flex;background:#f1f3f2;border-radius:99px;padding:3px}
 .sw button{padding:5px 12px;border-radius:99px;font-size:12.5px;color:var(--ink2)}
@@ -98,9 +105,9 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 .tab.on .spin{border-color:rgba(255,255,255,.25);border-top-color:#fff}
 @keyframes rot{to{transform:rotate(360deg)}}
 
-#qual{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap}
-#qual input{width:110px;accent-color:var(--accent)}
-#qual b{color:var(--ink);min-width:92px;display:inline-block}
+#qual{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap;width:300px;box-sizing:border-box}
+#qual input{width:104px;flex:none;accent-color:var(--accent);margin:0}
+#qual b{color:var(--ink);width:78px;flex:none;display:inline-block;text-align:left;overflow:hidden;text-overflow:ellipsis}
 #mem{font-size:12px;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--ink2);white-space:nowrap}
 #mem:hover{background:#fff}
 #mempop{position:fixed;top:62px;right:20px;width:320px;background:#fff;border-radius:14px;box-shadow:var(--sh);padding:14px 16px;display:none;z-index:20;font-size:13px}
@@ -154,6 +161,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
   <header>
     <div class="mark">odwołania <i>→</i> json</div>
     <nav id="tabs"></nav>
+    <span id="ndocs"></span>
     <div id="qual" title="Dokładność / koszt"><span>koszt</span><input id="qslider" type="range" min="0" max="3" step="1" value="2"><span>jakość</span><b id="qlabel">standard</b></div>
     <button id="mem" title="Pamięć systemu — uczenie w czasie">Pamięć: —</button>
     <button class="iconbtn" id="add" title="Dodaj PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -184,10 +192,13 @@ const KEY = {czynnosc_dzien:'data czynności', czynnosc_powod_id:'powód (id)', 
 let docs = [], cur = -1, view = 'dane', selected = null;
 let caseId = null, PROFILES = ['deterministyczny', 'ekonomiczny', 'standard', 'maksymalny'];
 fetch('/api/profiles').then(r => r.json()).then(p => { PROFILES = p.profiles.map(x => x.name); const i = Math.max(0, PROFILES.indexOf(p.default));
-  $('#qslider').max = PROFILES.length - 1; $('#qslider').value = i; $('#qlabel').textContent = PROFILES[i];
+  $('#qslider').max = PROFILES.length - 1; $('#qslider').value = i; $('#qlabel').textContent = pname(PROFILES[i]);
   $('#qual').title = p.profiles.map(x => `${x.name}: ${x.opis}`).join('\n'); }).catch(() => {});
+const PNAME = { deterministyczny: 'Reguły', ekonomiczny: 'Ekonomiczny', standard: 'Standard', auto: 'Auto', maksymalny: 'Maksymalny' };
 const profile = () => PROFILES[+$('#qslider').value];
-document.addEventListener('input', e => { if (e.target.id === 'qslider') $('#qlabel').textContent = profile(); });
+const pname = n => PNAME[n] || n;
+document.addEventListener('input', e => { if (e.target.id === 'qslider') { $('#qlabel').textContent = pname(profile()); $('#qual').title = ''; } });
+document.addEventListener('wheel', e => { const t = e.target.closest('#tabs'); if (t && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { t.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
 function loadMem() {
   fetch('/api/stats').then(r => r.json()).then(st => {
     const n = Object.values(st.examples || {}).reduce((a, b) => a + b, 0);
@@ -236,7 +247,9 @@ function toast(t) { const el = $('#toast'); el.querySelector('span').textContent
 // ---------- tabs ----------
 function renderTabs() {
   $('#tabs').innerHTML = docs.map((d, i) => `<button class="tab t-${d.pending ? 'odwolanie' : d.doctype} ${i === cur ? 'on' : ''}" onclick="select(${i})">
-    ${d.pending ? '<span class="spin"></span>' : '<span class="dot"></span>'}${esc(d.file.replace(/\.pdf$/i, ''))}</button>`).join('');
+    ${d.pending ? '<span class="spin"></span>' : '<span class="dot"></span>'}<span class="nm" title="${esc(d.file)}">${esc(d.file.replace(/\.pdf$/i, ''))}</span></button>`).join('');
+  $('#ndocs').textContent = docs.length > 3 ? `${docs.length} dok.` : '';
+  const on = $('#tabs .tab.on'); if (on) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 // ---------- select ----------
