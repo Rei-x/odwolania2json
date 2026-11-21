@@ -540,7 +540,7 @@ def d_signatories(C, r):
 
 def d_title_noise(C, r):
     p = C["przelew"]
-    p["suffix"] = r.choice([" / sygn. wewn. " + f"{r.randint(10, 99)}/{C['year']}", " – opłata za odwołanie", " zgodnie z art. 1 ust. 1 pkt 2 uopsk"])
+    p["suffix"] = r.choice([" / sygn. wewn. " + f"{r.randint(10, 99)}/{C['year']}", " KIO-ODW", " zgodnie z art. 1 ust. 1 pkt 2 uopsk"])
     C["flags"]["title_noise"] = True
     _instr(C, "przelew", "Tytuł przelewu jest długi – rozbij jego wyświetlanie na dwie linie w polu tytułu (może być w komórce tabeli), "
                          "ale znaki muszą być identyczne. Dodaj też pole 'Dane dodatkowe' z inną treścią (np. 'Kategoria: opłaty urzędowe').")
@@ -1068,7 +1068,7 @@ def render_style(C, doc, r):
 
 
 # ============================================================================ checks
-DATE_NUM = re.compile(r"\b(\d{1,2})[./](\d{1,2})[./](\d{4})")
+DATE_NUM = re.compile(r"(?<![\d.])(\d{1,2})[./](\d{1,2})[./](\d{4})")
 DATE_ISO = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 DATE_TXT = re.compile(r"\b(\d{1,2})\s+(" + "|".join(MON_GEN) + r")\s+(\d{4})", re.I)
 DATE_ROM = re.compile(r"\b(\d{1,2})\s+(" + "|".join(ROMAN[::-1]) + r")\s+(\d{4})\b")
@@ -1089,7 +1089,8 @@ def norm(s):
 def found_dates(text):
     res = set()
     for d, m, y in DATE_NUM.findall(text):
-        res.add((int(y), int(m), int(d)))
+        if 1 <= int(m) <= 12 and 1 <= int(d) <= 31:
+            res.add((int(y), int(m), int(d)))
     for y, m, d in DATE_ISO.findall(text):
         res.add((int(y), int(m), int(d)))
     for d, m, y in DATE_TXT.findall(text):

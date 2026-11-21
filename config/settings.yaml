@@ -15,6 +15,7 @@ ocr:
   model: ${O2J_OCR_MODEL}            # puste => model z sekcji llm
   reasoning: off                     # OCR nie potrzebuje myślenia (off | low | medium | high)
   max_tokens: 16000
+  preprocess: [orient]               # przed OCR: orient (0/90/180/270), deskew, flat, denoise, up
   attach_images: true                # dla skanów: tekst OCR + obrazy stron do modelu ekstrakcji
   dpi: 200
   max_pages: 4                       # OCR tylko pierwszych N stron (kluczowe dane są na początku)

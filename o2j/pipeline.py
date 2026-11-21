@@ -31,7 +31,7 @@ class Pipeline:
         ocr_cfg = self.s.get("ocr", {})
         try:
             doc = P.load(pdf_path, ocr=self._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)),
-                     dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)))
+                     dpi=int(ocr_cfg.get("dpi", 200)), ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"))
             load_error = None
         except Exception as e:  # noqa: BLE001  corrupted / unreadable file
             doc, load_error = P.Document(path=pdf_path), repr(e)

@@ -46,7 +46,7 @@ IMAGE_EXT = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}
 SUPPORTED_EXT = {".pdf"} | IMAGE_EXT
 
 
-def _load_image(path: Path, ocr, ocr_max_pages: int) -> Document:
+def _load_image(path: Path, ocr, ocr_max_pages: int, prep=None) -> Document:
     from PIL import Image, ImageSequence
     doc = Document(path=path)
     im = Image.open(path)
@@ -54,16 +54,19 @@ def _load_image(path: Path, ocr, ocr_max_pages: int) -> Document:
         buf = io.BytesIO()
         frame.convert("RGB").save(buf, format="PNG")
         png = buf.getvalue()
+        if prep:
+            from .preprocess import png_steps
+            png = png_steps(prep, png)
         text = ocr(png) if (ocr is not None and i < ocr_max_pages) else ""
         doc.pages.append(Page(i + 1, (text or "").strip(), "ocr", png))
     return doc
 
 
 def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: int | None = None,
-         ocr_max_pages: int = 4) -> Document:
+         ocr_max_pages: int = 4, prep: list[str] | None = None) -> Document:
     """ocr: callable(png_bytes) -> str, used for pages without a usable text layer."""
     if path.suffix.lower() in IMAGE_EXT:
-        return _load_image(path, ocr, ocr_max_pages)
+        return _load_image(path, ocr, ocr_max_pages, prep)
     raw: list[tuple[str, bytes | None]] = []
     with _PDFIUM_LOCK:
         try:
@@ -81,6 +84,9 @@ def load(path: Path, ocr=None, min_chars: int = 40, dpi: int = 200, max_pages: i
             raw.append((text, png))
             page.close()
         pdf.close()
+    if prep:  # e.g. auto-orientation / deskew of scanned pages before OCR
+        from .preprocess import png_steps
+        raw = [(t, png_steps(prep, png) if png is not None else None) for t, png in raw]
     doc = Document(path=path)
     todo = [i for i, (_, png) in enumerate(raw) if png is not None]
     ocr_text = {}
