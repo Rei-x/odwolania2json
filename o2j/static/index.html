@@ -113,9 +113,38 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 .tab.on .spin{border-color:rgba(255,255,255,.25);border-top-color:#fff}
 @keyframes rot{to{transform:rotate(360deg)}}
 
-#qual{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap;width:300px;box-sizing:border-box}
-#qual input{width:104px;flex:none;accent-color:var(--accent);margin:0}
+#qual{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap;width:268px;box-sizing:border-box}
+#qual input{width:92px;flex:none;accent-color:var(--accent);margin:0}
 #qual b{color:var(--ink);width:78px;flex:none;display:inline-block;text-align:left;overflow:hidden;text-overflow:ellipsis}
+#mdl{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);padding:6px 10px 6px 12px;border-radius:99px;font-size:12px;color:var(--ink2);white-space:nowrap;max-width:180px;min-width:0}
+#mdl:hover{background:#fff}
+#mdl b{color:var(--ink);overflow:hidden;text-overflow:ellipsis;min-width:0}
+#mdl .car{width:10px;height:10px;flex:none;opacity:.6}
+#mdl.ov{box-shadow:inset 0 0 0 1.5px var(--ink)}
+#mdl.noeu{box-shadow:inset 0 0 0 1.5px var(--amber)}
+#mdl:disabled{opacity:.55;cursor:default}
+.bdg{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:#eef0ef;color:var(--ink2);flex:none;line-height:1.5}
+.bdg.p20{background:#d5efe9;color:#0b4d52}.bdg.p18{background:#ddf0ec;color:#0b4d52}.bdg.p12{background:#e7f3f1;color:#245a5e}.bdg.p8,.bdg.p4{background:#f0f3f2;color:var(--ink2)}.bdg.p0{background:#f6eeee;color:#8a3b3b}
+.bdg.eu{background:#e6edfb;color:#1e40af}.bdg.noeu{background:#fdf1dc;color:#92400e}
+#mpop{position:fixed;top:62px;width:470px;max-height:min(70vh,560px);overflow:auto;background:#fff;border-radius:14px;box-shadow:var(--sh);padding:6px;display:none;z-index:22;font-size:13px}
+#mpop.on{display:block}
+#mpop .h{padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between}
+#mpop .h span{text-transform:none;letter-spacing:0;font-weight:500;white-space:nowrap}
+#mpop button{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;width:100%;text-align:left;padding:8px 10px;border-radius:10px;align-items:center}
+#mpop button:hover{background:#f6f7f6}
+#mpop button.on{background:#fff0f5}
+#mpop .ck{color:var(--accent);font-weight:700;font-size:12px}
+#mpop .nm b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mpop .nm small{display:block;color:var(--mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mpop .bd{display:flex;gap:4px;justify-content:flex-end;flex-wrap:nowrap}
+#mpop .warn{margin:2px 10px 8px;font-size:11.5px;color:#92400e;background:#fdf6e9;border-radius:8px;padding:6px 9px}
+.chip.ov{background:var(--ink);color:#fff}
+.chip.noeu{background:#fdf1dc;color:#92400e}
+#mdl .ic{width:14px;height:14px;flex:none;opacity:.7}
+@media (max-width:1600px){#mdl .lb{display:none}}
+@media (max-width:1500px){#mdl{max-width:150px}}
+@media (max-width:1400px){#mdl{max-width:120px}#mdl #mbdg{display:none}#qual{width:206px}#qual>span{display:none}}
+@media (max-width:1100px){header a.hbtn[href="/benchmarks"]{display:none}#mdl{max-width:96px}}
 #mem{font-size:12px;padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--ink2);white-space:nowrap}
 #mem:hover{background:#fff}
 #mempop{position:fixed;top:62px;right:20px;width:320px;background:#fff;border-radius:14px;box-shadow:var(--sh);padding:14px 16px;display:none;z-index:20;font-size:13px}
@@ -177,6 +206,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
     <nav id="tabs"></nav>
     <span id="ndocs"></span>
     <div id="qual" title="Dokładność / koszt"><span>koszt</span><input id="qslider" type="range" min="0" max="3" step="1" value="2"><span>jakość</span><b id="qlabel">standard</b></div>
+    <button id="mdl" title="Model LLM dla nowych dokumentów"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span class="lb">Model</span><b id="mlabel">Auto</b><span id="mbdg"></span><svg class="car" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m2 3.5 3 3 3-3"/></svg></button>
     <button id="mem" title="Pamięć systemu — uczenie w czasie">Pamięć: —</button>
     <a class="hbtn new" href="#nowy-typ" data-wizard title="Nowy typ dokumentu — bez zmian w kodzie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nowy typ</a>
     <a class="hbtn" href="/benchmarks" title="Benchmarki modeli">Benchmarki</a>
@@ -193,6 +223,7 @@ pre.json{margin:0;padding:14px 16px;font:12.5px/1.6 ui-monospace,SFMono-Regular,
 <div id="dragcover">Upuść, aby dodać</div>
 <div id="mempop"></div>
 <div id="expop"></div>
+<div id="mpop"></div>
 <div id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></svg><span></span></div>
 
 <script>
@@ -211,12 +242,57 @@ let docs = [], cur = -1, view = 'dane', selected = null;
 let caseId = null, PROFILES = ['deterministyczny', 'ekonomiczny', 'standard', 'maksymalny'];
 fetch('/api/profiles').then(r => r.json()).then(p => { PROFILES = p.profiles.map(x => x.name); const i = Math.max(0, PROFILES.indexOf(p.default));
   $('#qslider').max = PROFILES.length - 1; $('#qslider').value = i; $('#qlabel').textContent = pname(PROFILES[i]);
-  $('#qual').title = p.profiles.map(x => `${x.name}: ${x.opis}`).join('\n'); }).catch(() => {});
+  $('#qual').title = p.profiles.map(x => `${x.name}: ${x.opis}`).join('\n'); renderModelBtn(); }).catch(() => {});
 const PNAME = { deterministyczny: 'Reguły', ekonomiczny: 'Ekonomiczny', standard: 'Standard', auto: 'Auto', maksymalny: 'Maksymalny' };
 const profile = () => PROFILES[+$('#qslider').value];
 const pname = n => PNAME[n] || n;
-document.addEventListener('input', e => { if (e.target.id === 'qslider') { $('#qlabel').textContent = pname(profile()); $('#qual').title = ''; } });
+document.addEventListener('input', e => { if (e.target.id === 'qslider') { $('#qlabel').textContent = pname(profile()); $('#qual').title = ''; renderModelBtn(); } });
 document.addEventListener('wheel', e => { const t = e.target.closest('#tabs'); if (t && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { t.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+// ---------- model selector (GET /api/models): null = automatic (models defined by the profile) ----------
+let MODELS = [], chosen = null;
+try { chosen = localStorage.getItem('o2j.model') || null; } catch {}
+const model = () => chosen;
+const pb = v => v == null ? '?' : v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + 'T' : String(v).replace('.', ',') + 'B';
+const f3 = v => v == null ? null : v.toFixed(v === 1 ? 3 : 4).replace('.', ',');
+const ptsB = p => p == null ? '<span class="bdg" title="Rozmiar nieznany — brak punktów">? pkt</span>' : `<span class="bdg p${p}" title="Punkty UZP za rozmiar modelu">${p} pkt</span>`;
+const euB = m => m.eu ? `<span class="bdg eu" title="Serwowany przez dostawcę z UE: ${esc((m.eu_providers || []).join(', '))}">UE</span>`
+  : '<span class="bdg noeu" title="Brak dostawcy z siedzibą w UE/EOG — niezgodne z regulaminem, tylko do eksperymentów">poza UE</span>';
+function renderModelBtn() {
+  const btn = $('#mdl'), det = profile() === 'deterministyczny', m = MODELS.find(x => x.id === chosen);
+  btn.disabled = det;
+  btn.classList.toggle('ov', !!m && !det); btn.classList.toggle('noeu', !!m && !m.eu && !det);
+  $('#mlabel').textContent = det ? 'bez LLM' : m ? m.name : 'Auto';
+  $('#mbdg').innerHTML = det || !m ? '' : ptsB(m.points);  // non-EU: amber outline + tooltip (keeps the header compact)
+  btn.title = det ? 'Profil Reguły nie używa modelu LLM' : m ? `${m.name} (${m.id}) · ${pb(m.params_b)} · ${m.points ?? '?'} pkt${m.eu ? ' · UE' : ' · poza UE (tylko eksperyment)'}\nUżywany do OCR, klasyfikacji i ekstrakcji` : 'Model: automatyczny (wg profilu)';
+}
+function renderModelPop() {
+  const row = m => `<button data-m="${esc(m.id)}" class="${m.id === chosen ? 'on' : ''}"><span class="ck">${m.id === chosen ? '✓' : ''}</span>
+    <span class="nm"><b>${esc(m.name)}</b><small>${esc(m.id)}${m.f1_blind != null ? ` · F1 ślepy ${f3(m.f1_blind)}` : m.f1_train != null ? ` · F1 trening ${f3(m.f1_train)}` : ''}${m.cost != null ? ` · ${m.cost.toFixed(3).replace('.', ',')} $` : ''}</small></span>
+    <span class="bd"><span class="bdg" title="Łączna liczba parametrów (MoE łącznie)">${pb(m.params_b)}</span>${ptsB(m.points)}${euB(m)}</span></button>`;
+  const eu = MODELS.filter(m => m.eu), non = MODELS.filter(m => !m.eu);
+  $('#mpop').innerHTML = `<div class="h">Model dla nowych dokumentów<span>OCR · klasyfikacja · ekstrakcja</span></div>
+    <button data-m="" class="${chosen ? '' : 'on'}"><span class="ck">${chosen ? '' : '✓'}</span><span class="nm"><b>Automatyczny (wg profilu)</b><small>modele i kaskada zdefiniowane w profilu ${esc(pname(profile()))}</small></span><span class="bd"></span></button>
+    ${eu.length ? `<div class="h">Hosting w UE</div>${eu.map(row).join('')}` : ''}
+    ${non.length ? `<div class="h">Poza UE (tylko eksperyment)</div><div class="warn">Brak dostawcy z siedzibą w UE/EOG — wyniki tylko do porównań, niezgodne z regulaminem.</div>${non.map(row).join('')}` : ''}
+    ${MODELS.length ? '' : '<div class="warn">Brak listy modeli (/api/models).</div>'}`;
+}
+function loadModels() {
+  return fetch('/api/models').then(r => r.json()).then(d => { MODELS = d.models || [];
+    if (chosen && !MODELS.some(m => m.id === chosen)) chosen = null; renderModelBtn(); }).catch(() => {});
+}
+loadModels();
+document.addEventListener('click', e => {
+  const pop = $('#mpop');
+  if (e.target.closest('#mdl')) { e.stopPropagation(); if (pop.classList.contains('on')) { pop.classList.remove('on'); return; }
+    loadModels().then(() => { renderModelPop(); const r = $('#mdl').getBoundingClientRect();
+      pop.style.top = (r.bottom + 8) + 'px'; pop.style.left = Math.max(12, Math.min(innerWidth - 482, r.left)) + 'px'; pop.classList.add('on'); }); return; }
+  const it = e.target.closest('#mpop button');
+  if (it) { chosen = it.dataset.m || null; try { chosen ? localStorage.setItem('o2j.model', chosen) : localStorage.removeItem('o2j.model'); } catch {}
+    pop.classList.remove('on'); renderModelBtn(); const m = MODELS.find(x => x.id === chosen);
+    toast(m ? `Model: ${m.name}${m.eu ? '' : ' — poza UE, tylko eksperyment'}` : 'Model: automatyczny (wg profilu)'); return; }
+  if (!e.target.closest('#mpop')) pop.classList.remove('on');
+});
+addEventListener('keydown', e => { if (e.key === 'Escape') $('#mpop').classList.remove('on'); });
 function loadMem() {
   fetch('/api/stats').then(r => r.json()).then(st => {
     const n = Object.values(st.examples || {}).reduce((a, b) => a + b, 0);
@@ -252,7 +328,7 @@ function add(files) {
   let left = files.length;
   files.forEach((f, i) => {
     if (!caseId) caseId = Math.random().toString(36).slice(2, 12);
-    const fd = new FormData(); fd.append('files', f); fd.append('case', caseId); fd.append('profile', profile());
+    const fd = new FormData(); fd.append('files', f); fd.append('case', caseId); fd.append('profile', profile()); if (model() && profile() !== 'deterministyczny') fd.append('model', model());
     fetch('/api/process', { method: 'POST', body: fd }).then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t); }))
       .then(d => Object.assign(docs[start + i], d.documents[0], { pending: false }))
       .catch(err => Object.assign(docs[start + i], { pending: false, doctype: 'error', error: err.message, result: {}, trace: {} }))
@@ -304,8 +380,12 @@ function renderRes(d) {
   if (fixes.length) chips.push(icon('fix') + `${fixes.length} popr.`);
   const short = m => esc(String(m).split('/').pop());
   if (t.active_profile) chips.push(icon('fix') + esc(PNAME[t.active_profile] || t.active_profile));
-  if (t.voting && t.voting.models) chips.push(icon('chip') + `głosowanie: ${t.voting.models.map(short).join(' + ')}`);
+  const ov = t.model_override, ovm = ov && MODELS.find(x => x.id === ov);
+  if (ov) chips.push({ cls: ovm && !ovm.eu ? 'ov noeu' : 'ov', title: `Model wybrany ręcznie: ${ov} (OCR + klasyfikacja + ekstrakcja)${ovm && !ovm.eu ? ' — poza UE, tylko eksperyment' : ''}`,
+    html: icon('chip') + `model: ${short(t.model || ov)}` + (ovm ? ` · ${pb(ovm.params_b)} · ${ovm.points ?? '?'} pkt` : '') + (ovm && !ovm.eu ? ' · poza UE' : '') });
+  else if (t.voting && t.voting.models) chips.push(icon('chip') + `głosowanie: ${t.voting.models.map(short).join(' + ')}`);
   else if (t.model) chips.push(icon('chip') + short(t.model));
+  if (t.ocr_model && t.ocr_model !== t.model) chips.push(icon('scan') + `OCR: ${short(t.ocr_model)}`);
   if (t.router) {
     if (t.router.escalate) {
       const steps = ((t.router.vote || {}).steps || []).map(s => s.models.map(short).join('+')).join(' → ');
@@ -316,7 +396,7 @@ function renderRes(d) {
       <div class="rtitle t-${d.doctype}"><span class="dot" style="width:11px;height:11px"></span><h2>${LABEL[d.doctype] || esc(d.doctype)}</h2>
         <div class="sw"><button class="${view === 'dane' ? 'on' : ''}" onclick="setView('dane')">Dane</button><button class="${view === 'json' ? 'on' : ''}" onclick="setView('json')">JSON</button><button class="${view === 'sprawa' ? 'on' : ''}" onclick="setView('sprawa')">Sprawa</button></div>
         ${d.doctype in LABEL && d.doctype !== 'error' && d.doctype !== 'inny' ? `<button class="approve ${d.edited ? 'edited' : ''}" onclick="approve()" title="Zapisz do pamięci systemu">${d.edited ? 'Zapisz poprawki' : 'Zatwierdź'}</button>` : ''}</div>
-      <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div></div>
+      <div class="chips">${chips.map(c => typeof c === 'string' ? `<span class="chip">${c}</span>` : `<span class="chip ${c.cls}" title="${esc(c.title)}">${c.html}</span>`).join('')}</div></div>
     <div class="rbody">${d.error ? `<p style="padding:16px;color:#b91c1c">${esc(d.error)}</p>` : view === 'sprawa' ? '<div id="casebox" style="padding:10px 4px;color:var(--mute)">Analiza spójności sprawy…</div>' : view === 'json' ? `<pre class="json">${hjson(d.edited || d.result, 0)}</pre>` :
       (fixes.length ? `<div class="fixes"><b>Weryfikacja poprawiła:</b>${fixes.map(f => `<div>${esc(f.field)}: <s>${esc(JSON.stringify(f.before))}</s> → ${esc(JSON.stringify(f.after))}</div>`).join('')}</div>` : '') +
       fields(d.edited || d.result, '', evMap(d))}</div>`;

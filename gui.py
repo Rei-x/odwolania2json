@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -51,7 +52,7 @@ async def basic_auth(request, call_next):
         if not ok:
             return Response("Wymagane logowanie", status_code=401, headers={"WWW-Authenticate": 'Basic realm="odwolania2json"'})
     return await call_next(request)
-_pipes: dict[str, Pipeline] = {}
+_pipes: dict[tuple[str, str], Pipeline] = {}
 PROFILE_INFO = {
     "deterministyczny": "Reguły bez LLM — najtańszy, w pełni powtarzalny",
     "ekonomiczny": "Tani model, bez pętli naprawy",
@@ -60,11 +61,99 @@ PROFILE_INFO = {
 }
 
 
-def get_pipe(profile: str | None = None) -> Pipeline:
+EU_PROVIDERS = {"mistral", "nebius", "nextbit", "inceptron", "scaleway", "ovhcloud", "aleph-alpha"}  # siedziba w UE/EOG
+BENCH = ROOT / "docs" / "benchmarks.json"
+
+
+def _sweep_path() -> Path:
+    import os
+    return Path(os.environ.get("O2J_BENCH_SWEEP") or ROOT / "docs" / "bench_sweep.json")
+
+
+def _read_json(path: Path, default):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):  # brak pliku albo zapis w toku (sweep dopisuje wyniki)
+        return default
+
+
+def _points(b) -> int | None:
+    if b is None:
+        return None
+    for lim, pts in ((8, 20), (14, 18), (32, 12), (70, 8), (150, 4)):
+        if b <= lim:
+            return pts
+    return 0
+
+
+def _num(v):
+    try:
+        return None if v is None or v == "" else float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _eu_slugs(provs) -> list[str]:
+    return sorted({str(p).split("/")[0].lower() for p in provs or [] if str(p).split("/")[0].lower() in EU_PROVIDERS})
+
+
+def model_catalog() -> list[dict]:
+    """settings.model_params + settings.providers + docs/bench_sweep.json + docs/benchmarks.json -> lista modeli do wyboru."""
     from o2j.config import load_settings
-    key = profile or ""
+    s = load_settings()
+    params, provs = s.get("model_params") or {}, s.get("providers") or {}
+    bench = {m["id"]: m for m in (_read_json(BENCH, {}).get("models") or []) if m.get("id")}
+    sweep = {r["model"]: r for r in (_read_json(_sweep_path(), {}).get("runs") or []) if r.get("model")}
+    ids = [m for m in list(params) + list(provs) + list(sweep) if m != "deterministic"]
+    out = []
+    for mid in dict.fromkeys(ids):
+        b, r, cfg = bench.get(mid) or {}, sweep.get(mid) or {}, provs.get(mid) or {}
+        size = (params.get(mid) or {}).get("total")
+        size = size if size is not None else _num(r.get("params_b")) if _num(r.get("params_b")) is not None else b.get("params_b")
+        pinned = _eu_slugs(cfg.get("only"))
+        eu_sweep = _eu_slugs(r.get("eu_providers"))
+        tr, bl = ({k: _num(v) for k, v in (r.get(part) or {}).items() if k in ("f1", "cost")} for part in ("train", "blind"))
+        f1b = bl.get("f1") if bl.get("f1") is not None else (b.get("f1") or {}).get("blind")
+        f1t = tr.get("f1") if tr.get("f1") is not None else (b.get("f1") or {}).get("train")
+        cost = tr.get("cost") if tr.get("cost") is not None else (b.get("cost_usd") or {}).get("train")
+        out.append({"id": mid, "name": b.get("name") or re.sub(r"^[^:]{1,30}:\s*", "", r.get("name") or "") or mid.split("/")[-1], "params_b": size,
+                    "active_b": (params.get(mid) or {}).get("active"), "points": _points(size),
+                    "eu": bool(pinned or (eu_sweep and not cfg.get("only"))), "eu_providers": pinned or eu_sweep,
+                    "pinned": bool(pinned), "f1_blind": f1b, "f1_train": f1t, "cost": cost, "cost_blind": bl.get("cost"),
+                    "in_sweep": bool(r), "configured": mid in params or mid in provs})
+    out.sort(key=lambda m: (not m["eu"], -(m["points"] if m["points"] is not None else -1), -(m["f1_blind"] or 0), m["name"]))
+    return out
+
+
+def settings_for(profile: str | None = None, model: str | None = None) -> dict:
+    """Ustawienia profilu; wybrany model nadpisuje llm.model, classification.model i ocr.model (jeden model na wszystko)."""
+    from o2j.config import load_settings
+    s = load_settings(profile=profile)
+    if not model or (s.get("extraction") or {}).get("mode") == "deterministic":
+        return s
+    s["llm"]["model"] = model
+    s.setdefault("classification", {})["model"] = model
+    s.setdefault("ocr", {})["model"] = model
+    # żaden inny model nie wchodzi tylnymi drzwiami: bez głosu innych modeli i bez eskalacji w kaskadzie
+    s["classification"]["vote_models"] = []
+    if (s.get("voting") or {}).get("models"):
+        s["voting"]["models"] = [model]
+    if (s.get("router") or {}).get("enabled"):
+        s["router"]["enabled"] = False
+    provs = s.setdefault("providers", {})
+    if not (provs.get(model) or {}).get("only"):  # bez przypięcia w konfiguracji: dostawcy z UE znalezieni w sweepie
+        run = next((r for r in (_read_json(_sweep_path(), {}).get("runs") or []) if r.get("model") == model), {})
+        eu = _eu_slugs(run.get("eu_providers"))
+        if eu:
+            provs[model] = {**(provs.get(model) or {}), "only": eu, "allow_fallbacks": False, "data_collection": "deny"}
+    s["model_override"] = model
+    return s
+
+
+def get_pipe(profile: str | None = None, model: str | None = None) -> Pipeline:
+    key = (profile or "", model or "")
     if key not in _pipes:
-        _pipes[key] = Pipeline(load_settings(profile=profile))
+        _pipes[key] = Pipeline(settings_for(profile, model))
     return _pipes[key]
 
 
@@ -174,8 +263,18 @@ def profiles():
     return {"default": s.get("profile"), "profiles": [{"name": n, "opis": PROFILE_INFO.get(n, "")} for n in names]}
 
 
+@app.get("/api/models")
+def models():
+    """Modele do ręcznego wyboru w aplikacji (rozmiar, punkty UZP, hosting w UE, F1 ze sweepu/benchmarków)."""
+    return {"default": None, "models": model_catalog()}
+
+
 @app.post("/api/process")
-async def process(files: list[UploadFile] = File(...), case: str | None = Form(None), profile: str | None = Form(None)):
+async def process(files: list[UploadFile] = File(...), case: str | None = Form(None), profile: str | None = Form(None),
+                  model: str | None = Form(None)):
+    model = (model or "").strip() or None
+    if model and model not in {m["id"] for m in model_catalog()}:
+        raise HTTPException(400, f"Nieznany model: {model}")
     sid = case if case and case.isalnum() and len(case) <= 32 else uuid.uuid4().hex[:10]
     d = DATA / sid
     d.mkdir(parents=True, exist_ok=True)
@@ -190,14 +289,14 @@ async def process(files: list[UploadFile] = File(...), case: str | None = Form(N
             path = d / f"{Path(name).stem} ({k}){Path(name).suffix}"
             k += 1
         path.write_bytes(await f.read())
-        out.append(await run_in_threadpool(_one, sid, path, profile))
+        out.append(await run_in_threadpool(_one, sid, path, profile, model))
     if not out:
         raise HTTPException(400, "Brak plików PDF")
     return {"session": sid, "documents": out}
 
 
-def _one(sid: str, path: Path, profile: str | None = None) -> dict:
-    p = get_pipe(profile)
+def _one(sid: str, path: Path, profile: str | None = None, model: str | None = None) -> dict:
+    p = get_pipe(profile, model)
     try:
         doctype, result, trace = p.process(path)
     except Exception as e:  # noqa: BLE001
@@ -211,10 +310,12 @@ def _one(sid: str, path: Path, profile: str | None = None) -> dict:
         json.dumps(result if doctype in p.specs else {}, ensure_ascii=False, indent=2), encoding="utf-8")
     (path.parent / (path.stem + ".result.json")).write_text(json.dumps({
         "doctype": doctype, "result": result, "file": path.name, "profile": p.s.get("active_profile"),
-        "text": "\n".join(pg.get("text", "") for pg in trace.get("page_texts", []))}, ensure_ascii=False), encoding="utf-8")
+        "model_override": p.s.get("model_override"), "text": "\n".join(pg.get("text", "") for pg in trace.get("page_texts", []))}, ensure_ascii=False), encoding="utf-8")
     keep = ("classification", "model", "pages", "ocr_pages", "elapsed_s", "few_shot", "verification", "usage",
-            "voting", "learned_examples_available", "active_profile", "router")
+            "voting", "learned_examples_available", "active_profile", "router", "model_override", "ocr_model")
     trace["active_profile"] = p.s.get("active_profile")
+    trace["model_override"] = p.s.get("model_override")
+    trace["ocr_model"] = (p.s.get("ocr") or {}).get("model") or p.s["llm"].get("model") if trace.get("ocr_pages") else None
     return {"session": sid, "file": path.name, "doctype": doctype, "result": result,
             "trace": {**{k: trace.get(k) for k in keep}, "evidence": evidence}}
 
@@ -472,7 +573,18 @@ def benchmarks_page():
 
 @app.get("/api/benchmarks")
 def benchmarks_data():
-    return json.loads((ROOT / "docs" / "benchmarks.json").read_text(encoding="utf-8"))
+    return json.loads(BENCH.read_text(encoding="utf-8"))
+
+
+@app.get("/api/bench_sweep")
+def bench_sweep():
+    """Wyniki sweepu modeli (eval/bench_models.py dopisuje je w trakcie przebiegu); null = brak wyniku."""
+    path = _sweep_path()
+    data = _read_json(path, None)
+    mtime = path.stat().st_mtime if path.exists() else None
+    if not isinstance(data, dict):
+        return {"runs": [], "mtime": mtime, "missing": data is None and mtime is None}
+    return {**data, "runs": [r for r in data.get("runs") or [] if isinstance(r, dict) and r.get("model")], "mtime": mtime}
 
 
 if __name__ == "__main__":

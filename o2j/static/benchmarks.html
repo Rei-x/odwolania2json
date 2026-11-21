@@ -105,6 +105,39 @@ td .vd{display:block;font-size:12px;color:var(--mute)}
 footer{max-width:1180px;margin:0 auto;padding:30px var(--gut) 60px;border-top:1px solid var(--line);color:var(--mute);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
 footer a{color:var(--ink2)}
 .mobonly{display:none}@media (max-width:800px){.mobonly{display:block}}
+/* ---------- sweep ---------- */
+.swhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.swctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
+.pbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:99px;background:#fff;box-shadow:var(--sh);font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);border:0;cursor:pointer}
+.pbtn:hover{background:#f8f9f8}
+.pbtn.on{background:var(--ink);color:#fff}
+.pbtn svg{width:14px;height:14px}
+.pbtn.spin svg{animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.live{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+.live.off{background:#b6bfbb;box-shadow:none}
+.callouts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:16px}
+.callouts .card{padding:16px 18px}
+.callouts .k{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.callouts b{display:block;font-size:15px;margin:4px 0 2px}
+.callouts .v{font-size:24px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.callouts small{display:block;color:var(--ink2);font-size:12.5px;line-height:1.45;margin-top:4px}
+.bdg{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:#eef0ef;color:var(--ink2);margin-left:5px;vertical-align:1px;white-space:nowrap}
+.bdg.eu{background:#e6edfb;color:#1e40af}.bdg.noeu{background:#fdf1dc;color:#92400e}.bdg.par{background:var(--accent);color:#fff}
+.nores{font-style:italic;color:#b45309;font-size:12.5px;white-space:nowrap;cursor:help;border-bottom:1px dotted #d6a35c}
+#swtbl td.pd{font-size:12.5px;color:var(--ink2)}
+#swtbl td.num{white-space:nowrap}
+#swtbl th,#swtbl td{padding-left:7px;padding-right:7px}
+#swtbl{font-size:13px}
+#swtbl th{letter-spacing:.04em}
+#swtbl td .vd{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#swtbl tr.par td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+#swtbl tr.new td{animation:flash 2.4s ease-out}
+@keyframes flash{from{background:#fff3c4}to{background:transparent}}
+.seg{display:inline-flex;background:#f1f3f2;border-radius:99px;padding:3px}
+.seg button{border:0;background:none;font:inherit;font-size:12px;padding:4px 11px;border-radius:99px;color:var(--ink2);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.empty{padding:28px;text-align:center;color:var(--mute)}
 .err{padding:40px;text-align:center;color:#b91c1c}
 </style>
 </head>
@@ -114,6 +147,7 @@ footer a{color:var(--ink2)}
   <div class="links">
     <a href="#rozmiar">Rozmiar a F1</a>
     <a href="#tabela">Wszystkie modele</a>
+    <a href="#sweep">Sweep modeli</a>
     <a href="#koszt">Koszt</a>
     <a href="#ocr">OCR</a>
     <a href="#decyzja">Dlaczego ≤ 8B</a>
@@ -140,6 +174,16 @@ footer a{color:var(--ink2)}
     <div class="card"><div class="tablewrap"><table id="tbl"></table></div><p class="note" id="tnote"></p></div>
   </section>
 
+  <section id="sweep">
+    <div class="swhead">
+      <div><h2>Sweep modeli</h2>
+        <p class="sub" style="margin-bottom:0">Ten sam pipeline (profil Standard, jeden model do OCR, klasyfikacji i ekstrakcji) na 12 sprawach treningowych i zamrożonym ślepym zbiorze. Dane z <code>docs/bench_sweep.json</code> — sweep wciąż trwa, więc tabela dorasta.</p></div>
+      <div class="swctl"><span id="swstat"></span>
+        <button class="pbtn" id="swref" title="Pobierz najnowsze wyniki"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Odśwież</button>
+        <button class="pbtn on" id="swauto" title="Automatyczne odświeżanie co 30 s"><span class="live"></span>Auto 30 s</button></div>
+    </div>
+    <div id="swbody" style="margin-top:20px"><div class="card empty">Wczytywanie wyników sweepu…</div></div>
+  </section>
   <section id="koszt">
     <h2>Koszt przebiegu</h2>
     <p class="sub">Koszt 36 dokumentów. Najtańsze przebiegi mają duże modele MoE, ale za ich rozmiar jest 0 punktów. Reguły YAML kosztują 0 USD.</p>
@@ -184,7 +228,7 @@ const usd = v => v == null ? null : v === 0 ? '0 $' : v.toFixed(3).replace('.', 
 const pb = v => v == null ? '?' : v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + 'T' : String(v).replace('.', ',') + 'B';
 const PEND = '<span class="pend">w trakcie pomiaru</span>';
 const TEAL = [15, 127, 134];
-let D, BANDS;
+let D, BANDS = null;
 const points = b => { if (b == null) return null; for (const x of BANDS) if (x.max_b == null || b <= x.max_b) return x.points; return 0; };
 const bandAlpha = p => ({ 20: .26, 18: .19, 12: .12, 8: .075, 4: .04, 0: 0 })[p] ?? 0;
 const ptsPill = p => p == null ? '<span class="dash">—</span>' : `<span class="pts" style="background:rgba(${TEAL},${Math.max(.08, bandAlpha(p) + .04)});color:${p >= 12 ? '#0b4d52' : 'var(--ink2)'}">${p} pkt</span>`;
@@ -373,8 +417,212 @@ function render() {
   $('#rule').textContent = D.scoring.rule;
   $('#upd').textContent = `Dane: docs/benchmarks.json · aktualizacja ${D.updated}`;
 }
-fetch('/api/benchmarks').then(r => r.json()).then(d => { D = d; BANDS = d.scoring.bands; render(); let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(render, 120); }); })
-  .catch(e => { $('#main').insertAdjacentHTML('beforeend', `<p class="err">Nie udało się wczytać docs/benchmarks.json: ${esc(e.message)}</p>`); });
+// ================================================================ model sweep (GET /api/bench_sweep)
+let SW = null, swMtime = undefined, swSort = 'blind', swDir = -1, swPd = 'blind', swSeen = null, swTimer = null;
+const DEF_BANDS = [{ max_b: 8, points: 20 }, { max_b: 14, points: 18 }, { max_b: 32, points: 12 }, { max_b: 70, points: 8 }, { max_b: 150, points: 4 }, { max_b: null, points: 0 }];
+const bandsOf = () => BANDS || DEF_BANDS;
+const ptsOf = r => r.points ?? (r.params_b == null ? null : (bandsOf().find(b => b.max_b == null || r.params_b <= b.max_b) || {}).points ?? 0);
+const BAND_COL = { 20: '#0b4d52', 18: '#0f7f86', 12: '#4fa7ab', 8: '#93c9cb', 4: '#c4dfe0', 0: '#9aa5a9' };
+const PD_LABEL = { odwolanie: 'Odwołanie', pelnomocnictwo: 'Pełnomocn.', potwierdzenie_przelewu: 'Przelew', przelew: 'Przelew', inny: 'Inny' };
+const nores = (err, what = 'brak wyniku') => `<span class="nores" title="${esc(err || 'Brak wyniku (pomiar w toku albo przebieg nie zwrócił danych)')}">${what}</span>`;
+const swName = r => r.name ? r.name.replace(/^[^:]{1,30}:\s*/, '') : r.model.split('/').pop();
+const sum2 = (a, b) => a == null && b == null ? null : (a || 0) + (b || 0);
+const secs = v => v == null ? null : v >= 90 ? Math.round(v / 60) + ' min' : Math.round(v) + ' s';
+const isEU = r => (r.eu_providers || []).length > 0;
+const SPECIAL = [
+  [/tower|translat|nllb|madlad|seamless|opus-mt|aya|salamandra/i, 'model do tłumaczeń'],
+  [/ui-?tars|gui|computer|operator|cua|holo|agent/i, 'agent GUI'],
+  [/ocr|olmocr|nanonets|dots\.|got-/i, 'model OCR'],
+  [/coder|code|devstral|codestral/i, 'model do kodu'],
+  [/guard|safety|shield/i, 'model moderacji'],
+  [/math|prover/i, 'model matematyczny'],
+];
+const specialOf = r => { const t = `${r.model} ${r.name || ''}`; const m = SPECIAL.find(([re]) => re.test(t)); return m ? m[1] : null; };
+
+const num = v => { if (v == null || v === '') return null; const n = +v; return Number.isFinite(n) ? n : null; };
+const DOCTYPE_RE = /^[a-z][a-z0-9_]*$/;  // per_doc may also carry names of out-of-scope test files -> skip them
+function swPrep(runs) {
+  runs.forEach(r => { r.params_b = num(r.params_b); ['train', 'blind'].forEach(k => { const p = r[k]; if (!p) return;
+    ['f1', 'cost', 'seconds'].forEach(f => p[f] = num(p[f]));
+    if (p.per_doc) p.per_doc = Object.fromEntries(Object.entries(p.per_doc).filter(([d]) => DOCTYPE_RE.test(d)).map(([d, v]) => [d, num(v)])); }); });
+  runs.forEach(r => { r._pts = ptsOf(r); r._b = (r.blind || {}).f1; r._t = (r.train || {}).f1;
+    r._cost = sum2((r.train || {}).cost, (r.blind || {}).cost); r._sec = sum2((r.train || {}).seconds, (r.blind || {}).seconds); r._par = false; });
+  // Pareto: no other model has >= points and strictly higher blind F1 (or same F1 with more points)
+  const ok = runs.filter(r => r._b != null && r._pts != null);
+  ok.forEach(r => { r._par = !ok.some(o => o !== r && o._pts >= r._pts && o._b >= r._b && (o._pts > r._pts || o._b > r._b)); });
+  // within a points band: best blind F1 is "najlepszy w paśmie"
+  const best = {}; ok.forEach(r => { if (!best[r._pts] || r._b > best[r._pts]._b) best[r._pts] = r; });
+  runs.forEach(r => r._bandBest = best[r._pts] === r);
+  return runs;
+}
+
+function swCallouts(runs) {
+  const ok = runs.filter(r => r._b != null), out = [];
+  const card = (k, title, v, txt) => `<div class="card"><span class="k">${k}</span><b>${title}</b>${v ? `<span class="v">${v}</span>` : ''}<small>${txt}</small></div>`;
+  const med = (() => { const v = ok.map(r => r._b).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : null; })();
+  const sized = ok.filter(r => r.params_b != null);
+  const hi = sized.filter(r => r._b >= .95).sort((a, b) => a.params_b - b.params_b)[0];
+  if (hi) { const smaller = sized.filter(r => r.params_b < hi.params_b), hiEU = isEU(hi) ? null : sized.filter(r => r._b >= .95 && isEU(r)).sort((a, b) => a.params_b - b.params_b)[0];
+    out.push(card('Najmniejszy z F1 ≥ 0,95', esc(swName(hi)), f1s(hi._b), `${pb(hi.params_b)} parametrów · ${hi._pts} pkt · ${isEU(hi) ? 'UE' : 'poza UE'}.` +
+      (smaller.length ? ` Mniejsze w sweepie: ${smaller.map(r => `${esc(swName(r))} ${f1s(r._b)}`).join(', ')}.` : ' Najmniejszy model w sweepie.') +
+      (hiEU ? ` Najmniejszy z hostingiem w UE: <b style="display:inline;font-size:inherit">${esc(swName(hiEU))}</b> (${pb(hiEU.params_b)}, ${f1s(hiEU._b)}).` : ''))); }
+  const top = [...ok].sort((a, b) => b._b - a._b || (b._pts ?? -1) - (a._pts ?? -1))[0];
+  const top20 = ok.filter(r => r._pts === 20 && isEU(r)).sort((a, b) => b._b - a._b)[0];
+  if (top) out.push(card('Najlepszy F1 ślepy', esc(swName(top)), f1s(top._b), `${pb(top.params_b)} · ${top._pts ?? '?'} pkt.${top20 && top20 !== top ? ` Najlepszy za 20 pkt z hostingiem w UE: <b style="display:inline;font-size:inherit">${esc(swName(top20))}</b> ${f1s(top20._b)} (różnica ${fmt(top._b - top20._b, 4)}).` : top20 === top ? ' Mieści się w paśmie 20 pkt i ma hosting w UE.' : ''}`));
+  const cheap = ok.filter(r => r._b >= .95 && r._cost != null).sort((a, b) => a._cost - b._cost)[0];
+  if (cheap) out.push(card('Najtańszy z F1 ≥ 0,95', esc(swName(cheap)), usd(cheap._cost), `trening + ślepy zbiór razem; F1 ślepy ${f1s(cheap._b)}, ${cheap._pts ?? '?'} pkt.`));
+  runs.filter(specialOf).forEach(r => {
+    const what = specialOf(r);
+    out.push(card(`Nietypowy: ${what}`, esc(swName(r)), r._b != null ? f1s(r._b) : null,
+      r._b != null ? `Model nie do ekstrakcji, a F1 ślepy ${f1s(r._b)}${med != null ? ` — ${r._b >= med ? 'powyżej' : 'poniżej'} mediany sweepu (${f1s(med)})` : ''}. ${pb(r.params_b)} · ${r._pts ?? '?'} pkt${(r.blind || {}).negatives_ok ? ` · dokumenty spoza zakresu odrzucone ${r.blind.negatives_ok}` : ''}.`
+        : `Brak wyniku na ślepym zbiorze: ${esc(((r.blind || {}).error || (r.train || {}).error || '—').slice(-140))}`));
+  });
+  const gap = ok.filter(r => r._t != null).map(r => ({ r, d: r._t - r._b })).sort((a, b) => b.d - a.d)[0];
+  if (gap && gap.d >= .01) out.push(card('Największy spadek trening → ślepy', esc(swName(gap.r)), '−' + fmt(gap.d, 3), `F1 ${f1s(gap.r._t)} na treningu, ${f1s(gap.r._b)} na nowych sprawach — możliwe dopasowanie do znanych układów.`));
+  const neg = runs.filter(r => { const n = (r.blind || {}).negatives_ok; if (!n) return false; const [a, b] = n.split('/').map(Number); return a < b; });
+  if (neg.length) out.push(card('Dokumenty spoza zakresu', `${neg.length} ${neg.length === 1 ? 'model przepuszcza' : 'modele przepuszczają'} negatywy`, null, neg.slice(0, 4).map(r => `${esc(swName(r))} (${r.blind.negatives_ok})`).join(', ') + (neg.length > 4 ? '…' : '') + '. Pozostałe modele odrzucają wszystkie.'));
+  const failed = runs.filter(r => r._b == null || r._t == null);
+  if (failed.length) out.push(card('Brak wyniku', `${failed.length} z ${runs.length} przebiegów`, null, failed.slice(0, 4).map(r => `<span title="${esc((r.blind || {}).error || (r.train || {}).error || '')}">${esc(swName(r))}</span>`).join(', ') + (failed.length > 4 ? '…' : '') + '. Najedź na „brak wyniku” w tabeli, aby zobaczyć błąd.'));
+  return out.join('');
+}
+
+function swScatter(runs) {
+  const box = $('#swscatter'); if (!box) return;
+  const W = Math.max(720, box.clientWidth), H = Math.max(340, Math.min(440, W * .45));
+  const pts = runs.filter(r => r._b != null && r.params_b != null && r.params_b > 0);
+  const L = 56, R = 20, T = 30, B = 46;
+  const ps = pts.map(r => r.params_b), lmin = Math.log10(Math.min(1, ...ps) * .8), lmax = Math.log10(Math.max(1000, ...ps) * 1.25);
+  const X = b => L + (Math.log10(b) - lmin) / (lmax - lmin) * (W - L - R);
+  const fmin = Math.min(...pts.map(r => r._b), .95), ymin = Math.max(0, Math.floor(fmin * 20) / 20 - (fmin > .9 ? 0 : .02)), ymax = 1.004;
+  const Y = f => T + (ymax - f) / (ymax - ymin) * (H - T - B);
+  const costs = pts.map(r => r._cost).filter(v => v != null), cmax = Math.max(...costs, 1e-9);
+  const rad = c => c == null ? 6 : 5 + 11 * Math.sqrt(c / cmax);
+  let s = '', prev = Math.pow(10, lmin);
+  bandsOf().forEach(b => { const hi = b.max_b ?? Math.pow(10, lmax), xa = X(Math.max(prev, Math.pow(10, lmin))), xb = X(Math.min(hi, Math.pow(10, lmax)));
+    if (xb > xa) { s += `<rect x="${xa}" y="${T - 22}" width="${xb - xa}" height="${H - B - T + 22}" fill="rgba(${TEAL},${bandAlpha(b.points) * .7})"/>
+      <text x="${(xa + xb) / 2}" y="${T - 8}" text-anchor="middle" font-size="11" font-weight="700" fill="${b.points ? '#0b4d52' : '#7d8b91'}">${b.points} pkt</text>`; }
+    prev = hi; });
+  const step = ymax - ymin > .2 ? .1 : ymax - ymin > .08 ? .02 : .01;
+  for (let f = Math.ceil(ymin / step) * step; f <= 1.0001; f += step) s += `<line x1="${L}" x2="${W - R}" y1="${Y(f)}" y2="${Y(f)}" stroke="#0b1a20" stroke-opacity=".07"/><text x="${L - 10}" y="${Y(f) + 4}" text-anchor="end" font-size="11.5" fill="#7d8b91">${fmt(f, 2)}</text>`;
+  [1, 3, 8, 14, 32, 70, 150, 400, 1000, 3000].filter(b => Math.log10(b) >= lmin && Math.log10(b) <= lmax).forEach(b => { s += `<text x="${X(b)}" y="${H - B + 18}" text-anchor="middle" font-size="11.5" fill="#7d8b91">${pb(b)}</text>`; });
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="#41525a">Łączna liczba parametrów (skala logarytmiczna)</text>
+    <text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#41525a">F1 (ślepy zbiór)</text>`;
+  // Pareto frontier: step line through optimal models, ordered by size
+  const fr = pts.filter(r => r._par).sort((a, b) => a.params_b - b.params_b);
+  if (fr.length > 1) s += `<polyline fill="none" stroke="#e8004f" stroke-width="2" stroke-dasharray="5 4" opacity=".75" points="${fr.map(r => `${X(r.params_b)},${Y(r._b)}`).join(' ')}"/>`;
+  let hits = '';  // hover targets go on top of every mark
+  const order = [...pts].sort((a, b) => rad(b._cost) - rad(a._cost));  // small bubbles on top
+  order.forEach(r => { const i = runs.indexOf(r), x = X(r.params_b), y = Y(r._b), col = BAND_COL[r._pts] ?? '#9aa5a9';
+    s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost)}" fill="${r._cost == null ? '#fff' : col}" fill-opacity="${r._cost == null ? 1 : .85}" stroke="${r._cost == null ? col : '#fff'}" stroke-width="2" ${isEU(r) ? '' : 'stroke-dasharray="3 2"'}/>`;
+    if (!isEU(r)) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + 3}" fill="none" stroke="#c27803" stroke-width="1.5" stroke-dasharray="3 2.5"/>`;
+    if (r._par) s += `<circle cx="${x}" cy="${y}" r="${rad(r._cost) + (isEU(r) ? 3.5 : 6.5)}" fill="none" stroke="#e8004f" stroke-width="2"/>`;
+    hits += `<circle cx="${x}" cy="${y}" r="${Math.max(12, rad(r._cost) + 4)}" fill="transparent" class="pt" data-i="${i}" style="cursor:pointer"/>`; });
+  // direct labels only for Pareto models and special models (selective labelling)
+  const lab = pts.filter(r => r._par || specialOf(r));
+  // obstacles: every bubble + placed labels; try right of the bubble, then left, then nudge down
+  const used = pts.map(r => { const x = X(r.params_b), y = Y(r._b), q = rad(r._cost) + 3; return { x0: x - q, x1: x + q, y0: y - q, y1: y + q }; });
+  const hit = (a) => used.some(u => a.x0 < u.x1 && a.x1 > u.x0 && a.y0 < u.y1 && a.y1 > u.y0);
+  lab.sort((a, b) => b._b - a._b).forEach(r => {
+    const nm = swName(r), w = nm.length * 6.4, cx = X(r.params_b), q = rad(r._cost) + 7;
+    let best = null;
+    for (let dy = 0; dy <= 70 && !best; dy += 14) for (const side of [1, -1]) {
+      const x0 = side > 0 ? cx + q : cx - q - w, y = Y(r._b) + 4 + dy, box_ = { x0, x1: x0 + w, y0: y - 11, y1: y + 3 };
+      if (x0 >= L && x0 + w <= W - R && !hit(box_)) { best = box_; break; }
+    }
+    best = best || { x0: cx + q, x1: cx + q + w, y0: Y(r._b) - 7, y1: Y(r._b) + 7 };
+    used.push(best);
+    s += `<text x="${best.x0}" y="${best.y1 - 3}" font-size="11.5" font-weight="600" fill="#0b1a20" paint-order="stroke" stroke="#fff" stroke-width="3" stroke-opacity=".8">${esc(nm)}</text>`; });
+  s += hits;
+  box.innerHTML = svgEl(W, H, s);
+  const tip = tipFor(box);
+  box.querySelectorAll('.pt').forEach(c => {
+    c.addEventListener('mouseenter', () => { const r = runs[+c.dataset.i], cy = +c.getAttribute('cy'), rr = +c.getAttribute('r');
+      tip.show(swTip(r), +c.getAttribute('cx'), cy - rr + 8); const t = box.querySelector('.tip');
+      if (t.offsetTop < 0) t.style.top = (cy + rr + 6) + 'px'; });  // no room above -> show below the bubble
+    c.addEventListener('mouseleave', tip.hide);
+  });
+  const off = runs.filter(r => !pts.includes(r));
+  $('#swlegend').innerHTML = bandsOf().filter(b => pts.some(r => r._pts === b.points)).map(b => `<span><i style="background:${BAND_COL[b.points]}"></i>${b.points} pkt</span>`).join('') +
+    `<span><svg width="30" height="14"><circle cx="5" cy="7" r="3" fill="#7d8b91"/><circle cx="20" cy="7" r="6.5" fill="#7d8b91"/></svg>wielkość = koszt (trening + ślepy)</span>
+    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#e8004f" stroke-width="2"/></svg>Pareto: najlepszy F1 przy danej liczbie punktów</span>
+    <span><svg width="18" height="18"><circle cx="9" cy="9" r="6" fill="none" stroke="#c27803" stroke-width="1.5" stroke-dasharray="3 2.5"/></svg>poza UE</span>
+    ${off.length ? `<span style="color:var(--mute)">Poza wykresem (brak F1 ślepego lub rozmiaru): ${off.map(r => esc(swName(r))).join(', ')}</span>` : ''}`;
+}
+function swTip(r) {
+  const pd = (r.blind || {}).per_doc || {};
+  return `<b>${esc(swName(r))}</b> <span class="m">· ${esc(r.model)}</span><br>
+    <span class="m">parametry</span> ${r.params_b == null ? 'nieznane' : pb(r.params_b)} <span class="m">· punkty</span> ${r._pts ?? '—'} <span class="m">·</span> ${isEU(r) ? 'UE: ' + esc(r.eu_providers.join(', ')) : 'poza UE'}<br>
+    <span class="m">F1 ślepy</span> ${f1s(r._b) ?? 'brak wyniku'} <span class="m">· trening</span> ${f1s(r._t) ?? 'brak wyniku'}<br>
+    ${Object.keys(pd).length ? Object.entries(pd).map(([k, v]) => `<span class="m">${esc(PD_LABEL[k] || k)}</span> ${f1s(v) ?? '—'}`).join(' · ') + '<br>' : ''}
+    <span class="m">koszt</span> ${usd(r._cost) ?? '—'} <span class="m">· czas</span> ${secs(r._sec) ?? '—'}${(r.blind || {}).negatives_ok ? ` <span class="m">· negatywy</span> ${r.blind.negatives_ok}` : ''}${r._par ? '<br><span style="color:#ff8fb3">Pareto: najlepszy F1 przy tej liczbie punktów</span>' : ''}`;
+}
+
+function swTable(runs) {
+  const pdKeys = [...new Set(runs.flatMap(r => Object.keys(((r[swPd] || {}).per_doc) || {})))]
+    .sort((a, b) => (Object.keys(PD_LABEL).indexOf(a) + 1 || 99) - (Object.keys(PD_LABEL).indexOf(b) + 1 || 99));
+  const cols = [
+    ['name', 'Model', r => swName(r).toLowerCase()],
+    ['params', 'Parametry', r => r.params_b ?? 1e9, 'num'],
+    ['pts', 'Punkty', r => r._pts ?? -1, 'num'],
+    ['blind', 'F1 ślepy', r => r._b ?? -1, 'num'],
+    ['train', 'F1 trening', r => r._t ?? -1, 'num'],
+    ...pdKeys.map(k => ['pd:' + k, PD_LABEL[k] || k, r => (((r[swPd] || {}).per_doc) || {})[k] ?? -1, 'num']),
+    ['neg', 'Negatywy', r => { const n = (r.blind || {}).negatives_ok; if (!n) return -1; const [a, b] = n.split('/').map(Number); return b ? a / b : -1; }, 'num'],
+    ['cost', 'Koszt', r => r._cost ?? 1e9, 'num'],
+    ['time', 'Czas', r => r._sec ?? 1e9, 'num'],
+  ];
+  if (!cols.some(c => c[0] === swSort)) swSort = 'blind';
+  const get = cols.find(c => c[0] === swSort)[2];
+  const rows = [...runs].sort((a, b) => { const x = get(a), y = get(b); return (x > y ? 1 : x < y ? -1 : 0) * swDir || (b._b ?? -1) - (a._b ?? -1); });
+  const errOf = (r, part) => (r[part] || {}).error;
+  $('#swtbl').innerHTML = `<thead><tr><th class="num" style="cursor:default">#</th>${cols.map(c => `<th class="${c[3] || ''}${c[0].startsWith('pd:') ? ' pd' : ''}" data-k="${c[0]}" title="${c[0].startsWith('pd:') ? `F1 dla typu dokumentu (${swPd === 'blind' ? 'ślepy zbiór' : 'trening'})` : 'Sortuj'}">${esc(c[1])}<span class="ar">${swSort === c[0] ? (swDir > 0 ? '↑' : '↓') : ''}</span></th>`).join('')}</tr></thead><tbody>` +
+    rows.map((r, k) => { const pd = ((r[swPd] || {}).per_doc) || {}, sp = specialOf(r), isNew = swSeen && !swSeen.has(r.model);
+      return `<tr class="${r._par ? 'par' : ''} ${isNew ? 'new' : ''}"><td class="num" style="color:var(--mute)">${k + 1}</td>
+      <td><span class="nm">${esc(swName(r))}</span>${isEU(r) ? `<span class="bdg eu" title="Dostawcy z UE: ${esc(r.eu_providers.join(', '))}">UE</span>` : `<span class="bdg noeu" title="Brak dostawcy z siedzibą w UE/EOG${(r.providers || []).length ? ': ' + esc(r.providers.join(', ')) : ''}">poza UE</span>`}${r._par ? '<span class="bdg par" title="Nikt nie ma wyższego F1 ślepego przy tej samej lub wyższej liczbie punktów">Pareto</span>' : ''}${sp ? `<span class="bdg">${esc(sp)}</span>` : ''}<span class="vd">${esc(r.model)}</span></td>
+      <td class="num">${r.params_b == null ? '<span class="dash">nieznane</span>' : pb(r.params_b)}</td>
+      <td class="num">${ptsPill(r._pts)}</td>
+      <td class="num"><b>${f1s(r._b) ?? nores(errOf(r, 'blind'))}</b></td>
+      <td class="num">${f1s(r._t) ?? nores(errOf(r, 'train'))}</td>
+      ${pdKeys.map(k => `<td class="num pd">${f1s(pd[k]) ?? ((r[swPd] || {}).f1 == null ? nores(errOf(r, swPd), '—') : '<span class="dash">—</span>')}</td>`).join('')}
+      <td class="num">${(r.blind || {}).negatives_ok ?? nores(errOf(r, 'blind'), '—')}</td>
+      <td class="num" title="trening ${usd((r.train || {}).cost) ?? '—'} + ślepy ${usd((r.blind || {}).cost) ?? '—'}">${usd(r._cost) ?? nores(errOf(r, 'blind') || errOf(r, 'train'), '—')}</td>
+      <td class="num" title="trening ${secs((r.train || {}).seconds) ?? '—'} + ślepy ${secs((r.blind || {}).seconds) ?? '—'}">${secs(r._sec) ?? '<span class="dash">—</span>'}</td></tr>`; }).join('') + '</tbody>';
+  $('#swtbl').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { const k = th.dataset.k; swDir = swSort === k ? -swDir : (k === 'name' || k === 'params' || k === 'cost' || k === 'time' ? 1 : -1); swSort = k; swTable(SW); });
+}
+
+function swRender() {
+  const box = $('#swbody'), runs = SW;
+  if (!runs.length) { box.innerHTML = `<div class="card empty">Brak wyników sweepu (docs/bench_sweep.json jeszcze nie istnieje albo jest pusty). Strona odświeży się sama, gdy pojawią się dane.</div>`; return; }
+  box.innerHTML = `<h3 style="margin:0 0 10px;font-size:15px">Nietypowe modele i wnioski</h3><div class="callouts">${swCallouts(runs)}</div>
+    <div class="card" style="margin-bottom:16px"><h3 style="margin:0 0 2px;font-size:15px">Rozmiar a F1 na ślepym zbiorze</h3><div class="note" style="margin:0 0 6px">Kolor: punkty UZP za rozmiar. Wielkość kółka: koszt przebiegu. Czerwona linia łączy modele z frontu Pareto.</div>
+      <div class="chart" id="swscatter"></div><div class="legend" id="swlegend"></div></div>
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><h3 style="margin:0;font-size:15px">Ranking</h3>
+      <span style="font-size:12.5px;color:var(--ink2)">F1 per typ dokumentu: <span class="seg"><button data-pd="blind" class="${swPd === 'blind' ? 'on' : ''}">ślepy</button><button data-pd="train" class="${swPd === 'train' ? 'on' : ''}">trening</button></span></span></div>
+      <div class="tablewrap"><table id="swtbl"></table></div>
+      <p class="note">Kliknij nagłówek, aby posortować. Koszt i czas: trening + ślepy zbiór (szczegóły po najechaniu). „brak wyniku” — najedź, aby zobaczyć błąd przebiegu. Negatywy: odrzucone dokumenty spoza zakresu.</p></div>`;
+  swScatter(runs); swTable(runs);
+  box.querySelectorAll('[data-pd]').forEach(b => b.onclick = () => { swPd = b.dataset.pd; box.querySelectorAll('[data-pd]').forEach(x => x.classList.toggle('on', x === b)); swTable(SW); });
+}
+function swLoad(force) {
+  const btn = $('#swref'); btn.classList.add('spin');
+  return fetch('/api/bench_sweep', { cache: 'no-store' }).then(r => r.json()).then(d => {
+    const t = d.mtime ? new Date(d.mtime * 1000) : null;
+    $('#swstat').textContent = `${(d.runs || []).length} modeli${t ? ' · plik z ' + t.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : ''} · sprawdzono ${new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    if (!force && d.mtime === swMtime && SW) return;
+    const prevSeen = SW ? new Set(SW.map(r => r.model)) : null;
+    swMtime = d.mtime; SW = swPrep(d.runs || []); swSeen = prevSeen; swRender(); swSeen = new Set(SW.map(r => r.model));
+  }).catch(e => { $('#swstat').textContent = 'Błąd odświeżania: ' + e.message; }).finally(() => setTimeout(() => btn.classList.remove('spin'), 300));
+}
+function swAuto(on) {
+  clearInterval(swTimer); swTimer = on ? setInterval(() => { if (!document.hidden) swLoad(false); }, 30000) : null;
+  $('#swauto').classList.toggle('on', on); $('#swauto .live').classList.toggle('off', !on);
+}
+$('#swref').onclick = () => swLoad(true);
+$('#swauto').onclick = () => swAuto(!swTimer);
+swAuto(true);
+fetch('/api/benchmarks').then(r => r.json()).then(d => { D = d; BANDS = d.scoring.bands; render(); if (SW) swRender(); let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { render(); if (SW) swScatter(SW); }, 120); }); })
+  .catch(e => { $('#main').insertAdjacentHTML('beforeend', `<p class="err">Nie udało się wczytać docs/benchmarks.json: ${esc(e.message)}</p>`); })
+  .finally(() => swLoad(true));
 </script>
 </body>
 </html>
