@@ -65,7 +65,7 @@ class VlmOCR:
             try:
                 r = self.client.chat.completions.create(
                     model=self.model, temperature=0 if attempt == 0 else 0.2, max_tokens=self.max_tokens,
-                    extra_body=openrouter_extra(self.base_url, self.extra),
+                    extra_body=openrouter_extra(self.base_url, self.extra, self.model),
                     messages=[{"role": "user", "content": [
                         {"type": "text", "text": prompt},
                         {"type": "image_url", "image_url": {"url": png_data_url(png)}}]}])

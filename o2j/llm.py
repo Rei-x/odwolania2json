@@ -29,10 +29,15 @@ def track(resp):
         COST["completion_tokens"] += int(d.get("completion_tokens") or 0)
 
 
-def openrouter_extra(base_url: str | None, extra: dict | None) -> dict | None:
+PROVIDERS: dict = {}  # model -> OpenRouter provider routing (EU pinning), filled from settings.providers
+
+
+def openrouter_extra(base_url: str | None, extra: dict | None, model: str | None = None) -> dict | None:
     if base_url and "openrouter.ai" in base_url:
         extra = dict(extra or {})
         extra.setdefault("usage", {"include": True})
+        if model and model in PROVIDERS and "provider" not in extra:
+            extra["provider"] = PROVIDERS[model]
     return extra or None
 
 
@@ -42,6 +47,7 @@ class LLM:
             raise RuntimeError("Brak konfiguracji LLM: ustaw O2J_LLM_BASE_URL, O2J_LLM_API_KEY, O2J_LLM_MODEL (.env)")
         self.cfg = cfg
         self.model = cfg["model"]
+        PROVIDERS.update(cfg.get("providers") or {})
         self.client = OpenAI(base_url=cfg["base_url"], api_key=cfg.get("api_key") or "none",
                              timeout=float(cfg.get("timeout", 180)))
 
@@ -49,7 +55,8 @@ class LLM:
         last = None
         for attempt in range(int(self.cfg.get("retries", 2)) + 1):
             try:
-                extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"))
+                extra = openrouter_extra(self.cfg.get("base_url"), self.cfg.get("extra_body"),
+                                         kw.get("model", self.model))
                 resp = self.client.chat.completions.create(model=kw.get("model", self.model), messages=messages,
                                                            extra_body=extra, **{k: v for k, v in kw.items() if k != "model"})
                 track(resp)

@@ -30,9 +30,10 @@ extraction:
 router:                              # tryb automatyczny: eskalacja tylko trudnych dokumentów
   enabled: false                     # włączany profilem `auto`
   escalate_if: {disputed_fields: 1, remaining_issues: 1, ocr: true, novelty: 40}
-  escalation:
-    models: [deepseek/deepseek-v4-pro]   # mocniejszy model(e) dla trudnych dokumentów
-    n: 2
+  escalation:                        # kaskada: kolejne poziomy uruchamiane tylko gdy poprzedni nie potwierdza wyniku
+    levels:
+      - [deepseek/deepseek-v4.1-flash]
+      - [moonshotai/kimi-k3.1-pro]
     include_deterministic: true      # reguły YAML jako dodatkowy głos przy remisie
 verify:
   max_rounds: 2                      # pętla weryfikacja -> naprawa (0 = wyłączona)
@@ -45,6 +46,14 @@ paths:
   trace: trace                       # ślady ekstrakcji (dowody, strony, cytaty)
   learned: data/learned              # pamięć: dokumenty zweryfikowane przez użytkowników (uczenie w czasie)
 
+# Przypięcie modeli do dostawców w UE (OpenRouter provider routing), także dla OCR, głosowania i kaskady.
+providers:
+  z-ai/glm-5.3-flash: {only: [mistral], allow_fallbacks: false, data_collection: deny}          # Mistral AI (FR)
+  google/gemma-4-26b-a4b-it: {only: [nextbit], allow_fallbacks: false, data_collection: deny}   # NextBit (ES)
+  mistralai/ministral-14b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}
+  deepseek/deepseek-v4.1-flash: {only: [nebius], allow_fallbacks: false, data_collection: deny}  # Nebius (NL)
+  moonshotai/kimi-k3.1-pro: {only: [nebius], allow_fallbacks: false, data_collection: deny}      # Nebius (NL)
+
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
 profile: standard
 profiles:
@@ -52,14 +61,20 @@ profiles:
     extraction: {mode: deterministic}
     classification: {mode: rules}
     verify: {max_rounds: 0}
-  ekonomiczny:                       # mały model decyzyjny / tani (uzupełniane po benchmarku)
-    llm: {model: deepseek/deepseek-v4.1-flash}
+  ekonomiczny:                       # najlżejszy dobry model: 3.8B aktywnych parametrów (Apache-2.0)
+    llm: {model: google/gemma-4-26b-a4b-it}
+    ocr: {model: z-ai/glm-5.3-flash, reasoning: low}
     verify: {max_rounds: 0}
-  standard:                          # domyślny: szybki model + weryfikacja i naprawa
-    llm: {model: deepseek/deepseek-v4.1-flash}
-  auto:                              # router: tani pierwszy przebieg, eskalacja tylko trudnych dokumentów
-    llm: {model: deepseek/deepseek-v4.1-flash}
-    router: {enabled: true}
-  maksymalny:                        # najwyższa jakość: głosowanie kilku modeli
-    llm: {model: deepseek/deepseek-v4.1-flash}
-    voting: {n: 3, models: [deepseek/deepseek-v4.1-flash], temperature: 0.7}
+  standard:                          # GLM-5.3-Flash (MIT) + weryfikacja i naprawa
+    llm: {model: z-ai/glm-5.3-flash}
+    ocr: {model: z-ai/glm-5.3-flash, reasoning: low}
+  auto:                              # router: mały model + reguły; trudne dokumenty eskalują: GLM-5.3 -> Kimi K3.1 Pro
+    llm: {model: google/gemma-4-26b-a4b-it}
+    ocr: {model: z-ai/glm-5.3-flash, reasoning: low}
+    router:
+      enabled: true
+      escalation: {levels: [[z-ai/glm-5.3-flash], [moonshotai/kimi-k3.1-pro]], include_deterministic: true}
+  maksymalny:                        # najmocniejsze modele + głosowanie per pole
+    llm: {model: moonshotai/kimi-k3.1-pro}
+    ocr: {model: z-ai/glm-5.3-flash, reasoning: low}
+    voting: {n: 3, models: [moonshotai/kimi-k3.1-pro, z-ai/glm-5.3-flash, deepseek/deepseek-v4.1-flash]}

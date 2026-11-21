@@ -58,26 +58,33 @@ def difficulty(llm_result: dict, det_result: dict | None, remaining_issues: list
 
 def escalate(pipe, spec, system: str, user: str, images, doc, first: dict, det_result: dict | None,
              cfg: dict) -> tuple[dict, dict]:
+    """Cascade: climb model levels (cheap -> strong) until the new level agrees with the current consensus.
+    Every level's runs join the vote; deterministic rules act as an extra (tie-breaking) voter."""
     from concurrent.futures import ThreadPoolExecutor
 
     from .voting import vote
     esc = cfg.get("escalation") or {}
-    models = esc.get("models") or [pipe.llm.model]
-    n = int(esc.get("n", len(models)))
+    levels = esc.get("levels") or [esc.get("models") or [pipe.llm.model]]
+    use_det = bool(det_result) and esc.get("include_deterministic", True)
+    pool, steps = [first], []
+    consensus = first
+    for li, models in enumerate(levels):
+        models = models if isinstance(models, list) else [models]
 
-    def run(i):
-        r, _ = pipe.llm.extract_json(system, user, spec.json_schema(), name=spec.name, images=images,
-                                     model=models[i % len(models)], temperature=0 if i < len(models) else 0.7)
-        return E.postprocess(spec, r)
-    with ThreadPoolExecutor(max_workers=n) as ex:
-        strong = list(ex.map(run, range(n)))
-    voters = strong + [first]  # strong runs first: they win ties
-    if det_result and esc.get("include_deterministic", True):
-        voters.append(det_result)
-    result, info = vote(voters, doc)
-    info["models"] = [models[i % len(models)] for i in range(n)] + ["first_pass"] + (
-        ["deterministic"] if det_result and esc.get("include_deterministic", True) else [])
-    return result, info
+        def run(m):
+            r, _ = pipe.llm.extract_json(system, user, spec.json_schema(), name=spec.name, images=images,
+                                         model=m, temperature=0)
+            return E.postprocess(spec, r)
+        with ThreadPoolExecutor(max_workers=len(models)) as ex:
+            runs = list(ex.map(run, models))
+        level_view = runs[0] if len(runs) == 1 else vote(runs, doc)[0]
+        disagree = [c["field"] for c in changed_fields(consensus, level_view)]
+        pool = runs + pool  # newest (stronger) runs first: they win ties
+        consensus, info = vote(pool + ([det_result] if use_det else []), doc)
+        steps.append({"level": li + 1, "models": models, "disagreed_with_previous": disagree})
+        if not disagree:  # stronger level confirms the consensus -> stop climbing
+            break
+    return consensus, {"steps": steps, "voters": len(pool) + (1 if use_det else 0)}
 
 
 def changed_fields(a: dict, b: dict) -> list[dict]:

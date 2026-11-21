@@ -23,6 +23,8 @@ class Pipeline:
         if model:
             self.s["llm"]["model"] = model
         self.specs = load_specs(self.s["paths"]["doctypes"])
+        from .llm import PROVIDERS
+        PROVIDERS.update(self.s.get("providers") or {})
         from .memory import LearningStore
         lp = self.s["paths"].get("learned")
         self.memory = LearningStore(lp) if lp else None
