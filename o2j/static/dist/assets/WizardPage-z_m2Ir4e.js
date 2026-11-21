@@ -1,1 +1,0 @@
-import{t as e}from"./site-nav-BDrMBRF-.js";import{i as t}from"./index-B4ljtmn4.js";var n=t();function r(){return(0,n.jsx)(e,{})}export{r as default};

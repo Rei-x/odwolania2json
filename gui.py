@@ -545,6 +545,66 @@ def _test_draft(sid: str, path: Path, yaml_text: str, profile: str | None) -> di
                       "issues": issues, "evidence": evidence, "active_profile": pipe.s.get("active_profile")}}
 
 
+@app.post("/api/doctypes/infer")
+async def doctype_infer(files: list[UploadFile] = File(...)):
+    """Przykładowy PDF (lub kilka) -> LLM proponuje kompletny typ (nazwa, opis, słowa kluczowe, pola) -> YAML po walidacji.
+    Nic nie trafia do config/; zapis jak zwykle przez POST /api/doctypes."""
+    if not files:
+        raise HTTPException(400, "Wgraj przykładowy PDF")
+    sid = "wiz" + uuid.uuid4().hex[:8]
+    d = DATA / sid
+    d.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for f in files[:5]:
+        name = Path(f.filename or "dokument.pdf").name
+        if not name.lower().endswith(".pdf"):
+            raise HTTPException(400, f"{name}: wgraj plik PDF")
+        p = d / name
+        p.write_bytes(await f.read())
+        paths.append(p)
+    return await run_in_threadpool(_infer_doctype, sid, paths)
+
+
+def _infer_model(s: dict) -> str | None:
+    """Model kreatora: najmocniejszy mały model profilu (klasyfikacyjny 8B w 'auto', inaczej model ekstrakcji)."""
+    return (s.get("classification") or {}).get("model") or (s.get("llm") or {}).get("model")
+
+
+def _infer_doctype(sid: str, paths: list[Path]) -> dict:
+    import time
+
+    from o2j import pdf as P
+    from o2j import wizard as W
+    from o2j.llm import COST
+    t0 = time.time()
+    pipe = get_pipe(None)
+    if pipe.llm is None:  # profil bez LLM (Reguły): kreator potrzebuje modelu
+        pipe = get_pipe("standard")
+    if pipe.llm is None:
+        raise HTTPException(400, "Kreator wymaga profilu z modelem LLM")
+    ocr_cfg = pipe.s.get("ocr", {})
+    texts = []
+    for p in paths:
+        doc = P.load(p, ocr=pipe._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)), dpi=int(ocr_cfg.get("dpi", 200)),
+                     ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"),
+                     garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1)))
+        texts.append(doc.text(4))
+    if not any(t.replace("=== Strona", "").strip() for t in texts):
+        raise HTTPException(422, "Dokument nie zawiera czytelnego tekstu")
+    taken = {p.stem for p in _doctypes_dir().glob("*.yaml")}
+    model = _infer_model(pipe.s)
+    usd0 = COST["usd"]
+    try:
+        res = W.infer(texts, pipe.llm, model=model, taken=taken, pages=3,
+                      reference=W.reference_texts(pipe.s["paths"].get("train")), specs=pipe.specs,
+                      min_score=float(pipe.s.get("classification", {}).get("min_score", 3)))
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+    return {"session": sid, "files": [p.name for p in paths], "yaml": res["yaml"], "spec": res["spec"],
+            "validation": res["validation"], "warnings": res["warnings"], "model": res["meta"].get("model") or model,
+            "cost": round(COST["usd"] - usd0, 5), "elapsed_s": round(time.time() - t0, 2)}
+
+
 @app.post("/api/doctypes")
 def doctype_save(payload: dict = Body(...)):
     """Zapis config/doctypes/<nazwa>.yaml; typ jest od razu aktywny (klasyfikacja + ekstrakcja), bez restartu."""

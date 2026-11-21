@@ -36,7 +36,7 @@ export function SiteNav({ className, children }: { className?: string; children?
         </nav>
         <div className="ml-auto flex items-center gap-2">
           {children ?? (
-            <Button render={<Link to="/app" />} size="sm" className="rounded-full">
+            <Button render={<Link to="/app" />} nativeButton={false} size="sm" className="rounded-full">
               Wypróbuj <ArrowRight />
             </Button>
           )}
