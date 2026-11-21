@@ -48,36 +48,63 @@ Docling i Unstructured są zainstalowane w osobnym `.venv-bench` (1,5 GB, torch 
 
 ## Wyniki
 
-**Uwaga: przebiegi z Ministral 8B na tekście z Docling / Unstructured (pozycje 1 i 2) NIE zostały wykonane.**
-Konto OpenRouter skończyło środki (HTTP 402) w trakcie benchmarku. Wykonano je tylko dla naszego parsera.
-Komórki „czeka” uzupełnimy po doładowaniu (komendy na dole). Wszystkie pozostałe liczby pochodzą z faktycznych przebiegów.
+Model: Ministral 8B (Mistral EU przez OpenRouter), temperatura 0. Train: po dwa przebiegi pipeline na każdy parser
+(drugi przebieg puszczony sekwencyjnie, bez innych zadań w tle). Blind i baseline: po jednym przebiegu.
 
-### F1 i koszt (profil `standard`, Ministral 8B, o ile nie podano inaczej)
+### F1
 
-| setup | parser | F1 train subset | F1 blind | koszt train + blind | czas/dok (mediana) |
-|---|---|---|---|---|---|
-| nasz pipeline (`standard`) | nasz | **0.9973** | **0.9845** (negatywy 3/3) | $0.039 + $0.068 | 3.9 s e2e (train, 8 równolegle) |
-| nasz pipeline (`standard`) | Docling | czeka | czeka | – | parsowanie +0.59 s |
-| nasz pipeline (`standard`) | Unstructured fast | czeka | czeka | – | parsowanie +0.03 s |
-| nasz pipeline (`standard`) | Unstructured hi_res | czeka | czeka | – | parsowanie +1.7 s |
-| „typowe podejście”: tekst + 1 wywołanie LLM* | nasz | 0.9556 | 0.9331 | $0.009 + $0.020 | 2.7 s / 2.4 s |
-| „typowe podejście”* | Docling / Unstructured | czeka | czeka | – | – |
-| tylko reguły (`deterministyczny`), bez LLM | nasz | 1.0000** | 0.8159 (3/3) | $0 | 0.005 s; 66 dok/s na 1 wątku |
-| tylko reguły | Docling | 0.6595 | 0.6299 (2/3) | $0 | – |
-| tylko reguły | Unstructured fast | 0.9582 | 0.8000 (2/3) | $0 | – |
-| tylko reguły | Unstructured hi_res | 0.9568 | 0.7913 (2/3) | $0 | – |
-| Claude Opus 5.5 (Anthropic API, PDF natywnie, effort high)* | – | 1.0000 | 1.0000 | $0.95 + $1.99 | 3.7 s / 4.0 s |
+| setup | parser | F1 train subset (przebieg 1 / 2) | F1 blind | negatywy blind |
+|---|---|---|---|---|
+| nasz pipeline (`standard`) | nasz (pypdfium2) | 0.9973 / 0.9946 | **0.9845** | 3/3 |
+| nasz pipeline (`standard`) | Docling | 0.9711 / 0.9725 | 0.9808 | 3/3 |
+| nasz pipeline (`standard`) | Unstructured fast | 0.9946 / 0.9960 | 0.9800 | 3/3 |
+| nasz pipeline (`standard`) | Unstructured hi_res | 0.9973 / 0.9973 | 0.9695 | 3/3 |
+| „typowe podejście”: tekst + 1 wywołanie LLM* | nasz (pypdfium2) | 0.9556 | 0.9331 | – |
+| „typowe podejście”* | Docling | 0.9423 | 0.9227 | – |
+| „typowe podejście”* | Unstructured fast | 0.9483 | 0.9242 | – |
+| „typowe podejście”* | Unstructured hi_res | 0.9526 | 0.9234 | – |
+| tylko reguły (`deterministyczny`), bez LLM | nasz | 1.0000** | 0.8159 | 3/3 |
+| tylko reguły | Docling | 0.6595 | 0.6299 | 2/3 |
+| tylko reguły | Unstructured fast | 0.9582 | 0.8000 | 2/3 |
+| tylko reguły | Unstructured hi_res | 0.9568 | 0.7913 | 2/3 |
+| Claude Opus 5.5 (Anthropic API, PDF natywnie, effort high)* | – | 1.0000 | 1.0000 | – |
 
 \* Typ dokumentu podany z góry (oracle), liczone tylko na dokumentach w zakresie (33 train, 60 blind).
-Nasz pipeline sam klasyfikuje i odrzuca negatywy. Ponieważ poprawnie odrzucony negatyw nic nie dodaje do F1,
-liczby są porównywalne, ale baseline i Opus mają łatwiej.
+Nasz pipeline sam klasyfikuje i odrzuca negatywy. Poprawnie odrzucony negatyw nic nie dodaje do F1,
+więc liczby są porównywalne, ale baseline i Opus mają łatwiej.
 \*\* Reguły pisaliśmy na danych treningowych, więc 1.0 na train jest optymistyczne. Miarodajny jest blind.
 
-Wiersze „tylko reguły” z Docling/Unstructured mierzą głównie to, że nasze reguły pisano pod układ tekstu
-pypdfium2 (markdown z `##`, tabelami i rozbitymi liniami nie pasuje do wzorców). To nie jest ocena jakości
-tych parserów, tylko pokazuje, że warstwy tekstu nie da się podmienić bez kosztów.
+Wnioski:
+- **O wyniku decyduje pipeline, nie parser.** Przy każdym z czterech parserów nasz pipeline jest lepszy od jednego zwykłego wywołania
+  o +0.046 do +0.058 F1 na blind (0.970–0.985 vs 0.923–0.933). Ten sam model, ten sam tekst.
+- **Podmiana parsera w naszym pipeline nic nie daje.** Na blind nasz tekst daje najwyższe F1, choć Docling (−0.004) i Unstructured fast
+  (−0.005) mieszczą się w szumie między przebiegami (ok. ±0.003). Unstructured hi_res jest niżej o 0.015.
+  Na train Docling jest konsekwentnie niżej o ok. 0.025 w obu przebiegach. Przyczyna jest w przykładach poniżej:
+  gubi datę z nagłówka i zmienia kolejność czytania.
+- **Wyraźna różnica jest w kosztach uruchomienia.** pypdfium2 parsuje dokument w 1 ms i nie potrzebuje modeli.
+  Docling i hi_res potrzebują torch/onnx (osobny venv 1,5 GB) i 0.6–1.7 s na dokument na M5 Pro, a 2.2 s na Docling na 4 vCPU.
+- Wiersze „tylko reguły” z Docling/Unstructured pokazują głównie, że nasze reguły pisano pod układ tekstu pypdfium2
+  (markdown z `##`, tabelami i rozbitymi liniami nie pasuje do wzorców). To nie jest ocena jakości tych parserów.
+- Opus czytający PDF natywnie ma 1.0 na obu zbiorach. Nasz pipeline z modelem 8B jest 0.016 F1 niżej na blind.
+  Kosztuje przy tym ok. 30× mniej ($0.068 vs $1.99 za blind), a wszystkie dane zostają u dostawcy w UE.
 
-Wydatki: OpenRouter $0.136 (z limitu $1.5), Opus $2.94 (z limitu $5).
+### Koszt i czas end-to-end (Ministral 8B)
+
+| setup | parser | koszt train (przebieg 2) | koszt blind | mediana opóźnienia / dok., train (przebieg 1 / 2)*** |
+|---|---|---|---|---|
+| nasz pipeline | nasz | $0.037 | $0.068 | 3.9 s / 6.9 s |
+| nasz pipeline | Docling | $0.033 | $0.061 | 6.9 s / 5.8 s |
+| nasz pipeline | Unstructured fast | $0.030 | $0.062 | 6.1 s / 4.7 s |
+| nasz pipeline | Unstructured hi_res | $0.022 | $0.057 | 9.1 s / 7.5 s |
+| „typowe podejście” | nasz / Docling / fast / hi_res | $0.009 / $0.009 / $0.009 / $0.008 | $0.020 / $0.019 / $0.019 / $0.015 | 2.7 / 4.7 / 5.0 / 6.3 s |
+| tylko reguły | nasz | $0 | $0 | 0.005 s (66 dok./s na 1 wątku, 77 dok./s na 8) |
+
+\*\*\* Opóźnienie dokumentu przy 8 równoległych wątkach, razem z parsowaniem danego parsera. Dominuje czas odpowiedzi API
+i bardzo się waha: ta sama konfiguracja (nasz parser) dała 3.9 s i 6.9 s. Różnic między parserami w tej kolumnie nie należy
+interpretować. Porównywalny jest czas samego parsowania z tabeli niżej.
+
+Wydatki Ministral razem: ok. $1.07 z limitu $1.5. Na to składają się przebiegi parserów ($0.62, w tym $0.136 sprzed przerwy
+w środkach), ablacja ($0.39) i test orientacji skanów ($0.07, opisany w `docs/ablation.md`). Opus: $2.94 z limitu $5.
 
 ### Czas parsowania (train subset: 46 PDF, 212 stron, jeden proces, sekwencyjnie)
 
@@ -97,9 +124,8 @@ obejmować leniwe pobranie modeli OCR. Najwolniejsze są długie negatywy: 31-st
 i 111 s na Hetznerze; 35-stronicowy dokument w hi_res to 46 s na M5 Pro. Na Hetznerze nie mierzyliśmy hi_res (brak `pol.traineddata`).
 
 End-to-end dla podmienionego parsera = opóźnienie pipeline na tym tekście + czas parsowania tego dokumentu.
-Skrypt liczy to automatycznie (`e2e_median_s_per_doc`). Nasze 3.9 s/dok to mediana opóźnienia przy 8 równoległych
-wątkach i w tym przebiegu zawiera klasyfikację, ekstrakcję, weryfikację i naprawę. Wcześniej cytowana mediana 2.7 s
-pochodzi z innego przebiegu.
+Skrypt liczy to automatycznie (`e2e_median_s_per_doc`). Wyniki są w tabeli kosztów wyżej, ale przy LLM po API
+dominuje i waha się czas odpowiedzi dostawcy.
 
 ## Przykłady błędów parserów (z danych treningowych / wariantów)
 
@@ -129,20 +155,16 @@ pochodzi z innego przebiegu.
 
 ## Co nie zadziałało / ograniczenia
 
-- **Brak przebiegów Ministral dla Docling/Unstructured** (pipeline i baseline, train i blind): OpenRouter 402.
-  Cache tekstów jest gotowy (`runs/bench_parsers/cache/`) dla Docling i Unstructured fast (cały train + blind).
-  Dla hi_res jest tylko blind + train subset; przed przebiegiem pipeline (few-shot czyta cały train) trzeba
-  dokończyć `parse --parser unstructured_hires`. To ok. 20–30 min na M5 Pro, bo długie negatywy zajmują po 20–60 s.
-- Ablacja kroków (`eval/ablation.py`, `docs/ablation.md`) jest gotowa, ale nie uruchomiona z tego samego powodu.
-- Na train subset Opus i nasz pipeline mają prawie sufit (0.997–1.0). Różnice widać dopiero na blind.
-- Jeden przebieg na setup (temperatura 0, ale dostawca nie jest w pełni deterministyczny). Nasz `standard`
-  na train dał teraz 0.9973, a w `docs/bench_sweep.json` 0.9946. Blind 0.9845 vs cytowane 0.9815.
-- Czasy zapisane w cache pochodzą z przebiegu równoległego z innymi zadaniami, a liczy z nich e2e
-  dla podmienionych parserów. Tabela czasów pochodzi z osobnego, czystego przebiegu `timing`.
+- Train subset jest prawie na suficie (0.995–0.997 dla większości setupów). Różnice widać głównie na blind,
+  a tam jest jeden przebieg na setup i szum ok. ±0.003.
+- Do cache weszły czasy parsowania z przebiegu równoległego z innymi zadaniami, a liczy z nich e2e dla podmienionych
+  parserów. Tabela czasów parsowania pochodzi z osobnego, czystego przebiegu `timing`.
 - hi_res na macOS: onnxruntime ma CoreML, ale unstructured-inference wybiera tylko TensorRT/CUDA/CPU, więc liczy na CPU.
   Docling ma wymuszone CPU (domyślnie `auto` wybrałby MPS).
-- Unstructured hi_res wymagał doinstalowania `pol.traineddata` (tessdata_fast) do lokalnego katalogu
-  `runs/bench_parsers/tessdata` (`TESSDATA_PREFIX`). Systemowy Tesseract ma tylko eng/osd.
+- Unstructured hi_res wymagał doinstalowania `pol.traineddata` (tessdata_fast) do lokalnego `runs/bench_parsers/tessdata`
+  (`TESSDATA_PREFIX`). Systemowy Tesseract ma tylko eng/osd. Pełne parsowanie train w hi_res trwało 10,5 min (148 PDF).
+- W trakcie benchmarku konto OpenRouter na chwilę skończyło środki (HTTP 402). Przebiegi, które wtedy padły, usunięto
+  z wyników i powtórzono po doładowaniu.
 
 ## Jak odtworzyć
 

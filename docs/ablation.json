@@ -1,0 +1,294 @@
+{
+  "a|train_subset": {
+    "rung": "a",
+    "set": "train_subset",
+    "f1": 0.9136,
+    "per_doc": {
+      "1648041143_1647951357decyzja-ministrasportu-pzn": 1.0,
+      "16_komisja_ds._regulacji_wynagrodzeń": 1.0,
+      "2020_03_21-22prowadzenie_postepowania_odwolawczego": 1.0,
+      "2025-OJS107-00364525-pl-ts-1": 0.0,
+      "2025-OJS107-00364525-pl-ts": 0.0,
+      "2025_BZP 00143067_01": 0.0,
+      "2025_S 112-383751": 0.0,
+      "2025_S 188-641009": 0.0,
+      "Broszura_JPK_FA(2)": 1.0,
+      "Decyzja-Ministra-Sportu-i-Turystyki1": 0.0,
+      "KIO_KIO 2617-21": 0.0,
+      "Minister-Sprawiedliwosci-pismo-RDSSP-z-11.03.2024-r.": 0.0,
+      "odwolanie": 0.9776,
+      "pelnomocnictwo": 0.9939,
+      "potwierdzenie_przelewu": 0.8522
+    },
+    "counts": {
+      "TN": 161,
+      "FP": 63,
+      "TP": 349,
+      "FN": 3
+    },
+    "cost_usd": 0.0382,
+    "llm_calls": 111,
+    "wall_s": 154.5,
+    "median_s_per_doc": 8.67,
+    "run_dir": "runs/20261121-225416_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 22:56:50"
+  },
+  "b|train_subset": {
+    "rung": "b",
+    "set": "train_subset",
+    "f1": 0.96,
+    "per_doc": {
+      "odwolanie": 0.9776,
+      "pelnomocnictwo": 0.9939,
+      "potwierdzenie_przelewu": 0.8421
+    },
+    "counts": {
+      "TP": 348,
+      "TN": 44,
+      "FP": 26,
+      "FN": 3
+    },
+    "cost_usd": 0.019,
+    "llm_calls": 86,
+    "wall_s": 30.2,
+    "median_s_per_doc": 3.6,
+    "run_dir": "runs/20261121-225651_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 22:57:21"
+  },
+  "c|train_subset": {
+    "rung": "c",
+    "set": "train_subset",
+    "f1": 0.9864,
+    "per_doc": {
+      "odwolanie": 0.9888,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 0.9606
+    },
+    "counts": {
+      "TP": 364,
+      "TN": 47,
+      "FN": 2,
+      "FP": 8
+    },
+    "cost_usd": 0.029,
+    "llm_calls": 86,
+    "wall_s": 57.4,
+    "median_s_per_doc": 4.57,
+    "run_dir": "runs/20261121-225721_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 22:58:18"
+  },
+  "d|train_subset": {
+    "rung": "d",
+    "set": "train_subset",
+    "f1": 0.9823,
+    "per_doc": {
+      "odwolanie": 0.9842,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 0.9524
+    },
+    "counts": {
+      "TP": 361,
+      "FP": 11,
+      "TN": 47,
+      "FN": 2
+    },
+    "cost_usd": 0.0118,
+    "llm_calls": 86,
+    "wall_s": 33.9,
+    "median_s_per_doc": 4.33,
+    "run_dir": "runs/20261121-225819_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 22:58:53"
+  },
+  "e|train_subset": {
+    "rung": "e",
+    "set": "train_subset",
+    "f1": 0.9973,
+    "per_doc": {
+      "odwolanie": 0.9955,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 372,
+      "TN": 47,
+      "FP": 2,
+      "FN": 0
+    },
+    "cost_usd": 0.0113,
+    "llm_calls": 86,
+    "wall_s": 62.8,
+    "median_s_per_doc": 6.01,
+    "run_dir": "runs/20261121-225853_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 22:59:56"
+  },
+  "f|train_subset": {
+    "rung": "f",
+    "set": "train_subset",
+    "f1": 0.9973,
+    "per_doc": {
+      "odwolanie": 0.9955,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 372,
+      "TN": 47,
+      "FP": 2,
+      "FN": 0
+    },
+    "cost_usd": 0.0128,
+    "llm_calls": 89,
+    "wall_s": 35.7,
+    "median_s_per_doc": 4.53,
+    "run_dir": "runs/20261121-225957_mistralai_ministral-8b-2512",
+    "ts": "2026-11-21 23:00:32"
+  },
+  "g|train_subset": {
+    "rung": "g",
+    "set": "train_subset",
+    "f1": 0.9973,
+    "per_doc": {
+      "odwolanie": 0.9956,
+      "pelnomocnictwo": 1.0,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "counts": {
+      "TP": 373,
+      "TN": 46,
+      "FP": 2,
+      "FN": 0
+    },
+    "cost_usd": 0.0272,
+    "llm_calls": 135,
+    "wall_s": 49.9,
+    "median_s_per_doc": 4.91,
+    "run_dir": "runs/20261121-230033_mistralai_ministral-3b-2512",
+    "ts": "2026-11-21 23:01:23"
+  },
+  "a|blind": {
+    "rung": "a",
+    "set": "blind",
+    "f1": 0.9357,
+    "per_doc": {
+      "odwolanie": 0.9437,
+      "pelnomocnictwo": 0.967,
+      "potwierdzenie_przelewu": 0.9279,
+      "faktura_uslugi_prawne": 0.0,
+      "ogloszenie_o_zamowieniu": 0.0,
+      "wyrok_KIO": 0.0
+    },
+    "negatives_rejected": "0/3",
+    "cost_usd": 0.0383,
+    "llm_calls": 130,
+    "wall_s": 54.5,
+    "ts": "2026-11-21 23:02:19"
+  },
+  "b|blind": {
+    "rung": "b",
+    "set": "blind",
+    "f1": 0.9459,
+    "per_doc": {
+      "odwolanie": 0.9434,
+      "pelnomocnictwo": 0.967,
+      "potwierdzenie_przelewu": 0.9231
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0265,
+    "llm_calls": 127,
+    "wall_s": 34.3,
+    "ts": "2026-11-21 23:02:54"
+  },
+  "c|blind": {
+    "rung": "c",
+    "set": "blind",
+    "f1": 0.9821,
+    "per_doc": {
+      "odwolanie": 0.9778,
+      "pelnomocnictwo": 0.9853,
+      "potwierdzenie_przelewu": 0.9915
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0533,
+    "llm_calls": 127,
+    "wall_s": 100.6,
+    "ts": "2026-11-21 23:04:35"
+  },
+  "d|blind": {
+    "rung": "d",
+    "set": "blind",
+    "f1": 0.9837,
+    "per_doc": {
+      "odwolanie": 0.9779,
+      "pelnomocnictwo": 0.9853,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.024,
+    "llm_calls": 127,
+    "wall_s": 40.7,
+    "ts": "2026-11-21 23:05:17"
+  },
+  "e|blind": {
+    "rung": "e",
+    "set": "blind",
+    "f1": 0.9822,
+    "per_doc": {
+      "odwolanie": 0.9742,
+      "pelnomocnictwo": 0.9882,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0229,
+    "llm_calls": 127,
+    "wall_s": 46.9,
+    "ts": "2026-11-21 23:06:04"
+  },
+  "f|blind": {
+    "rung": "f",
+    "set": "blind",
+    "f1": 0.9822,
+    "per_doc": {
+      "odwolanie": 0.9742,
+      "pelnomocnictwo": 0.9882,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0191,
+    "llm_calls": 133,
+    "wall_s": 52.2,
+    "ts": "2026-11-21 23:06:57"
+  },
+  "g|blind": {
+    "rung": "g",
+    "set": "blind",
+    "f1": 0.9822,
+    "per_doc": {
+      "odwolanie": 0.974,
+      "pelnomocnictwo": 0.9882,
+      "potwierdzenie_przelewu": 1.0
+    },
+    "negatives_rejected": "3/3",
+    "cost_usd": 0.0581,
+    "llm_calls": 252,
+    "wall_s": 72.8,
+    "ts": "2026-11-21 23:08:11"
+  },
+  "scan|rotated_90|doc_ori_on": {
+    "variant": "doc_ori_on",
+    "src": "data/hard_scans/rotated_90",
+    "f1": 0.9704,
+    "time_s": 575.9,
+    "cost_usd": 0.031,
+    "error": null,
+    "ts": "2026-11-21 23:18:00"
+  },
+  "scan|rotated_90|doc_ori_off": {
+    "variant": "doc_ori_off",
+    "src": "data/hard_scans/rotated_90",
+    "f1": 0.8952,
+    "time_s": 264.8,
+    "cost_usd": 0.036,
+    "error": null,
+    "ts": "2026-11-21 23:22:25"
+  }
+}
