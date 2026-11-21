@@ -1,8 +1,6 @@
-import { lazy, Suspense, useRef, useState, type CSSProperties, type DragEvent, type Ref } from "react"
+import { lazy, Suspense, useRef, useState, type DragEvent, type Ref } from "react"
 import { useNavigate } from "react-router-dom"
 import { Flock } from "@/components/brand/flock"
-import { SparrowMark } from "@/components/brand/logo"
-import type { SceneType } from "./HeroScene"
 
 const HeroScene = lazy(() => import("./HeroScene"))
 
@@ -43,35 +41,25 @@ function DropZone() {
 }
 
 export function Hero({ ref }: { ref?: Ref<HTMLElement> }) {
-  const [cap, setCap] = useState<SceneType>({ file: "odwolanie", col: "#c4551f" })
   return (
     <section className="hero" id="hero" ref={ref}>
       <div className="hcopy">
-        <SparrowMark className="hero-bird" />
         <h1>
           <span className="l">Wróbelek</span>
           <span className="l l3">opus-like quality for pennies</span>
         </h1>
         <p className="lede">Akta KIO → JSON zgodny ze schematem UZP, każda wartość ze stroną i cytatem.</p>
         <DropZone />
-        <a className="try-sample" href="#wyprobuj">albo wypróbuj przykład ↓</a>
         <div className="trust">
-          <span>F1 0,985 na ślepym zbiorze</span><span>modele 3–8B w UE</span><span>bez GPU</span><span>open source</span>
+          <span>F1 0,985 na ślepym zbiorze</span><span>modele 3–8B w UE</span><span>bez GPU</span>
         </div>
       </div>
       <div className="hscene">
         <Flock />
         <Suspense fallback={null}>
-          <HeroScene onType={setCap} />
+          <HeroScene />
         </Suspense>
-        <div className="cap" aria-hidden="true" style={{ "--c": cap.col } as CSSProperties}>
-          <span className="d" />
-          <span>{cap.file}.pdf</span>
-          <span className="ar">→</span>
-          <b>{cap.file}.json</b>
-        </div>
       </div>
-      <a className="scroll-cue" href="#liczby"><i />przewiń</a>
     </section>
   )
 }

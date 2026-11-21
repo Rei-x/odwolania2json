@@ -116,7 +116,7 @@ function sampleJSON(t: DocType) {
 
 const VERT_UV = "varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }"
 
-export default function HeroScene({ onType }: { onType: (t: SceneType) => void }) {
+export default function HeroScene({ onType }: { onType?: (t: SceneType) => void }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const onTypeRef = useRef(onType)
   useEffect(() => { onTypeRef.current = onType }, [onType])
@@ -298,7 +298,7 @@ export default function HeroScene({ onType }: { onType: (t: SceneType) => void }
         pageMat.uniforms.map.value = t.tex
         haloMat.color.set(t.col)
         pageMat.uniforms.uGlow.value.set(t.glow)
-        onTypeRef.current({ file: t.file, col: t.col })
+        onTypeRef.current?.({ file: t.file, col: t.col })
         armed = false
       }
       const m = new THREE.Matrix4(), v = new THREE.Vector3()

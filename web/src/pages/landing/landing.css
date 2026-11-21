@@ -85,34 +85,24 @@
   .hero { margin: 10px; border-radius: 30px; overflow: hidden; min-height: max(640px, calc(100svh - 20px)); color: var(--white); isolation: isolate;
     background: var(--dark);
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.22fr) }
-  .hcopy { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; padding: 120px 0 80px var(--gut) }
+  .hcopy { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; padding: 104px 0 64px var(--gut) }
   .hcopy .eyebrow { color: rgb(255 255 255 / .62) }
-  .hcopy h1 { font-size: clamp(38px, 4.3vw, 76px); font-weight: 820; letter-spacing: -.05em; line-height: .96; margin: 0 }
+  .hcopy h1 { font-size: clamp(36px, 3.7vw, 62px); font-weight: 820; letter-spacing: -.05em; line-height: .96; margin: 0 }
   .hcopy h1 .l { display: block }
   .hcopy h1 .l:first-child { white-space: nowrap }
   .hcopy h1 .l3 { color: var(--acc-l); padding-bottom: .08em }
-  .hcopy .lede { color: rgb(255 255 255 / .7); max-width: 36ch }
+  .hcopy .lede { color: rgb(255 255 255 / .7); max-width: 38ch; margin-top: 16px }
   .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px }
-  .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 38px; font: 500 12.5px/1 var(--font-mono); color: rgb(255 255 255 / .55); letter-spacing: .02em }
+  .trust { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; font: 500 12.5px/1 var(--font-mono); color: rgb(255 255 255 / .55); letter-spacing: .02em }
   .trust span { display: inline-flex; align-items: center; gap: 8px; padding: 7px 11px; border-radius: 99px; background: rgb(255 255 255 / .07); color: rgb(255 255 255 / .8) }
   .trust span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--teal-l) }
   .trust span:first-child::before { background: var(--acc-l) }
   .hscene { position: relative; min-height: 520px; overflow: hidden }
   .hscene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
-  .cap { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 9px 16px; border-radius: 99px; z-index: 3;
-    font: 500 13px/1 var(--font-mono); color: rgb(255 255 255 / .78); background: rgb(255 255 255 / .06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12); white-space: nowrap }
-  .cap b { font-weight: 600; color: var(--white) }
-  .cap .ar { color: var(--acc-l) }
-  .cap .d { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--acc)); transition: background .4s }
-  .scroll-cue { position: absolute; left: var(--gut); bottom: 34px; z-index: 2; display: flex; align-items: center; gap: 10px; font: 500 12px/1 var(--font-mono); color: rgb(255 255 255 / .45); text-decoration: none }
-  .scroll-cue i { width: 22px; height: 34px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .35); position: relative }
-  .scroll-cue i::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: var(--white); animation: lp-cue 1.8s infinite }
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; min-height: 0 }
     .hcopy { padding: 118px var(--gut) 8px }
     .hscene { min-height: 0; height: min(132vw, 580px) }
-    .cap { bottom: 18px }
-    .scroll-cue { display: none }
   }
 
   /* ---------- metrics band ---------- */
@@ -477,22 +467,17 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; transition-delay: 0s !important }
     .rv { opacity: 1; transform: none }
-    .scroll-cue i::after { display: none }
   }
 }
 
 .lp .corpus { border: 2px solid color-mix(in oklab, var(--sage) 35%, var(--border)); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 20px; padding: 16px 20px; border-radius: var(--r); background: color-mix(in oklab, var(--sage) 10%, var(--card)); }
 .lp .corpus b { font-size: 16px; letter-spacing: -.01em }
 .lp .corpus span { color: var(--ink2); font-size: 15px }
-.lp .hero-bird { width: 76px; height: 76px; margin: 0 0 20px -4px }
-@media (max-width: 900px) { .lp .hero-bird { width: 56px; height: 56px; margin-bottom: 14px } }
-.lp .drop { margin-top: 30px; max-width: 520px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 18px; row-gap: 4px; align-items: center;
+.lp .drop { margin-top: 26px; max-width: 520px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 18px; row-gap: 4px; align-items: center;
   padding: 22px 26px; border-radius: 20px; border: 2px dashed rgb(255 255 255 / .32); background: rgb(255 255 255 / .04); color: var(--white); cursor: pointer; transition: border-color .2s, background .2s }
 .lp .drop svg { grid-row: 1 / 3; width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: var(--acc); color: var(--white) }
 .lp .drop-t { font-size: 20px; font-weight: 700; letter-spacing: -.01em }
 .lp .drop-s { font: 500 12.5px/1.3 var(--font-mono); color: rgb(255 255 255 / .6) }
 .lp .drop:hover, .lp .drop.over { border-color: var(--acc-l); background: color-mix(in oklab, var(--acc) 14%, transparent) }
 .lp .drop:focus-visible { outline: 3px solid var(--acc-l); outline-offset: 3px }
-.lp .try-sample { align-self: flex-start; margin-top: 12px; font-size: 14px; color: rgb(255 255 255 / .62); text-decoration: underline; text-underline-offset: 3px }
-.lp .try-sample:hover { color: var(--white) }
 @media (max-width: 520px) { .lp .drop { padding: 18px; column-gap: 14px } .lp .drop-t { font-size: 18px } }
