@@ -17,7 +17,7 @@ pages: 2
 few_shot: 2
 examples: {pdf: [przelew.pdf, potwierdzenie_przelewu.pdf], json: przelew.json}   # pliki w każdym folderze data/train/<sprawa>/
 instructions: |
-  - Numery rachunków: 26 cyfr, bez prefiksu PL i bez spacji.
+  - Numery rachunków bez spacji (26 cyfr; kod kraju, np. PL, zostaje tylko gdy jest w dokumencie).
   - kwota jako liczba dodatnia (np. 15000.00), także gdy bank pokazuje ją ze znakiem minus (obciążenie).
   - tytul przepisz dokładnie, w całości, z zachowaniem wielkości liter.
   - numer_transakcji: numer referencyjny / identyfikator transakcji, jeśli występuje.
@@ -27,10 +27,10 @@ fields:
     properties:
       data_operacji: {type: date, description: Data operacji / wykonania przelewu.}
       kwota: {type: number, normalize: [amount], description: Kwota przelewu.}
-      na_rachunek: {type: string, normalize: [iban], pattern: '\d{26}', description: Rachunek odbiorcy (26 cyfr).}
+      na_rachunek: {type: string, normalize: [iban], pattern: '(?:[A-Z]{2})?\d{26}', description: Rachunek odbiorcy (26 cyfr; kod kraju np. PL tylko jeśli jest w dokumencie).}
       numer_transakcji: {type: string, description: Numer referencyjny / identyfikator transakcji.}
       tytul: {type: string, description: Tytuł przelewu (pełny).}
-      z_rachunku: {type: string, normalize: [iban], pattern: '\d{26}', description: Rachunek zleceniodawcy (26 cyfr).}
+      z_rachunku: {type: string, normalize: [iban], pattern: '(?:[A-Z]{2})?\d{26}', description: Rachunek zleceniodawcy (26 cyfr; kod kraju np. PL tylko jeśli jest w dokumencie).}
 
 # Tryb deterministyczny (extraction.mode: deterministic): reguły bez LLM, składnia w o2j/deterministic.py.
 deterministic:

@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from . import doc_order as DO
+from . import post_rules as PR
 from . import extract as E
 from . import pdf as P
 from . import tracing as T
@@ -298,7 +299,11 @@ class Pipeline:
             trace["doc_order"] = DO.apply(spec, result, doc)
         except Exception as e:  # noqa: BLE001  a post-processing bug must not cost the document
             trace["doc_order"], trace["doc_order_error"] = [], repr(e)
-        if trace["doc_order"]:
+        try:
+            trace["post_rules"] = PR.apply(result, doc)
+        except Exception as e:  # noqa: BLE001
+            trace["post_rules"], trace["post_rules_error"] = [], repr(e)
+        if trace["doc_order"] or trace["post_rules"]:
             evidence = E.ground(doc, result, derived)
         gd.update(self._ground_detail(evidence))
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
@@ -368,6 +373,10 @@ class Pipeline:
                 trace["raw_output"] = raw
                 nd["normalized"] = self._norm_diff(raw, result)
                 trace["doc_order"] = nd["doc_order"] = DO.apply(spec, result, doc)
+                try:
+                    trace["post_rules"] = nd["post_rules"] = PR.apply(result, doc)
+                except Exception as e:  # noqa: BLE001
+                    trace["post_rules"], trace["post_rules_error"] = [], repr(e)
         with st.step("ground", "Dowody") as gd:
             evidence = E.ground(doc, result, E.derived_fields(spec))
             gd.update(self._ground_detail(evidence))
