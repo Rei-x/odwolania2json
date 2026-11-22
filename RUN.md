@@ -5,7 +5,7 @@
 Uruchomić z katalogu `/opt/solution` (bez interakcji, kończy się sama):
 
 ```bash
-docker compose run --rm wrobelek --force
+docker compose run --rm wrobelek --force --profile standard
 ```
 
 - Przetwarza wszystkie pliki z `/opt/solution/input/<sprawa>/*.pdf` i zapisuje `/opt/solution/output/<sprawa>/<ta sama nazwa>.json`.
@@ -20,7 +20,7 @@ Czas: zmierzone na tym serwerze (2 vCPU): 226 PDF (przykłady UZP + 30 skanów) 
 
 Klucz API jest w `/opt/solution/.env` (`O2J_LLM_API_KEY`, adres w `O2J_LLM_BASE_URL`).
 
-- **LLM:** otwarte modele Mistral AI **Ministral 3B i Ministral 8B** (profil `auto`: reguły + Ministral 3B, trudne dokumenty i skany od razu Ministral 8B), przez API zgodne z OpenAI: OpenRouter, regionalny endpoint UE `https://eu.openrouter.ai/api/v1` (inferencja wyłącznie u dostawców w Unii Europejskiej, routing przypięty do Mistral AI, `data_collection: deny`, umowa powierzenia przetwarzania danych zaakceptowana).
+- **LLM:** otwarty model Mistral AI **Ministral 8B** we wszystkich krokach (profil `standard`: klasyfikacja reguły + model, ekstrakcja, weryfikacja i naprawa), przez API zgodne z OpenAI: OpenRouter, regionalny endpoint UE `https://eu.openrouter.ai/api/v1` (inferencja wyłącznie u dostawców w Unii Europejskiej, routing przypięty do Mistral AI, `data_collection: deny`, umowa powierzenia przetwarzania danych zaakceptowana).
 - **OCR skanów:** Ministral 8B (model wizyjny) przez to samo API; tekst z PDF-ów cyfrowych czytany lokalnie.
 - **Lokalnie (CPU, bez GPU):** pypdfium2 (warstwa tekstowa PDF), PP-LCNet ONNX (orientacja stron 0/90/180/270), reguły z plików YAML w `config/doctypes/`.
 

@@ -86,7 +86,7 @@ providers:
   mistralai/ministral-3b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}
 
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
-profile: auto                      # domyślnie: reguły + Ministral 3B -> 8B; skany od razu 8B
+profile: standard                  # domyślnie: Ministral 8B (Mistral, UE) we wszystkich krokach + weryfikacja i naprawa
 profiles:
   deterministyczny:                  # bez LLM: reguły z YAML (najtańszy, w pełni powtarzalny)
     extraction: {mode: deterministic}
