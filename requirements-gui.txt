@@ -1,0 +1,5 @@
+# Opcjonalnie, tylko GUI: ramki dowodów na skanach (lokalny OCR słów z pozycjami: RapidOCR, PP-OCRv6 ONNX, CPU,
+# Apache-2.0). Modele są w kole pakietu, więc nic się nie pobiera w trakcie pracy; ciągnie opencv-python-headless,
+# shapely i pyclipper (ok. 150 MB). Bez tego pakietu GUI działa jak dotąd (na skanach sam cytat), a tryb wsadowy
+# (run.py / start.sh) nigdy go nie importuje. Obraz Dockera ma go wbudowanego.
+rapidocr>=3.10,<4

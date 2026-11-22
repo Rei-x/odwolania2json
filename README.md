@@ -44,7 +44,7 @@ docker compose run --rm wrobelek --force  # opcje CLI jak w run.py
 docker compose --profile gui up gui       # GUI na http://127.0.0.1:8000
 ```
 
-GUI: `python gui.py` (Windows: `gui.bat`), adres http://127.0.0.1:8000. Wgrywasz PDF i widzisz podgląd dokumentu obok JSON. Kliknięcie pola pokazuje cytat i przewija PDF do właściwej strony.
+GUI: `python gui.py` (Windows: `gui.bat`), adres http://127.0.0.1:8000. Wgrywasz PDF i widzisz podgląd dokumentu obok JSON. Kliknięcie pola pokazuje cytat i przewija PDF do właściwej strony, z ramką wokół źródła. Na skanach (bez warstwy tekstowej) ramkę wyznacza lokalny OCR słów z pozycjami, uruchamiany w tle równolegle z analizą: `pip install -r requirements-gui.txt` (obraz Dockera ma go wbudowanego; bez niego na skanach widać sam cytat, tryb wsadowy z niego nie korzysta).
 
 Ewaluacja F1 na danych treningowych liczona według reguł organizatora: `python run.py eval [--cases N] [--model M] [--src data/scans]`.
 

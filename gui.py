@@ -160,8 +160,12 @@ def _norm(s: str) -> str:
     return " ".join(s.split())
 
 
-def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
-    """Attach `rects` (page-relative %, top-left origin) to located evidence using the PDF text layer."""
+def highlight_rects(pdf_path: Path, evidence: list[dict], ocr_pages=None, min_chars: int = 40) -> None:
+    """Attach `rects` (page-relative %, top-left origin) to located evidence using the PDF text layer.
+
+    Evidence on a scanned page (in `ocr_pages`, or with almost no text layer when ocr_pages is unknown) that the
+    text layer cannot place gets boxes from local OCR word boxes instead (o2j/scan_boxes.py, optional dependency)."""
+    scan = []
     with _PDFIUM_LOCK:
         pdf = pdfium.PdfDocument(str(pdf_path))
         cache = {}
@@ -176,6 +180,7 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
                 tp = page.get_textpage()
                 w, h = page.get_size()
                 full = tp.get_text_range()
+                is_scan = (n + 1 in ocr_pages) if ocr_pages is not None else len(full.strip()) < min_chars
                 # map collapsed-whitespace text positions back to char indices
                 idx, buf, prev_space = [], [], False
                 for i, ch in enumerate(full):
@@ -188,11 +193,13 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
                         buf.append(ch)
                         idx.append(i)
                         prev_space = False
-                cache[n] = (tp, w, h, "".join(buf).lower(), idx)
-            tp, w, h, text, idx = cache[n]
+                cache[n] = (tp, w, h, "".join(buf).lower(), idx, is_scan)
+            tp, w, h, text, idx, is_scan = cache[n]
             q = _norm(e.get("quote", "")).lower()
             pos = text.find(q) if q else -1
             if pos < 0:
+                if is_scan:
+                    scan.append(e)
                 continue
             a, b = idx[pos], idx[min(pos + len(q), len(idx)) - 1] + 1
             rects = []
@@ -202,9 +209,31 @@ def highlight_rects(pdf_path: Path, evidence: list[dict]) -> None:
                               round((rt - l) / w * 100, 3), round((tp_ - bt) / h * 100, 3)])
             if rects:
                 e["rects"] = rects
+            elif is_scan:
+                scan.append(e)
         for tp, *_ in cache.values():
             tp.close()
         pdf.close()
+    if scan:  # outside the pdfium lock: local OCR takes ~1 s per page unless prefetched
+        from o2j import scan_boxes
+        scan_boxes.locate(pdf_path, scan)
+
+
+def prefetch_scan_boxes(pdf_path: Path, pipe: Pipeline) -> None:
+    """Start the local OCR of the pages the pipeline will OCR, in the background, so their word boxes are ready
+    (cached) by the time highlight_rects needs them: it overlaps the VLM OCR + LLM calls instead of adding to them."""
+    if pipe._ocr is None:  # no OCR (e.g. rules profile): scanned pages have no text, hence no evidence to box
+        return
+    try:
+        from o2j import scan_boxes
+        if not scan_boxes.available():
+            return
+        ocr_cfg = pipe.s.get("ocr") or {}
+        scan_boxes.prefetch(pdf_path, scan_boxes.scan_pages(
+            pdf_path, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)), max_pages=int(ocr_cfg.get("max_pages", 4)),
+            garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1))))
+    except Exception:  # noqa: BLE001  (boxes on scans are a convenience; never fail the upload over them)
+        pass
 
 
 SAMPLES = ROOT / "samples"
@@ -303,6 +332,7 @@ async def process(files: list[UploadFile] = File(...), case: str | None = Form(N
 
 def _one(sid: str, path: Path, profile: str | None = None, model: str | None = None) -> dict:
     p = get_pipe(profile, model)
+    prefetch_scan_boxes(path, p)
     try:
         doctype, result, trace = p.process(path)
     except Exception as e:  # noqa: BLE001
@@ -317,7 +347,7 @@ def _one(sid: str, path: Path, profile: str | None = None, model: str | None = N
         return {"session": sid, "file": path.name, "doctype": "error", "error": str(e), "result": {}, "trace": trace}
     evidence = trace.get("evidence") or []
     try:
-        highlight_rects(path, evidence)
+        highlight_rects(path, evidence, ocr_pages=trace.get("ocr_pages"))
     except Exception:  # noqa: BLE001
         pass
     (path.parent / (path.stem + ".json")).write_text(
@@ -525,6 +555,7 @@ def _test_draft(sid: str, path: Path, yaml_text: str, profile: str | None) -> di
     if pipe.llm is None:
         raise HTTPException(400, "Test wymaga profilu z modelem LLM")
     ocr_cfg = pipe.s.get("ocr", {})
+    prefetch_scan_boxes(path, pipe)
     doc = P.load(path, ocr=pipe._ocr, min_chars=int(ocr_cfg.get("min_chars_per_page", 40)), dpi=int(ocr_cfg.get("dpi", 200)),
                  ocr_max_pages=int(ocr_cfg.get("max_pages", 4)), prep=ocr_cfg.get("preprocess"),
                  garbage_threshold=float(ocr_cfg.get("garbage_threshold", 0.1)))
@@ -552,7 +583,7 @@ def _test_draft(sid: str, path: Path, yaml_text: str, profile: str | None) -> di
     evidence = E.ground(doc, result, E.derived_fields(spec))
     issues = V.verify(spec, result, evidence, ocr_doc=bool(images))
     try:
-        highlight_rects(path, evidence)
+        highlight_rects(path, evidence, ocr_pages=[p.number for p in doc.pages if p.source == "ocr"])
     except Exception:  # noqa: BLE001
         pass
     return {"session": sid, "file": path.name, "doctype": spec.name, "result": result,
