@@ -1,5 +1,7 @@
 // Types, API calls and display helpers for the /app workbench (mirrors gui.py payloads).
 
+import { fmtNum, fmtScore } from "@/lib/format"
+
 export type Evidence = {
   field: string
   method: "located" | "inferred" | "derived" | string
@@ -192,8 +194,8 @@ export function levelModelLabel(profile: string, models: Model[], override: stri
 }
 
 export const pb = (v: number | null | undefined) =>
-  v == null ? "?" : v >= 1000 ? (v / 1000).toFixed(1).replace(".", ",") + "T" : String(v).replace(".", ",") + "B"
-export const f3 = (v: number | null | undefined) => (v == null ? null : v.toFixed(v === 1 ? 3 : 4).replace(".", ","))
+  v == null ? "?" : v >= 1000 ? fmtNum(v / 1000, 1, 1) + "T" : fmtNum(v, 0, 1) + "B"
+export const f3 = (v: number | null | undefined) => (v == null ? null : fmtScore(v, v === 1 ? 3 : 4))
 
 const TOKENS = /[^.[\]]+|\[\d+\]/g
 const tok = (t: string): string | number => (t[0] === "[" ? +t.slice(1, -1) : t)

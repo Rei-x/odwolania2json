@@ -3,9 +3,15 @@ import { ListIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { type Doc, LABEL, typeDot } from "./lib"
+import { doctypeLabel } from "@/lib/labels"
+import { type Doc, typeDot } from "./lib"
 
 const stem = (f: string) => f.replace(/\.pdf$/i, "")
+/** File name as shown; a bare technical name ("odwolanie.pdf") reads as its label ("Odwołanie"). */
+const shown = (d: Doc) => {
+  const s = stem(d.file)
+  return d.doctype && s.toLowerCase().replace(/-/g, "_") === d.doctype ? doctypeLabel(d.doctype) : s
+}
 
 /**
  * Case documents as a horizontally scrolling strip. It always takes the remaining width (min-w-0) and never wraps,
@@ -70,9 +76,9 @@ export function DocStrip({ docs, curId, onPick }: { docs: Doc[]; curId: number |
                 )}
               >
                 <Dot d={d} />
-                <span className="min-w-0 flex-1 truncate">{stem(d.file)}</span>
+                <span className="min-w-0 flex-1 truncate">{shown(d)}</span>
                 <span className="shrink-0 text-[11px] text-muted-foreground">
-                  {d.pending ? "…" : LABEL[d.doctype || ""] || d.doctype}
+                  {d.pending ? "…" : doctypeLabel(d.doctype)}
                 </span>
               </button>
             ))}
@@ -104,7 +110,7 @@ function DocChip({ d, on, onClick }: { d: Doc; on: boolean; onClick: () => void 
       )}
     >
       <Dot d={d} />
-      <span className="truncate">{stem(d.file)}</span>
+      <span className="truncate">{shown(d)}</span>
     </button>
   )
 }

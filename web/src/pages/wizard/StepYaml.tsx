@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { doctypeLabel } from "@/lib/labels"
 import { JsonView } from "./JsonView"
 import { InferProgress } from "./StartDrop"
 import type { Wizard } from "./useWizard"
@@ -71,7 +72,7 @@ export function StepYaml({ wiz }: { wiz: Wizard }) {
               </Button>
             }
           >
-            <b>„{s.name}”</b> — typ wbudowany, tylko do odczytu
+            <b>„{doctypeLabel(s.name)}”</b> — typ wbudowany, tylko do odczytu
           </Banner>
         ) : s.editing ? (
           <Banner
@@ -83,7 +84,7 @@ export function StepYaml({ wiz }: { wiz: Wizard }) {
               </Button>
             }
           >
-            Edytujesz <b>„{s.editing}”</b>
+            Edytujesz <b>„{doctypeLabel(s.editing)}”</b>
           </Banner>
         ) : null}
         <YamlCode
@@ -138,7 +139,7 @@ export function StepYaml({ wiz }: { wiz: Wizard }) {
               <div className="grid grid-cols-3 gap-2 text-center">
                 {[
                   [sp.fields, "pól"],
-                  [sp.keywords, "słów klucz."],
+                  [sp.keywords, "słów kluczowych"],
                   [Object.keys(sp.skeleton).length, "sekcji"],
                 ].map(([n, l]) => (
                   <div key={l} className="rounded-lg bg-secondary/70 px-2 py-2">
@@ -167,7 +168,7 @@ export function StepYaml({ wiz }: { wiz: Wizard }) {
       <Dialog open={confirmDel} onOpenChange={setConfirmDel}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Usunąć typ „{s.editing}”?</DialogTitle>
+            <DialogTitle>Usunąć typ „{doctypeLabel(s.editing)}”?</DialogTitle>
             <DialogDescription>
               Plik <code className="font-mono">config/doctypes/{s.editing}.yaml</code> zostanie skasowany.
             </DialogDescription>

@@ -7,6 +7,8 @@ import { Slider } from "@/components/ui/slider"
 import { MemoryChart } from "./memory-chart"
 import { ModelLogo } from "@/components/brand/model-logo"
 import { cn } from "@/lib/utils"
+import { fmtPct, fmtUsd } from "@/lib/format"
+import { doctypeLabel, pathLabel } from "@/lib/labels"
 import {
   api,
   f3,
@@ -19,6 +21,12 @@ import {
   type Sample,
   type Stats,
 } from "./lib"
+
+/** "pelnomocnictwo:pelnomocnicy[0].imie_nazwisko" -> "Pełnomocnictwo · Pełnomocnik · imię i nazwisko" */
+const correctedLabel = (f: string) => {
+  const [t, path] = f.includes(":") ? f.split(/:(.*)/s) : ["", f]
+  return t ? `${doctypeLabel(t)} · ${pathLabel(path)}` : pathLabel(path)
+}
 
 /* ------------------------------------------------------------------ profile (cost / quality) */
 
@@ -172,14 +180,13 @@ export function ModelPicker({
           <ModelLogo id={x.id} name={x.name} size={14} />
           <span className="truncate">{x.name}</span>
         </b>
-        <small className="block truncate text-[11px] text-muted-foreground">
-          {x.id}
-          {x.f1_blind != null
-            ? ` · F1 ślepy ${f3(x.f1_blind)}`
-            : x.f1_train != null
-              ? ` · F1 trening ${f3(x.f1_train)}`
-              : ""}
-          {x.cost != null ? ` · ${x.cost.toFixed(3).replace(".", ",")} $` : ""}
+        <small className="block truncate text-[11px] text-muted-foreground" title={x.id}>
+          {[
+            x.f1_blind != null ? `F1 ślepy ${f3(x.f1_blind)}` : x.f1_train != null ? `F1 trening ${f3(x.f1_train)}` : "",
+            x.cost != null ? fmtUsd(x.cost) : "",
+          ]
+            .filter(Boolean)
+            .join(" · ") || "brak pomiaru"}
         </small>
       </span>
       <span className="flex items-center gap-1">
@@ -270,21 +277,22 @@ export function ModelPicker({
 
 /* ------------------------------------------------------------------ learning memory */
 
-export function MemoryButton({ stats }: { stats: Stats | null }) {
+/** Top-bar counter: documents processed in this session; the popover shows what the memory has learned. */
+export function MemoryButton({ stats, processed }: { stats: Stats | null; processed: number }) {
   const n = stats ? Object.values(stats.examples || {}).reduce((a, b) => a + b, 0) : null
   const tl = stats?.timeline || []
   return (
     <Popover>
       <PopoverTrigger
-        title="Pamięć systemu: uczenie w czasie"
+        title="Dokumenty w tej sesji · pamięć systemu"
         render={<Button variant="outline" className="h-9 shrink-0 rounded-full px-3" />}
       >
         <Brain className="text-muted-foreground" />
         <span className="text-xs tabular-nums">
-          {n == null ? "—" : n}
+          {processed}
           <span className="hidden sm:inline"> dok.</span>
           {stats?.accuracy != null && (
-            <span className="hidden text-muted-foreground lg:inline"> · {(stats.accuracy * 100).toFixed(1)}%</span>
+            <span className="hidden text-muted-foreground lg:inline"> · {fmtPct(stats.accuracy)}</span>
           )}
         </span>
       </PopoverTrigger>
@@ -295,11 +303,14 @@ export function MemoryButton({ stats }: { stats: Stats | null }) {
         </div>
         {tl.length > 0 && <MemoryChart timeline={tl} />}
         <div className="text-xs">
+          W tej sesji: <b>{processed}</b> dok. · w pamięci: <b>{n ?? 0}</b> zatwierdzonych
+        </div>
+        <div className="text-xs">
           Recenzji: <b>{stats?.reviews ?? 0}</b> · pól: {stats?.fields ?? 0} · poprawionych: {stats?.corrected ?? 0}
         </div>
         {(stats?.most_corrected || []).slice(0, 4).map(([f, c]) => (
           <div key={f} className="text-xs text-muted-foreground">
-            • {f}: {c}×
+            • {correctedLabel(f)}: {c}×
           </div>
         ))}
       </PopoverContent>

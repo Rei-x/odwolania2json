@@ -4,7 +4,9 @@ import { AlertTriangle, Check, ChevronRight, Download, Minus, PencilLine, X } fr
 import { Button } from "@/components/ui/button"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { cn } from "@/lib/utils"
-import { type Doc, LABEL, shortModel } from "./lib"
+import { fmtPct, fmtSec, fmtUsd } from "@/lib/format"
+import { doctypeLabel, pathLabel, prettyModel } from "@/lib/labels"
+import type { Doc } from "./lib"
 
 /*
  * "Przebieg": what happened to the document, readable by a non-technical person in a few seconds.
@@ -45,61 +47,20 @@ const TITLE: Record<string, string> = {
   normalize: "Normalizacja",
   ground: "Dowody",
   verify: "Weryfikacja",
-  router: "Router",
+  router: "Eskalacja",
 }
 
 /* ------------------------------------------------------------------ formatting */
 
-const sec = (s: number) =>
-  s < 0.01 ? "<0,01 s" : s < 10 ? `${s.toFixed(2).replace(".", ",")} s` : `${s.toFixed(1).replace(".", ",")} s`
-const usd = (v: number) => (v === 0 ? "$0" : `$${v < 0.001 ? v.toFixed(5) : v.toFixed(4)}`.replace(".", ","))
-const pct = (v: number) => `${Math.round(v)}%`
+const sec = fmtSec
+const usd = fmtUsd
+const pct = (v: number) => fmtPct(v / 100, 0)
 const val = (v: unknown) => (v === null || v === undefined ? "brak" : typeof v === "object" ? JSON.stringify(v) : String(v))
 const plural = (n: number, one: string, few: string, many: string) =>
   n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many
 
-/** "mistralai/ministral-8b-2512" -> "Ministral 8B" */
-export function prettyModel(id?: string | null): string {
-  if (!id) return ""
-  if (id === "deterministic") return "reguły"
-  const base = shortModel(id).replace(/[-_:]?\d{4}$/, "").replace(/-(it|instruct|chat)$/i, "")
-  return base
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map((t) => (/^\d+(\.\d+)?[bkmt]$/i.test(t) || /^a\d+b$/i.test(t) ? t.toUpperCase() : t[0].toUpperCase() + t.slice(1)))
-    .join(" ")
-}
 
-/** Field path -> short readable name: "Odwolujacy[0].pelnomocnik.imie_nazwisko" -> "pełnomocnik · imię i nazwisko" */
-const NICE: Record<string, string> = {
-  imie_nazwisko: "imię i nazwisko",
-  numer_postepowania: "nr postępowania",
-  numer_bzp: "nr BZP",
-  numer_ted: "nr TED",
-  czynnosc_dzien: "data czynności",
-  czynnosc_opis: "czynność",
-  czynnosc_powod_id: "powód",
-  data_operacji: "data operacji",
-  na_rachunek: "na rachunek",
-  z_rachunku: "z rachunku",
-  numer_transakcji: "nr transakcji",
-  miejscowosc: "miejscowość",
-  pelnomocnik: "pełnomocnik",
-  pelnomocnicy: "pełnomocnik",
-  podpisujacy: "podpisujący",
-  Odwolujacy: "odwołujący",
-  Zamawiajacy: "zamawiający",
-  mocodawca: "mocodawca",
-  tytul: "tytuł",
-}
-function fieldName(path: string): string {
-  const parts = path.replace(/\[\d+\]/g, "").split(".")
-  const leaf = parts[parts.length - 1]
-  const parent = parts.length > 1 ? parts[parts.length - 2] : ""
-  const n = (k: string) => NICE[k] ?? k.replaceAll("_", " ").replaceAll("-", " ")
-  const showParent = parent && !/^(OdwolanieKIO|ZamowieniePubliczne|przelew_bankowy|data)$/.test(parent)
-  return showParent ? `${n(parent)} · ${n(leaf)}` : n(leaf)
-}
+const fieldName = pathLabel
 
 function leaves(x: unknown, out: unknown[] = []): unknown[] {
   if (Array.isArray(x)) x.forEach((v) => leaves(v, out))
@@ -170,7 +131,7 @@ function build(steps: Step[], doc: Doc): View[] {
         break
       }
       case "classify": {
-        const name = LABEL[d.decision] || d.decision
+        const name = doctypeLabel(d.decision)
         const votes = (d.llm_votes || []) as string[]
         const llmAgrees = votes.length > 0 && votes.every((x) => x === d.decision)
         if (d.out_of_scope) {
@@ -307,7 +268,7 @@ function Summary({ doc, views, summary }: { doc: Doc; views: View[]; summary?: S
           <p className="text-sm text-muted-foreground">
             {calls
               ? `${calls} ${plural(calls, "zapytanie", "zapytania", "zapytań")} do modelu AI (${models.map(prettyModel).join(", ")}) · koszt ${usd(summary?.cost_usd ?? 0)}`
-              : "Bez modelu AI, tylko reguły · koszt $0"}
+              : "Bez modelu AI, tylko reguły · koszt 0 $"}
           </p>
         </div>
         {doc.session && (
@@ -525,9 +486,7 @@ function Meta({ s }: { s: Step }) {
       <Chip>czas {sec(s.duration_s)}</Chip>
       {!!s.calls && <Chip>{s.calls}× LLM</Chip>}
       {(s.models || []).map((m) => (
-        <Chip key={m} mono>
-          {m}
-        </Chip>
+        <Chip key={m}>{prettyModel(m)}</Chip>
       ))}
       {s.tokens && (
         <Chip>
@@ -632,7 +591,7 @@ function LoadDetail({ d }: { d: D }) {
             {p.annotation_chars > 0 && <Chip>adnotacje +{p.annotation_chars}</Chip>}
             {p.ocr && (
               <span className="ml-auto text-muted-foreground tabular-nums">
-                {p.ocr.model || p.ocr.engine}
+                {p.ocr.model ? prettyModel(p.ocr.model) : p.ocr.engine}
                 {p.ocr.duration_s != null && ` · ${sec(p.ocr.duration_s)}`}
                 {p.ocr.cost_usd ? ` · ${usd(p.ocr.cost_usd)}` : ""}
               </span>
@@ -659,7 +618,7 @@ function ClassifyDetail({ d }: { d: D }) {
           {scores.map(([name, v]) => (
             <div key={name} className="text-xs">
               <div className="flex items-center gap-2">
-                <span className="w-28 shrink-0">{LABEL[name] || name}</span>
+                <span className="w-28 shrink-0">{doctypeLabel(name)}</span>
                 <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                   <span
                     className="block h-full rounded-full"
@@ -685,7 +644,7 @@ function ClassifyDetail({ d }: { d: D }) {
         <Section title="Głosy (reguły + modele)">
           <div className="flex flex-wrap gap-1">
             {d.llm_votes.map((x: string, i: number) => (
-              <Chip key={i}>{LABEL[x] || x}</Chip>
+              <Chip key={i}>{doctypeLabel(x)}</Chip>
             ))}
           </div>
         </Section>
@@ -726,13 +685,13 @@ function ExtractDetail({ d }: { d: D }) {
       </div>
       {d.voting && (
         <p className="mt-1 text-xs break-words text-muted-foreground">
-          głosowanie: {d.voting.runs} przebiegów · {(d.voting.models || []).join(", ")}
+          głosowanie: {d.voting.runs} przebiegów · {(d.voting.models || []).map(prettyModel).join(", ")}
           {d.voting.disagreements?.length ? ` · spory: ${d.voting.disagreements.length}` : ""}
         </p>
       )}
       {d.raw_output && <JsonBlock data={d.raw_output} label="Surowa odpowiedź (JSON)" />}
       {(d.raw_outputs || []).map((r: D, i: number) => (
-        <JsonBlock key={i} text={r.raw} label={`Przebieg ${i + 1} · ${r.model || ""}`} />
+        <JsonBlock key={i} text={r.raw} label={`Przebieg ${i + 1} · ${prettyModel(r.model)}`} />
       ))}
     </div>
   )
@@ -834,7 +793,7 @@ function RouterDetail({ d }: { d: D }) {
         <Section title="kaskada">
           {(d.vote.steps || []).map((s: D) => (
             <div key={s.level} className="text-xs break-words">
-              poziom {s.level}: <span className="font-mono text-[11px]">{s.models.join(" + ")}</span>
+              poziom {s.level}: <span>{s.models.map(prettyModel).join(" + ")}</span>
               {s.disagreed_with_previous?.length ? ` · różnice: ${s.disagreed_with_previous.length}` : " · potwierdził"}
             </div>
           ))}

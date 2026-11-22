@@ -10,6 +10,7 @@ import { StepSave } from "./StepSave"
 import { StepTest } from "./StepTest"
 import { StepYaml } from "./StepYaml"
 import { useWizard, type Wizard } from "./useWizard"
+import { doctypeLabel } from "@/lib/labels"
 
 function Footer({ wiz, force }: { wiz: Wizard; force: boolean }) {
   const { s } = wiz
@@ -79,7 +80,7 @@ function Footer({ wiz, force }: { wiz: Wizard; force: boolean }) {
         )}
         <Button
           onClick={() => {
-            toast(`Typ „${s.saved!.name}” gotowy — wgraj PDF`)
+            toast(`Typ „${doctypeLabel(s.saved!.name)}” gotowy — wgraj PDF`)
             navigate("/app")
           }}
         >

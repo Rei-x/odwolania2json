@@ -183,7 +183,7 @@ export default function AppPage() {
             </div>
             <div className="order-1 flex min-w-0 shrink-0 flex-wrap items-center gap-2 max-lg:w-full lg:order-2 lg:flex-nowrap">
               {profileControls}
-              <MemoryButton stats={wb.stats} />
+              <MemoryButton stats={wb.stats} processed={docs.filter((d) => !d.pending).length} />
               <Button
                 variant="outline"
                 size="icon"

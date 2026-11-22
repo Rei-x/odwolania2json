@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { fmtSec } from "@/lib/format"
+import { displayValue, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
 import { TraceView } from "./trace-view"
 import {
   api,
@@ -13,16 +15,13 @@ import {
   getP,
   type Json,
   type JsonObj,
-  KEY,
   LABEL,
   METHOD_DOT,
   METHOD_LABEL,
   type Model,
-  NICE,
   parseEdit,
   pb,
   PNAME,
-  shortModel,
   typeDot,
 } from "./lib"
 
@@ -50,6 +49,7 @@ export function evMap(d: Doc | null): Record<string, Evidence> {
 
 export function ResultPanel(p: Props) {
   const { doc: d } = p
+  const docLabel = useDoctypeLabels()
   if (d.pending) return <PendingPanel />
   const t = d.trace || {}
   const fixes = (t.verification?.rounds || []).flatMap((r) => r.changes || [])
@@ -64,7 +64,7 @@ export function ResultPanel(p: Props) {
       <div className="flex flex-col gap-2.5 border-b px-4 pt-3.5 pb-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className={cn("size-2.5 shrink-0 rounded-full", typeDot(d.doctype))} />
-          <h2 className="text-xl font-semibold tracking-tight">{LABEL[d.doctype || ""] || d.doctype}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{docLabel(d.doctype)}</h2>
           <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
             <TabsList>
               <TabsTrigger value="dane" className="px-2.5">
@@ -115,7 +115,7 @@ export function ResultPanel(p: Props) {
                 <b>Weryfikacja poprawiła:</b>
                 {fixes.map((f, i) => (
                   <div key={i} className="mt-0.5 break-words">
-                    {f.field}: <s className="text-muted-foreground">{JSON.stringify(f.before)}</s> →{" "}
+                    {pathLabel(f.field)}: <s className="text-muted-foreground">{JSON.stringify(f.before)}</s> →{" "}
                     {JSON.stringify(f.after)}
                   </div>
                 ))}
@@ -177,7 +177,7 @@ function Chips({ doc, models, fixes }: { doc: Doc; models: Model[]; fixes: numbe
       )}
       {!!t.elapsed_s && (
         <Chip>
-          <Clock /> {t.elapsed_s}s
+          <Clock /> {fmtSec(t.elapsed_s)}
         </Chip>
       )}
       {!!t.ocr_pages?.length && (
@@ -200,29 +200,29 @@ function Chips({ doc, models, fixes }: { doc: Doc; models: Model[]; fixes: numbe
           className={ovm && !ovm.eu ? "bg-wheat/30 text-bark" : "bg-foreground text-background"}
           title={`Model wybrany ręcznie: ${ov} (OCR + klasyfikacja + ekstrakcja)${ovm && !ovm.eu ? ", poza UE, tylko eksperyment" : ""}`}
         >
-          <Cpu /> model: {shortModel(t.model || ov)}
+          <Cpu /> model: {prettyModel(t.model || ov)}
           {ovm && ` · ${pb(ovm.params_b)}`}
           {ovm && !ovm.eu && " · poza UE"}
         </Chip>
       ) : t.voting?.models ? (
         <Chip>
-          <Cpu /> głosowanie: {t.voting.models.map(shortModel).join(" + ")}
+          <Cpu /> głosowanie: {t.voting.models.map(prettyModel).join(" + ")}
         </Chip>
       ) : t.model ? (
         <Chip>
-          <Cpu /> {shortModel(t.model)}
+          <Cpu /> {prettyModel(t.model)}
         </Chip>
       ) : null}
       {t.ocr_model && t.ocr_model !== t.model && (
         <Chip>
-          <ScanLine /> OCR: {shortModel(t.ocr_model)}
+          <ScanLine /> OCR: {prettyModel(t.ocr_model)}
         </Chip>
       )}
       {t.router &&
         (t.router.escalate ? (
           <Chip>
             <ScanLine /> eskalacja →{" "}
-            {(t.router.vote?.steps || []).map((s) => s.models.map(shortModel).join("+")).join(" → ")}
+            {(t.router.vote?.steps || []).map((s) => s.models.map(prettyModel).join(" + ")).join(" → ")}
           </Chip>
         ) : (
           <Chip>
@@ -257,7 +257,7 @@ function Fields(fp: FieldsProps) {
           if (!v.length)
             return (
               <Fragment key={p}>
-                <SectionLabel>{NICE[k] || k}</SectionLabel>
+                <SectionLabel>{sectionLabel(k)}</SectionLabel>
                 <div className="grid grid-cols-[minmax(110px,38%)_1fr] gap-3 px-3 py-1.5 text-sm">
                   <span className="text-muted-foreground">—</span>
                   <span className="text-muted-foreground/60">brak</span>
@@ -269,7 +269,7 @@ function Fields(fp: FieldsProps) {
               {v.map((it, i) => (
                 <Fragment key={i}>
                   <SectionLabel>
-                    {NICE[k] || k}
+                    {sectionLabel(k)}
                     {v.length > 1 ? ` ${i + 1}` : ""}
                   </SectionLabel>
                   {it && typeof it === "object" && !Array.isArray(it) ? (
@@ -285,7 +285,7 @@ function Fields(fp: FieldsProps) {
         if (v && typeof v === "object")
           return (
             <Fragment key={p}>
-              <SectionLabel sub={depth > 0}>{NICE[k] || k}</SectionLabel>
+              <SectionLabel sub={depth > 0}>{depth > 0 ? fieldLabel(k) : sectionLabel(k)}</SectionLabel>
               <Fields {...fp} obj={v} path={p} depth={depth + 1} />
             </Fragment>
           )
@@ -301,7 +301,7 @@ function Row({ doc, ev, selected, onSelect, onEdit, p, k, v }: FieldsProps & { p
   const [editing, setEditing] = useState(false)
   const edited =
     !!doc.edited && JSON.stringify(getP(doc.edited, p)) !== JSON.stringify(getP(doc.result, p))
-  const display = v === null ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v)
+  const display = displayValue(k, v)
   return (
     <div
       data-p={p}
@@ -322,7 +322,7 @@ function Row({ doc, ev, selected, onSelect, onEdit, p, k, v }: FieldsProps & { p
         on && "bg-accent hover:bg-accent",
       )}
     >
-      <span className="text-[13px] text-muted-foreground">{KEY[k] || k.replaceAll("_", " ")}</span>
+      <span className="text-[13px] text-muted-foreground">{fieldLabel(k)}</span>
       {editing ? (
         <EditInput
           initial={v === null ? "" : String(v)}
@@ -510,7 +510,7 @@ function CaseView({ caseId, caseKey }: { caseId: string | null; caseKey: string 
           <b>Uzupełniono krzyżowo:</b>
           {rep.uzupelnienia_krzyzowe.map((f, i) => (
             <div key={i} className="mt-0.5">
-              {f.dokument} · {f.pole} = {String(f.wartosc)} (z {f.zrodlo})
+              {f.dokument} · {pathLabel(f.pole)} = {String(f.wartosc)} (z {f.zrodlo})
             </div>
           ))}
         </div>

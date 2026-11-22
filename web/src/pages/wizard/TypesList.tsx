@@ -2,6 +2,7 @@ import { Lock } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { typeColor, type DoctypeInfo } from "./types"
+import { doctypeLabel } from "@/lib/labels"
 
 /** Existing doctypes from config/doctypes/; click opens the YAML (built-ins read-only). */
 export function TypesList({ types, onOpen, active }: { types: DoctypeInfo[] | null; onOpen: (name: string) => void; active?: string | null }) {
@@ -29,7 +30,7 @@ export function TypesList({ types, onOpen, active }: { types: DoctypeInfo[] | nu
             <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", typeColor(t.name))} />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5 text-sm font-medium">
-                <span className="truncate font-mono text-[13px]">{t.name}</span>
+                <span className="truncate" title={`config/doctypes/${t.file}`}>{doctypeLabel(t.name)}</span>
                 {t.builtin && <Lock aria-label="wbudowany (tylko do odczytu)" className="size-3 shrink-0 text-muted-foreground" />}
                 {t.fields != null && <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{t.fields} pól</span>}
               </span>

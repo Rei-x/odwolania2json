@@ -1,5 +1,6 @@
 import { Area, AreaChart, XAxis, YAxis } from "recharts"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { fmtPct } from "@/lib/format"
 
 const config = {
   acc: { label: "Trafność", color: "var(--primary)" },
@@ -26,7 +27,7 @@ export function MemoryChart({ timeline }: { timeline: { cumulative_accuracy: num
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent labelFormatter={(_, p) => `Recenzja ${p?.[0]?.payload?.n ?? ""}`} formatter={(v) => (
-            <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">Trafność</span><b className="tabular-nums">{String(v).replace(".", ",")}%</b></span>
+            <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">Trafność</span><b className="tabular-nums">{fmtPct(Number(v) / 100)}</b></span>
           )} />}
         />
         <Area dataKey="acc" type="monotone" stroke="var(--color-acc)" strokeWidth={2} fill="url(#mem-fill)" isAnimationActive={false} />

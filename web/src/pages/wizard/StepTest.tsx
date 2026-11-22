@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils"
 import { JsonView } from "./JsonView"
 import { typeColor, type Evidence, type TestResponse } from "./types"
 import type { Wizard } from "./useWizard"
+import { fmtSec, fmtUsd } from "@/lib/format"
+import { displayValue, doctypeLabel, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
 
 const METHOD_DOT: Record<string, string> = { located: "bg-success", inferred: "bg-wheat", derived: "bg-sage" }
 
@@ -19,18 +21,18 @@ const CLS_CONFIG = {
 
 /** Rule-based classification scores as a compact horizontal bar chart (new type highlighted). */
 function ClassChart({ scores, me }: { scores: [string, number][]; me: string }) {
-  const data = scores.map(([name, score]) => ({ name, score }))
+  const data = scores.map(([name, score]) => ({ name, label: doctypeLabel(name), score }))
   return (
     <ChartContainer config={CLS_CONFIG} className="aspect-auto w-full" style={{ height: data.length * 26 + 4 }}>
       <BarChart data={data} layout="vertical" margin={{ left: 0, right: 28, top: 2, bottom: 2 }} barCategoryGap={5}>
         <XAxis type="number" hide domain={[0, "dataMax"]} />
         <YAxis
           type="category"
-          dataKey="name"
-          width={112}
+          dataKey="label"
+          width={150}
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize: 11, fontFamily: "var(--font-mono)" }}
+          tick={{ fontSize: 11 }}
         />
         <ChartTooltip cursor={false} content={<ChartTooltipContent hideIndicator />} />
         <Bar dataKey="score" radius={6} minPointSize={3} isAnimationActive={false}>
@@ -72,7 +74,7 @@ function Dropzone({ name, onFile }: { name: string; onFile: (f: File) => void })
           <FileUp className="size-7" />
         </span>
         <span className="font-medium">
-          Upuść przykładowy PDF typu „<span className="font-mono">{name}</span>”
+          Upuść przykładowy PDF typu „{doctypeLabel(name)}”
         </span>
         <span className="text-sm text-muted-foreground">lub kliknij, aby wybrać</span>
       </button>
@@ -97,7 +99,7 @@ function Busy({ name }: { name: string }) {
   return (
     <div className="flex flex-col items-center gap-3 py-24 text-center">
       <Loader2 className="size-8 animate-spin text-primary" />
-      <b>Ekstrakcja szkicem „{name}”…</b>
+      <b>Ekstrakcja szkicem „{doctypeLabel(name)}”…</b>
       <span className="text-sm text-muted-foreground">PDF → LLM → normalizacja → dowody</span>
     </div>
   )
@@ -136,8 +138,8 @@ function Row({ k, v, e, on, onPick }: { k: string; v: unknown; e?: Evidence; on:
       className={cn("block w-full rounded-md px-3 py-1.5 text-left transition-colors hover:bg-secondary/70", on && "bg-accent hover:bg-accent")}
     >
       <span className="flex items-baseline gap-3">
-        <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">{k.replaceAll("_", " ")}</span>
-        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{isNull ? "—" : String(v)}</span>
+        <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">{k === "—" ? k : fieldLabel(k)}</span>
+        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{displayValue(k, v)}</span>
         <span className={cn("size-2 shrink-0 self-center rounded-full", e ? METHOD_DOT[e.method] ?? "bg-muted-foreground" : "opacity-0")} />
       </span>
       {on && <span className="mt-1 block pl-0 text-xs text-muted-foreground sm:pl-39">{evt}</span>}
@@ -170,24 +172,25 @@ function Fields({
     const p = path ? `${path}.${k}` : k
     if (Array.isArray(v)) {
       if (!v.length) {
-        out.push(head(p + ":h", k), <Row key={p} k="—" v={null} on={false} onPick={() => {}} />)
+        out.push(head(p + ":h", sectionLabel(k)), <Row key={p} k="—" v={null} on={false} onPick={() => {}} />)
         continue
       }
       v.forEach((it, i) => {
         const ip = `${p}[${i}]`
-        out.push(head(ip + ":h", v.length > 1 ? `${k} ${i + 1}` : k))
+        out.push(head(ip + ":h", v.length > 1 ? `${sectionLabel(k)} ${i + 1}` : sectionLabel(k)))
         if (it && typeof it === "object")
           out.push(<Fields key={ip} obj={it as Record<string, unknown>} path={ip} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
         else out.push(<Row key={ip} k={k} v={it} e={ev[ip]} on={picked === ip} onPick={() => onPick(ip)} />)
       })
     } else if (v && typeof v === "object") {
-      out.push(head(p + ":h", k, depth > 0), <Fields key={p} obj={v as Record<string, unknown>} path={p} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
+      out.push(head(p + ":h", depth > 0 ? fieldLabel(k) : sectionLabel(k), depth > 0), <Fields key={p} obj={v as Record<string, unknown>} path={p} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
     } else out.push(<Row key={p} k={k} v={v} e={ev[p]} on={picked === p} onPick={() => onPick(p)} />)
   }
   return <>{out}</>
 }
 
 function Result({ d }: { d: TestResponse }) {
+  useDoctypeLabels()
   const t = d.trace
   const [view, setView] = useState<"dane" | "json">("dane")
   const [picked, setPicked] = useState<string | null>(null)
@@ -196,8 +199,8 @@ function Result({ d }: { d: TestResponse }) {
   for (const e of t.evidence ?? []) ev[e.field] = e
   const cls = t.classification ?? {}
   const scores = Object.entries(cls.scores ?? {})
-  const chips = [`${t.pages} str.`, `${t.elapsed_s}s`, String(t.model ?? "").split("/").pop() ?? ""]
-  if (t.cost_usd) chips.push(`$${t.cost_usd.toFixed(4)}`)
+  const chips = [`${t.pages} str.`, fmtSec(t.elapsed_s), prettyModel(t.model)]
+  if (t.cost_usd) chips.push(fmtUsd(t.cost_usd))
   if (t.ocr_pages?.length) chips.push("OCR")
   const filled = (t.evidence ?? []).length
   const located = (t.evidence ?? []).filter((e) => e.method === "located").length
@@ -246,7 +249,7 @@ function Result({ d }: { d: TestResponse }) {
         <div className="space-y-3 border-b p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn("size-3 rounded-full", typeColor(d.doctype))} />
-            <h2 className="font-mono text-lg font-semibold">{d.doctype}</h2>
+            <h2 className="text-lg font-semibold">{doctypeLabel(d.doctype)}</h2>
             <Tabs value={view} onValueChange={(v) => setView(v as "dane" | "json")} className="ml-auto">
               <TabsList>
                 <TabsTrigger value="dane">Dane</TabsTrigger>
@@ -270,7 +273,7 @@ function Result({ d }: { d: TestResponse }) {
               ) : cls.best === d.doctype ? (
                 <span className="font-medium text-chart-3">mały margines — zdecyduje LLM</span>
               ) : (
-                <span className="font-medium text-destructive">wygrywa „{cls.best}” — dodaj słowa kluczowe</span>
+                <span className="font-medium text-destructive">wygrywa „{doctypeLabel(cls.best)}” — dodaj słowa kluczowe</span>
               )}
             </div>
             <ClassChart scores={scores.slice(0, 5)} me={d.doctype} />
@@ -289,7 +292,7 @@ function Result({ d }: { d: TestResponse }) {
                   <div className="text-muted-foreground">Po zapisie poprawi je pętla naprawy.</div>
                   {issues.map((i, k) => (
                     <div key={k}>
-                      <span className="font-mono">{i.field}</span>: {i.issue}
+                      <span className="font-medium">{pathLabel(i.field)}</span>: {i.issue}
                     </div>
                   ))}
                 </div>

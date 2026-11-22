@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import type { Wizard } from "./useWizard"
+import { doctypeLabel } from "@/lib/labels"
 
 function SumRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -24,7 +25,7 @@ export function StepSave({ wiz, force, setForce }: { wiz: Wizard; force: boolean
           <span className="grid size-16 place-items-center rounded-full bg-success/15 text-success">
             <CheckCircle2 className="size-9" />
           </span>
-          <h2 className="text-xl font-semibold">Typ „{s.saved.name}” jest aktywny</h2>
+          <h2 className="text-xl font-semibold">Typ „{doctypeLabel(s.saved.name)}” jest aktywny</h2>
           <p className="max-w-lg text-sm text-muted-foreground">
             <code className="font-mono text-foreground">{s.saved.file}</code> · działa od razu, bez restartu.
           </p>
@@ -55,7 +56,7 @@ export function StepSave({ wiz, force, setForce }: { wiz: Wizard; force: boolean
         {wiz.isBuiltin && (
           <Label className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 p-3 font-normal">
             <Checkbox checked={force} onCheckedChange={(c) => setForce(!!c)} className="mt-0.5" />
-            <span>Nadpisuję typ wbudowany „{s.name}”</span>
+            <span>Nadpisuję typ wbudowany „{doctypeLabel(s.name)}”</span>
           </Label>
         )}
       </CardContent>

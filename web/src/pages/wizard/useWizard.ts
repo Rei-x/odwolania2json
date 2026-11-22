@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { rememberDoctypes } from "@/lib/labels"
 import { ApiError, wizardApi } from "./api"
 import {
   DEFAULT_BUILTIN,
@@ -108,7 +109,10 @@ export function useWizard() {
     () =>
       wizardApi
         .list()
-        .then(setTypes)
+        .then((t) => {
+          rememberDoctypes(t)
+          setTypes(t)
+        })
         .catch(() => setTypes((t) => t ?? [])),
     [],
   )
@@ -299,7 +303,7 @@ export function useWizard() {
         inferring: null,
         yaml: r.yaml,
         valid: r.validation,
-        name: r.spec.name,
+        name: (rememberDoctypes([r.spec]), r.spec.name),
         readonly: false,
         editing: null,
         saved: null,
