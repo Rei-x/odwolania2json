@@ -80,3 +80,24 @@ def test_sole_trader_wrong_name_replaced():
                                  "typ": "osoba_prawna"}}]}
     PR.apply(r, _doc(text))
     assert r["mocodawca"][0]["data"]["imie_nazwisko"] == "Paweł Brzozowski"
+
+
+def test_act_date_and_reason_from_the_act_sentence():
+    text = "wnoszę o: Zamawiający w dniu 27 października 2026 roku nie wykluczył z postępowania wykonawcy X"
+    r = {"OdwolanieKIO": {"czynnosc_dzien": None, "czynnosc_powod_id": 12, "czynnosc_opis": "Projektowane postanowienia umowy"}}
+    PR.apply(r, _doc(text))
+    assert r["OdwolanieKIO"] == {"czynnosc_dzien": "2026-10-27", "czynnosc_powod_id": 8,
+                                 "czynnosc_opis": "Zaniechanie wykluczenia wykonawcy"}
+
+
+def test_act_date_not_from_stamp():
+    text = "WPŁYNĘŁO Data: 21.08.2026 … Informacja o zaskarżonej czynności została opublikowana w dniu 11.05.2026 r."
+    r = {"OdwolanieKIO": {"czynnosc_dzien": "2026-08-21"}}
+    PR.apply(r, _doc(text))
+    assert r["OdwolanieKIO"]["czynnosc_dzien"] == "2026-05-11"
+
+
+def test_act_date_kept_when_grounded():
+    text = "Zamawiający w dniu 8 lipca 2026 roku wybrał ofertę; czynność z dnia 9 lipca 2026"
+    r = {"OdwolanieKIO": {"czynnosc_dzien": "2026-07-09"}}
+    assert PR.apply(r, _doc(text)) == []

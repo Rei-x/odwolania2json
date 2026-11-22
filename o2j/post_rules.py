@@ -61,7 +61,8 @@ def _iso(m: re.Match) -> str | None:
 def _date_contexts(text: str, iso: str) -> list[str]:
     """The ~40 characters before every occurrence of the date `iso` in the folded text."""
     y, mo, d = iso.split("-")
-    pats = [rf"\b0?{int(d)}[.\-/]0?{int(mo)}[.\-/]{y}\b", rf"\b{y}-{mo}-{d}\b"]
+    pats = [rf"\b0?{int(d)}[.\-/]0?{int(mo)}[.\-/]{y}\b", rf"\b{y}-{mo}-{d}\b",
+            rf"\b0?{int(d)}\s+{MONTHS[int(mo) - 1]}\s+{y}\b"]
     out = []
     for p in pats:
         out += [text[max(0, m.start() - 40):m.start()] for m in re.finditer(p, text)]
@@ -188,6 +189,61 @@ def fix_sole_trader(result: dict, text: str, changes: list, raw: str = ""):
                 d["imie_nazwisko"] = name
 
 
+MONTHS = "stycznia lutego marca kwietnia maja czerwca lipca sierpnia wrzesnia pazdziernika listopada grudnia".split()
+_DMY = r"(\d{1,2})[ .](\d{1,2}|[a-z]+)[ .](\d{4})"
+ACT_DATE = [re.compile(r"zamawiajacy\s+w\s+dniu\s+" + _DMY),
+            re.compile(r"(?:zaskarzon\w*\s+)?czynnosc\w*\s+(?:zamawiajacego\s+)?(?:zostala\s+)?(?:opublikowan\w*|przekazan\w*|dokonan\w*|doreczon\w*)?\s*(?:w\s+dniu|dnia)\s+" + _DMY)]
+ACT_CUE = re.compile(r"zamawiajacy\s+w\s+dniu\s+\S+\s+\S+\s+\d{4}\s*(?:r\.|roku)?\s*nie\s+(wykluczyl|odrzucil)")
+CUE_REASON = {"wykluczyl": (8, "Zaniechanie wykluczenia wykonawcy"), "odrzucil": (7, "Zaniechanie odrzucenia oferty")}
+
+
+def _dmy_iso(d, mo, y):
+    if mo.isdigit():
+        mo_i = int(mo)
+    elif mo in MONTHS:
+        mo_i = MONTHS.index(mo) + 1
+    else:
+        return None
+    if not (1 <= mo_i <= 12 and 1 <= int(d) <= 31):
+        return None
+    return f"{int(y):04d}-{mo_i:02d}-{int(d):02d}"
+
+
+def fix_act(result: dict, text: str, changes: list):
+    """Appeal: the date of the contested act ("Zamawiający w dniu 8 lipca 2026 roku …", "czynność opublikowana
+    w dniu 11.05.2026") when the model left it empty or took it from a stamp; the reason when the act sentence
+    says it outright ("… nie wykluczył" -> 8, "… nie odrzucił" -> 7; 16/16 agreement with the reference data)."""
+    od = result.get("OdwolanieKIO")
+    if not isinstance(od, dict):
+        return
+    cur = od.get("czynnosc_dzien")
+    stale = not cur or not isinstance(cur, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", cur)
+    if not stale:
+        ctx = _date_contexts(text, cur)
+        stale = not ctx or all(STAMP_CTX.search(c) or re.search(r"data\s*:?\s*$", c) for c in ctx)
+    if stale:
+        for rx in ACT_DATE:
+            m = rx.search(text)
+            iso = _dmy_iso(*m.groups()[-3:]) if m else None
+            if iso:
+                if iso != cur:
+                    changes.append({"rule": "act_date", "field": "OdwolanieKIO.czynnosc_dzien", "before": cur, "after": iso})
+                    od["czynnosc_dzien"] = iso
+                break
+    m = ACT_CUE.search(text)
+    if m and "czynnosc_powod_id" in od:
+        rid, label = CUE_REASON[m.group(1)]
+        if od.get("czynnosc_powod_id") != rid:
+            changes.append({"rule": "act_reason", "field": "OdwolanieKIO.czynnosc_powod_id",
+                            "before": od.get("czynnosc_powod_id"), "after": rid})
+            od["czynnosc_powod_id"] = rid
+            if "czynnosc_opis" in od:
+                od["czynnosc_opis"] = label
+        elif "czynnosc_opis" in od and not od.get("czynnosc_opis"):
+            changes.append({"rule": "act_reason", "field": "OdwolanieKIO.czynnosc_opis", "before": None, "after": label})
+            od["czynnosc_opis"] = label
+
+
 ACCOUNT_KEYS = ("z_rachunku", "na_rachunek")
 
 
@@ -225,6 +281,7 @@ def apply(result: dict, doc) -> list[dict]:
         if text.strip():
             fix_shared_ids(result, text, changes)
             fix_transfer_date(result, text, changes)
+            fix_act(result, text, changes)
             fix_sole_trader(result, text, changes, "\n".join(p.text for p in doc.pages))
         fix_country_codes(result, "\n".join(p.text for p in doc.pages), changes)
     return changes
