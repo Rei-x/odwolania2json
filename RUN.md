@@ -14,7 +14,7 @@ docker compose run --rm wrobelek --force --profile standard
 - `--force` przetwarza wszystko od nowa, nawet gdy w `output/` są już wyniki z poprzedniego uruchomienia.
 - Obraz Dockera (`odwolania2json:latest`) jest zbudowany na serwerze wcześniej; komenda niczego nie pobiera.
 
-Czas: zmierzone na tym serwerze (2 vCPU): 226 PDF (przykłady UZP + 30 skanów) w 2 min 52 s, 0 błędów; 150 PDF mieści się z dużym zapasem w 45 min.
+Czas: zmierzone na tym serwerze (2 vCPU, profil standard): 226 PDF (przykłady UZP + 30 skanów) w 3 min 48 s, 0 błędów przetwarzania (limity zapytań API obsłużone automatycznie); 150 PDF mieści się z dużym zapasem w 45 min.
 
 ## Usługi zewnętrzne i klucze
 
