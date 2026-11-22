@@ -14,7 +14,7 @@ docker compose run --rm wrobelek --force
 - `--force` przetwarza wszystko od nowa, nawet gdy w `output/` są już wyniki z poprzedniego uruchomienia.
 - Obraz Dockera (`odwolania2json:latest`) jest zbudowany na serwerze wcześniej; komenda niczego nie pobiera.
 
-Czas: dokumenty cyfrowe ~2–5 s, skany ~20–40 s (przetwarzane równolegle, 8 naraz); 150 PDF mieści się z dużym zapasem w 45 min.
+Czas: zmierzone na tym serwerze (2 vCPU): 226 PDF (przykłady UZP + 30 skanów) w 2 min 52 s, 0 błędów; 150 PDF mieści się z dużym zapasem w 45 min.
 
 ## Usługi zewnętrzne i klucze
 
