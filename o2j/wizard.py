@@ -676,8 +676,10 @@ Zwróć JSON zgodny ze schematem. Zasady:
 - name: krótka nazwa typu, snake_case, po polsku bez polskich znaków (np. przystapienie, odpowiedz_na_odwolanie).
 - title: nazwa dokumentu tak, jak nazywa go nagłówek (np. "Przystąpienie do postępowania odwoławczego").
 - description: 1–2 zdania, czym jest ten dokument; not_this: czym ten dokument NIE jest (podobne pisma, z którymi łatwo go pomylić).
-- keywords: 3–8 fraz skopiowanych DOSŁOWNIE z dokumentu, typowych dla KAŻDEGO dokumentu tego typu (nagłówek, stałe formuły).
-  Nigdy nazwy firm, osób, adresów, kwot, dat ani numerów. weight: 5 dla nagłówka/tytułu, 1–3 dla pozostałych.
+- keywords: 3–6 fraz skopiowanych DOSŁOWNIE z dokumentu: najpierw tytuł dokumentu (weight 5), potem 2–4 krótkie (2–4 słowa)
+  stałe formuły typowe dla KAŻDEGO dokumentu tego rodzaju, także od innego wystawcy (formuły prawne, standardowe rubryki);
+  weight 1–3. Nigdy: pieczątki i podpisy (np. "ZATWIERDZAM"), nazwy firm, osób, adresów, kwoty, daty, numery
+  ani sformułowania właściwe tylko temu jednemu wystawcy lub układowi strony.
 - fields: 8–30 pól z danymi, które warto wyciągać z dokumentów tego typu (strony, daty, sygnatury, numery, kwoty, żądania…).
   path: sekcje i pola snake_case bez polskich znaków, rozdzielone kropką, np. "Pismo.data", "Przystepujacy.nip".
   Powtarzalne podmioty (lista osób/firm/zarzutów) oznacz "[]" przy sekcji: "Pelnomocnicy[].imie_nazwisko".
@@ -854,84 +856,171 @@ def _words(phrase: str) -> list[str]:
     return re.findall(r"[0-9A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+", phrase or "")
 
 
-def keyword_pattern(phrase: str, text: str) -> tuple[str, bool] | None:
-    """Regex for a keyword phrase if it really occurs in `text` (whitespace-tolerant, case-insensitive).
-    Returns (pattern, is_heading); headings (upper-case phrase at a line start) get a case-sensitive anchored regex."""
+KW_SEP = r"\W+"  # between the words of a keyword phrase: whitespace (line breaks too), hyphens, brackets, punctuation
+TITLE_WEIGHT = 5  # the document's own title; the other (domain) phrases weigh 1–3
+MAX_DOMAIN_KEYWORDS = 3  # besides the title: a few distinctive formulas, not every string of one example
+
+
+def keyword_pattern(phrase: str, text: str, *, title: bool = False) -> str | None:
+    """Case-insensitive regex for a keyword phrase, tolerant to whitespace, line breaks, hyphens and punctuation
+    between its words, if the phrase really occurs in `text`.
+
+    Never anchored to a line start and never case-sensitive: the same title is a capitalised heading in one
+    document, a mixed-case line in the next and part of a longer line in a third. Phrases with digits (values,
+    case numbers), whole sentences and generic domain words are no class evidence (None). Single words other
+    than the title must be long and must not stand alone on a line (approval stamps and labels such as
+    "ZATWIERDZAM" or "Opracowała:" belong to one issuer's layout, not to the document type)."""
     from .classify import _despace
     words = _words(phrase)
     if not words or any(ch.isdigit() for ch in phrase) or sum(len(w) for w in words) < 5:
         return None
-    if len(words) > 6:  # a whole sentence of one example is not a formula shared by the type
+    if len(words) > (8 if title else 6):  # a whole sentence of one example is not a formula shared by the type
         return None
     lw = [w.lower() for w in words]
     if all(w in STOP or w.startswith(DOMAIN_COMMON) for w in lw):
         return None  # generic domain words are no class evidence
     text = _despace(text or "")
-    body = r"\s+".join(re.escape(w) for w in lw)
-    if not re.search(r"\b" + body + r"\b", text, flags=re.I | re.M):
+    pat = r"\b" + KW_SEP.join(re.escape(w) for w in lw) + r"\b"
+    if not re.search(pat, text, flags=re.I | re.M):
         return None
-    head = r"\s+".join(re.escape(w.upper()) for w in words)
-    if re.search(r"^\s*" + head + r"\b", text, flags=re.M):
-        return rf"^\s*(?-i:{head})\b", True
-    return r"\b" + body + r"\b", False
+    if not title and len(lw) == 1 and (len(lw[0]) < 8 or re.search(r"^\W*" + pat + r"\W*$", text, flags=re.I | re.M)):
+        return None
+    return pat
+
+
+def _stems(text: str) -> set[str]:
+    return {fold(w.lower())[:5] for w in _words(text)
+            if len(w) >= 4 and w.lower() not in STOP and not w.lower().startswith(DOMAIN_COMMON)}
+
+
+def title_in_text(title: str, text: str) -> str | None:
+    """The document's own wording of a (possibly paraphrased) title: the shortest span of one line holding the
+    title's content words in order, compared by stem ("Informacja o otwarciu ofert" -> "Informacja z otwarcia
+    ofert"). None when no line of `text` has them all."""
+    from .classify import _despace
+
+    def stem(w: str) -> str:
+        return fold(w.lower())[:5]
+    want = [stem(w) for w in _words(title) if len(w) >= 4 and w.lower() not in STOP]
+    if len(want) < 2:  # one stem ("infor") also matches unrelated words ("informuje"): one-word titles must be verbatim
+        return None
+    best = None
+    for line in _despace(text or "").splitlines():
+        words = _words(line)
+        for i, w in enumerate(words):
+            if stem(w) != want[0]:
+                continue
+            k, j = 1, i + 1  # the remaining title stems in order, within a short span (a few short words between)
+            while k < len(want) and j < len(words) and j - i < 2 * len(want) + 3:
+                if stem(words[j]) == want[k]:
+                    k += 1
+                j += 1
+            if k == len(want):
+                span = " ".join(words[i:j])
+                if best is None or len(span) < len(best):
+                    best = span
+    return best
 
 
 def infer_keywords(proposals: list[dict], texts: list[str], title: str = "",
-                   reference: list[str] | None = None, limit: int = 6) -> tuple[dict, list[str]]:
-    """Keep only keywords that occur in every example; drop the ones that also fire on reference documents of
-    other (built-in) types. Heading keywords weigh 5, the rest 1–3."""
+                   reference: list[str] | None = None, limit: int = MAX_DOMAIN_KEYWORDS, *,
+                   reference_scores: list[float | None] | None = None, description: str = "") -> tuple[dict, list[str]]:
+    """Classification keywords from the LLM proposal: the plain title phrase (weight 5) + up to `limit` domain
+    phrases (weight 1–3). Every keyword must occur in every example.
+
+    Precision against the built-in types (`reference`: texts of their example documents): a domain phrase that
+    fires on any reference document is dropped. The title is kept when it fires there only if the true type
+    still wins those documents confidently (`reference_scores[i]`: its rule score on reference[i]), so a new
+    type never takes a built-in type's own document. Domain phrases sharing words with the title / description
+    go first (they describe the document type; the others tend to be layout strings of one issuer)."""
+    from .classify import _despace
     warns: list[str] = []
-    cands = list(proposals or [])
-    if title:
-        cands.append({"phrase": title, "weight": 5})
+    refs = [_despace(r) for r in (reference or [])]
+
+    def hits(pat: str) -> list[int]:
+        return [i for i, r in enumerate(refs) if re.search(pat, r, flags=re.M | re.I)]
+
+    def weight(c: dict) -> int:
+        try:
+            return int(c.get("weight") or 1)
+        except (TypeError, ValueError):
+            return 1
+
+    def everywhere(phrase: str, is_title: bool = False) -> str | None:
+        got = [keyword_pattern(phrase, t, title=is_title) for t in texts]
+        return got[0] if got and all(got) else None
+
+    cands = [c for c in (proposals or []) if isinstance(c, dict) and str(c.get("phrase") or "").strip()]
     kw: dict[str, int] = {}
     cores: list[str] = []
-    dropped = []
-    for c in cands:
-        phrase = str(c.get("phrase") or "").strip()
-        got = [keyword_pattern(phrase, t) for t in texts] if texts else [None]
-        if not got or any(g is None for g in got):
+    dropped: list[str] = []
+
+    def dup(core: str) -> bool:  # same formula already kept, or a longer / shorter variant of it
+        return any(f" {core} " in f" {k} " or f" {k} " in f" {core} " for k in cores)
+
+    # 1. the title: the proposal's title, else a heading phrase the model copied (weight 5); a paraphrased title
+    #    ("o otwarciu" for "z otwarcia") is replaced by the example's own wording
+    for phrase in [title] + [str(c["phrase"]) for c in cands if weight(c) >= TITLE_WEIGHT]:
+        phrase = (phrase or "").strip()
+        pat = everywhere(phrase, True) if phrase else None
+        if not pat and phrase and texts:
+            phrase = title_in_text(phrase, texts[0]) or ""
+            pat = everywhere(phrase, True) if phrase else None
+        if not pat:
             continue
-        pat, heading = got[0]
-        if any(g[1] != heading for g in got):  # heading in one example, running text in another: use the loose form
-            pat, heading = keyword_pattern(phrase, "\n" + phrase.lower())[0], False
-        core = re.sub(r"\\[bs]|\^|\(\?-i:|\)|[+*]", "", pat).lower()
-        if pat in kw or any(core in c or c in core for c in cores):
-            continue  # same formula already kept (or a longer / shorter variant of it)
-        if reference and any(re.search(pat, r, flags=re.M | re.I) for r in reference):
+        on = hits(pat)
+        if on and (reference_scores is None or
+                   any(reference_scores[i] is None or reference_scores[i] - TITLE_WEIGHT < 2 for i in on)):
             dropped.append(phrase)
             continue
-        try:
-            w = int(c.get("weight") or 1)
-        except (TypeError, ValueError):
-            w = 1
-        kw[pat] = 5 if heading else max(1, min(3, w))
-        cores.append(core)
-        if len(kw) >= limit:
+        kw[pat] = TITLE_WEIGHT
+        cores.append(" ".join(w.lower() for w in _words(phrase)))
+        break
+    # 2. domain phrases, the ones related to the title / description first
+    topic = _stems(title) | _stems(description)
+    ranked = sorted(cands, key=lambda c: -len(_stems(str(c["phrase"])) & topic))
+    n = 0
+    for c in ranked:
+        if n >= limit:
             break
+        phrase = str(c["phrase"]).strip()
+        pat = everywhere(phrase)
+        core = " ".join(w.lower() for w in _words(phrase))
+        if not pat or pat in kw or dup(core):
+            continue
+        if hits(pat):
+            dropped.append(phrase)
+            continue
+        kw[pat] = max(1, min(3, weight(c)))
+        cores.append(core)
+        n += 1
     if dropped:
+        dropped = list(dict.fromkeys(dropped))
         warns.append("Pominięto słowa kluczowe występujące też w innych typach: " + ", ".join(f"„{d}”" for d in dropped[:5]) + ".")
     return kw, warns
 
 
-_REFERENCE: dict[str, list[tuple[str, str]]] = {}
+_REFERENCE: dict[tuple, list[tuple[str, str]]] = {}
+REFERENCE_FILES = {"przelew": ("przelew.pdf", "potwierdzenie_przelewu.pdf")}  # file names in data/train/przyklad_*
 
 
-def reference_texts(train_dir: str | Path | None, types=tuple(sorted(BUILTIN)), per_type: int = 8) -> list[tuple[str, str]]:
-    """(doctype, text) of example documents of the built-in types (text layer only, cached)."""
+def reference_texts(train_dir: str | Path | None, types=tuple(sorted(BUILTIN)),
+                    per_type: int | None = None) -> list[tuple[str, str]]:
+    """(doctype, text) of example documents of the built-in types: every przyklad_* folder by default
+    (text layer of the first pages only, cached; ~0.5 s for 180 documents)."""
     if not train_dir:
         return []
-    key = str(train_dir)
+    key = (str(train_dir), tuple(types), per_type)
     if key not in _REFERENCE:
         from .pdf import load
         out = []
         dirs = sorted(p for p in Path(train_dir).glob("przyklad_*") if p.is_dir())[:per_type]
         for d in dirs:
             for t in types:
-                p = d / f"{t}.pdf"
-                if p.is_file():
+                p = next((d / f for f in REFERENCE_FILES.get(t, (f"{t}.pdf",)) if (d / f).is_file()), None)
+                if p is not None:
                     try:
-                        out.append((t, load(p, ocr=None).text()[:6000]))
+                        out.append((t, load(p, ocr=None, max_pages=3).text()[:6000]))
                     except Exception:  # noqa: BLE001
                         pass
         _REFERENCE[key] = out
@@ -985,7 +1074,12 @@ def build_inferred_spec(proposal: dict, texts: list[str], *, taken=frozenset(), 
     fields, fw = fields_from_proposal(proposal.get("fields") or [])
     warns += fw
     ref_texts = [t for _, t in (reference or [])]
-    kw, kww = infer_keywords(proposal.get("keywords") or [], texts, title, ref_texts)
+    ref_scores = None
+    if specs is not None:  # how strongly each reference document is its own (built-in) type
+        from .classify import rule_scores
+        ref_scores = [rule_scores(t, "", specs).get(true) for true, t in (reference or [])]
+    kw, kww = infer_keywords(proposal.get("keywords") or [], texts, title, ref_texts,
+                             reference_scores=ref_scores, description=str(proposal.get("description") or ""))
     warns += kww
     if not kw:
         warns.append("Brak słów kluczowych występujących w przykładzie — typ rozpozna LLM z opisu.")
