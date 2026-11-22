@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { fmtSec } from "@/lib/format"
-import { displayValue, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
+import { displayValue, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels, useEnumLabels } from "@/lib/labels"
 import { TraceView } from "./trace-view"
 import {
   api,
@@ -301,7 +301,8 @@ function Row({ doc, ev, selected, onSelect, onEdit, p, k, v }: FieldsProps & { p
   const [editing, setEditing] = useState(false)
   const edited =
     !!doc.edited && JSON.stringify(getP(doc.edited, p)) !== JSON.stringify(getP(doc.result, p))
-  const display = displayValue(k, v)
+  const enums = useEnumLabels(doc.doctype)
+  const display = displayValue(k, v, enums)
   return (
     <div
       data-p={p}

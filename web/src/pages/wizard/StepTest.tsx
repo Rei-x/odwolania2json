@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react"
+import { createContext, useContext, useMemo, useRef, useState, type ReactNode } from "react"
 import { CheckCircle2, FileUp, Loader2, TriangleAlert } from "lucide-react"
 import { Bar, BarChart, Cell, LabelList, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
@@ -9,7 +9,10 @@ import { JsonView } from "./JsonView"
 import { typeColor, type Evidence, type TestResponse } from "./types"
 import type { Wizard } from "./useWizard"
 import { fmtSec, fmtUsd } from "@/lib/format"
-import { displayValue, doctypeLabel, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
+import { displayValue, doctypeLabel, type EnumLabels, fieldLabel, parseEnumLabels, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
+
+/** Enum labels of the draft being tested (parsed from the wizard YAML). */
+const EnumCtx = createContext<EnumLabels>({})
 
 const METHOD_DOT: Record<string, string> = { located: "bg-success", inferred: "bg-wheat", derived: "bg-sage" }
 
@@ -106,6 +109,7 @@ function Busy({ name }: { name: string }) {
 }
 
 function Row({ k, v, e, on, onPick }: { k: string; v: unknown; e?: Evidence; on: boolean; onPick: () => void }) {
+  const enums = useContext(EnumCtx)
   const isNull = v === null || v === undefined
   let evt: ReactNode
   if (!e) evt = "Brak w dokumencie."
@@ -139,7 +143,7 @@ function Row({ k, v, e, on, onPick }: { k: string; v: unknown; e?: Evidence; on:
     >
       <span className="flex items-baseline gap-3">
         <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">{k === "—" ? k : fieldLabel(k)}</span>
-        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{displayValue(k, v)}</span>
+        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{displayValue(k, v, enums)}</span>
         <span className={cn("size-2 shrink-0 self-center rounded-full", e ? METHOD_DOT[e.method] ?? "bg-muted-foreground" : "opacity-0")} />
       </span>
       {on && <span className="mt-1 block pl-0 text-xs text-muted-foreground sm:pl-39">{evt}</span>}
@@ -310,9 +314,18 @@ function Result({ d }: { d: TestResponse }) {
   )
 }
 
+function TestResult({ d, yaml }: { d: TestResponse; yaml: string }) {
+  const enums = useMemo(() => parseEnumLabels(yaml || ""), [yaml])
+  return (
+    <EnumCtx.Provider value={enums}>
+      <Result d={d} />
+    </EnumCtx.Provider>
+  )
+}
+
 export function StepTest({ wiz }: { wiz: Wizard }) {
   const { s } = wiz
   if (s.testing) return <Busy name={s.name} />
   if (!s.test) return <Dropzone name={s.name} onFile={wiz.runTest} />
-  return <Result d={s.test} />
+  return <TestResult d={s.test} yaml={s.yaml} />
 }

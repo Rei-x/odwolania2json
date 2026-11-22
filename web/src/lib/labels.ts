@@ -146,14 +146,62 @@ export function useDoctypeLabels() {
 
 /* ------------------------------------------------------------------ values */
 
-const BOOL_KEY = /^(przez|czy|is|has|ma)[-_]/i
+export type EnumLabels = Record<string, Record<string, string>>
 
-/** Display value of a leaf: yes/no for boolean-like fields ("przez-pelnomocnika": 1 -> "tak"), "—" for empty. */
-export function displayValue(key: string, v: unknown): string {
+/**
+ * Enum labels from a doctype YAML without a YAML parser: for every key followed by `{value: X, label: "..."}` items
+ * (block or inline list) collect value -> label. Keyed by the field's leaf name.
+ */
+export function parseEnumLabels(yaml: string): EnumLabels {
+  const out: EnumLabels = {}
+  const meta = new Set(["values", "type", "description", "label", "value", "normalize", "pattern", "properties", "items", "dedupe", "required"])
+  const item = /\{\s*value:\s*["']?([^,"'}]+?)["']?\s*,\s*label:\s*["']?([^"'}]+?)["']?\s*\}/g
+  let field: string | null = null
+  for (const line of yaml.split("\n")) {
+    const km = /^\s*([\w-]+):/.exec(line)
+    if (km && !meta.has(km[1])) field = km[1]
+    if (!field) continue
+    for (const v of line.matchAll(item)) (out[field] ??= {})[v[1].trim()] ??= v[2].trim()
+  }
+  return out
+}
+
+const enumCache = new Map<string, EnumLabels>()
+const enumLoading = new Set<string>()
+
+/** Enum labels of a saved doctype (fetched once from /api/doctypes/<name>/yaml); re-renders when they arrive. */
+export function useEnumLabels(doctype?: string | null): EnumLabels {
+  const [, bump] = useState(0)
+  useEffect(() => {
+    if (!doctype || enumCache.has(doctype) || enumLoading.has(doctype)) return
+    enumLoading.add(doctype)
+    fetch(`/api/doctypes/${encodeURIComponent(doctype)}/yaml`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { yaml?: string } | null) => {
+        enumCache.set(doctype, d?.yaml ? parseEnumLabels(d.yaml) : {})
+        bump((n) => n + 1)
+      })
+      .catch(() => enumCache.set(doctype, {}))
+  }, [doctype])
+  return (doctype && enumCache.get(doctype)) || {}
+}
+
+const BOOL_KEY = /^(przez|czy|is|has|ma)[-_]/i
+const SNAKE_WORDS = /^[a-ząćęłńóśźż]+(_[a-ząćęłńóśźż]+)+$/
+
+/**
+ * Display value of a leaf: yes/no for boolean-like fields ("przez-pelnomocnika": 1 -> "tak"), the YAML label for enum
+ * values ("9 · Decyzja o unieważnieniu postępowania"), humanised snake-case enums ("osoba_prawna" -> "osoba prawna"),
+ * "—" for empty. Display only; JSON and the edit box keep the raw value.
+ */
+export function displayValue(key: string, v: unknown, enums?: EnumLabels): string {
   if (v === null || v === undefined || v === "") return "—"
   if (typeof v === "boolean") return v ? "tak" : "nie"
   if (BOOL_KEY.test(key) && (v === 0 || v === 1 || v === "0" || v === "1")) return Number(v) === 1 ? "tak" : "nie"
   if (typeof v === "object") return JSON.stringify(v)
+  const label = enums?.[key]?.[String(v)]
+  if (label) return typeof v === "number" ? `${v} · ${label}` : label
+  if (typeof v === "string" && SNAKE_WORDS.test(v)) return v.split("_").map(word).join(" ")
   return String(v)
 }
 
