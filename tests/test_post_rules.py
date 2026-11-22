@@ -72,3 +72,11 @@ def test_account_prefix_removed_when_not_in_document():
     r = {"przelew_bankowy": {"z_rachunku": "PL62217000089152501756617062"}}
     PR.apply(r, _doc("Z rachunku 62 2170 0008 9152 5017 5661 7062"))
     assert r["przelew_bankowy"]["z_rachunku"] == "62217000089152501756617062"
+
+
+def test_sole_trader_wrong_name_replaced():
+    text = "Ja, niżej podpisany/a Paweł Brzozowski, prowadzący/a działalność gospodarczą pod firmą Paweł Brzozowski Asterion Usługi Techniczne"
+    r = {"mocodawca": [{"data": {"imie_nazwisko": "Usługi Techniczne", "nazwa": "Paweł Brzozowski Asterion Usługi Techniczne",
+                                 "typ": "osoba_prawna"}}]}
+    PR.apply(r, _doc(text))
+    assert r["mocodawca"][0]["data"]["imie_nazwisko"] == "Paweł Brzozowski"

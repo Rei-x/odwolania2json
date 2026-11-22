@@ -151,7 +151,11 @@ def fix_transfer_date(result: dict, text: str, changes: list):
         pb["data_operacji"] = labelled[0]
 
 
-def fix_sole_trader(result: dict, text: str, changes: list):
+SOLE_RAW = re.compile(r"([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż\-]+\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż\-]+)\s*,?\s*prowadząc\w*(?:\s*/\s*a)?\s+"
+                      r"(?:jednoosobow\w+\s+)?działalnoś\w*\s+gospodarcz\w*")
+
+
+def fix_sole_trader(result: dict, text: str, changes: list, raw: str = ""):
     mocs = result.get("mocodawca")
     if not isinstance(mocs, list):
         return
@@ -159,6 +163,8 @@ def fix_sole_trader(result: dict, text: str, changes: list):
     if not m:
         return
     person = m.group(1)
+    mr = SOLE_RAW.search(raw or "")
+    person_raw = mr.group(1) if mr and fold(mr.group(1)) == person else None
     for i, it in enumerate(mocs):
         d = _party_data(it)
         if not isinstance(d, dict):
@@ -170,16 +176,16 @@ def fix_sole_trader(result: dict, text: str, changes: list):
             changes.append({"rule": "sole_trader", "field": f"mocodawca[{i}].data.typ", "before": d.get("typ"),
                             "after": "osoba_fizyczna"})
             d["typ"] = "osoba_fizyczna"
-        if not d.get("imie_nazwisko") and "imie_nazwisko" in d:
-            # take the original spelling from the party's own fields
-            src = d.get("nazwa") or ""
-            words = src.split()
-            for j in range(len(words) - 1):
-                if fold(" ".join(words[j:j + 2])) == person:
-                    d["imie_nazwisko"] = " ".join(words[j:j + 2])
-                    changes.append({"rule": "sole_trader", "field": f"mocodawca[{i}].data.imie_nazwisko",
-                                    "before": None, "after": d["imie_nazwisko"]})
-                    break
+        if "imie_nazwisko" in d and fold(str(d.get("imie_nazwisko") or "")) != person:
+            name = person_raw
+            if not name:  # original spelling from the party's own name
+                words = str(d.get("nazwa") or "").split()
+                name = next((" ".join(words[j:j + 2]) for j in range(len(words) - 1)
+                             if fold(" ".join(words[j:j + 2])) == person), None)
+            if name:
+                changes.append({"rule": "sole_trader", "field": f"mocodawca[{i}].data.imie_nazwisko",
+                                "before": d.get("imie_nazwisko"), "after": name})
+                d["imie_nazwisko"] = name
 
 
 ACCOUNT_KEYS = ("z_rachunku", "na_rachunek")
@@ -219,6 +225,6 @@ def apply(result: dict, doc) -> list[dict]:
         if text.strip():
             fix_shared_ids(result, text, changes)
             fix_transfer_date(result, text, changes)
-            fix_sole_trader(result, text, changes)
+            fix_sole_trader(result, text, changes, "\n".join(p.text for p in doc.pages))
         fix_country_codes(result, "\n".join(p.text for p in doc.pages), changes)
     return changes
