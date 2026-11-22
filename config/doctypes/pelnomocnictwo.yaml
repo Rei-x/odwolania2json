@@ -46,6 +46,8 @@ fields:
         podpisujacy:
           type: array
           dedupe: person
+          order: document   # kolejność pierwszego wystąpienia w tekście (np. "reprezentowana przez: A, B"), nie układ podpisów
+          owner: mention    # kilku mocodawców: osoba wymieniona przy danych jednego z nich nie powtarza się u pozostałych
           items:
             type: object
             properties:
@@ -53,6 +55,7 @@ fields:
   pelnomocnicy:
     type: array
     dedupe: person
+    order: document
     items:
       type: object
       properties:

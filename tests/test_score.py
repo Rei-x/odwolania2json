@@ -62,6 +62,22 @@ def test_lists_matched_by_content_not_position():
     assert sorted(k.values()) == ["TN", "TP", "TP", "TP"]
 
 
+def test_ordered_mode_pairs_lists_by_position(tmp_path):
+    gt = {"mocodawca": [{"podpisujacy": [{"imie_nazwisko": "Anna Nowak"}, {"imie_nazwisko": "Jan Kowalski"}]}]}
+    swapped = {"mocodawca": [{"podpisujacy": gt["mocodawca"][0]["podpisujacy"][::-1]}]}
+    out = []
+    compare(swapped, gt, "", out, ordered=True)
+    assert sorted(k for k, *_ in out) == ["FP", "FP"]
+    out = []
+    compare(gt, gt, "", out, ordered=True)
+    assert sorted(k for k, *_ in out) == ["TP", "TP"]
+    for d, v in (("gt", gt), ("pred", swapped)):
+        (tmp_path / d / "c").mkdir(parents=True)
+        (tmp_path / d / "c" / "pelnomocnictwo.json").write_text(json.dumps(v))
+    assert score_dirs(tmp_path / "pred", tmp_path / "gt")["f1"] == 1.0
+    assert score_dirs(tmp_path / "pred", tmp_path / "gt", ordered=True)["f1"] == 0.0
+
+
 def test_list_extra_and_missing_items():
     gt = {"p": [{"n": "A"}, {"n": "B"}]}
     assert sorted(kinds({"p": [{"n": "A"}]}, gt).values()) == ["FN", "TP"]

@@ -413,7 +413,7 @@ def _emit_fields(props: dict, ind: int, out: list):
             _emit_fields(node.get("properties") or {}, ind + 2, out)
         elif t == "array":
             out.append(f"{pad}{kk}:")
-            for a in ("type", "description", "dedupe"):
+            for a in ("type", "description", "dedupe", "order", "owner"):
                 if a in node:
                     out.append(f"{pad}  {a}: {_q(node[a])}")
             it = node.get("items") or {"type": "string"}
@@ -520,6 +520,10 @@ def _check_fields(props, path: str, err, warn, depth=0):
                 err(p, f"Lista '{k}': lista list nie jest obsługiwana.")
             if node.get("dedupe") not in (None, "person"):
                 err(p, f"Lista '{k}': dedupe może mieć tylko wartość 'person'.")
+            if node.get("order") not in (None, "document"):
+                err(p, f"Lista '{k}': order może mieć tylko wartość 'document'.")
+            if node.get("owner") not in (None, "mention"):
+                err(p, f"Lista '{k}': owner może mieć tylko wartość 'mention'.")
         elif t == "enum":
             vals = node.get("values")
             if not isinstance(vals, list) or not vals:

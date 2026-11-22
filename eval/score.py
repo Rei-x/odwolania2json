@@ -5,8 +5,11 @@ TN - value absent in both
 FP - value only in prediction, or present in both but wrong
 FN - value absent in prediction but present in ground truth
 
-Usage: python -m eval.score <pred_dir> <gt_dir> [--verbose]
+Usage: python -m eval.score <pred_dir> <gt_dir> [--verbose] [--ordered]
 Both dirs contain case subfolders with <name>.json files matched by relative path.
+
+List items are paired by similarity, so their order does not matter. --ordered pairs them by position instead
+(a stricter reading in case the organiser compares lists index by index).
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ import argparse
 import json
 import sys
 from collections import defaultdict
+from itertools import zip_longest
 from pathlib import Path
 
 from rapidfuzz import fuzz
@@ -85,18 +89,19 @@ def _align(pred: list, gt: list) -> list[tuple]:
     return pairs
 
 
-def compare(pred, gt, path: str, out: list):
+def compare(pred, gt, path: str, out: list, ordered: bool = False):
     if isinstance(gt, dict) or isinstance(pred, dict):
         gt = gt if isinstance(gt, dict) else {}
         pred = pred if isinstance(pred, dict) else {}
         for k in sorted(set(gt) | set(pred)):
-            compare(pred.get(k), gt.get(k), f"{path}.{k}" if path else k, out)
+            compare(pred.get(k), gt.get(k), f"{path}.{k}" if path else k, out, ordered)
         return
     if isinstance(gt, list) or isinstance(pred, list):
         gt = gt if isinstance(gt, list) else []
         pred = pred if isinstance(pred, list) else []
-        for i, (p, g) in enumerate(_align(pred, gt)):
-            compare(p, g, f"{path}[{i}]", out)
+        pairs = list(zip_longest(pred, gt)) if ordered else _align(pred, gt)
+        for i, (p, g) in enumerate(pairs):
+            compare(p, g, f"{path}[{i}]", out, ordered)
         return
     if _empty(gt) and _empty(pred):
         out.append(("TN", path, pred, gt))
@@ -118,7 +123,7 @@ def _field_key(path: str) -> str:
     return re.sub(r"\[\d+\]", "[]", path)
 
 
-def score_dirs(pred_dir: Path, gt_dir: Path, verbose: bool = False) -> dict:
+def score_dirs(pred_dir: Path, gt_dir: Path, verbose: bool = False, ordered: bool = False) -> dict:
     total = defaultdict(int)
     per_doc = defaultdict(lambda: defaultdict(int))
     per_field = defaultdict(lambda: defaultdict(int))
@@ -129,7 +134,7 @@ def score_dirs(pred_dir: Path, gt_dir: Path, verbose: bool = False) -> dict:
         gt = json.loads(gt_file.read_text())
         pred = json.loads(pred_file.read_text()) if pred_file.exists() else {}
         res = []
-        compare(pred, gt, "", res)
+        compare(pred, gt, "", res, ordered)
         for kind, path, p, g in res:
             total[kind] += 1
             per_doc[gt_file.stem][kind] += 1
@@ -153,8 +158,9 @@ def main(argv=None):
     ap.add_argument("pred_dir", type=Path)
     ap.add_argument("gt_dir", type=Path)
     ap.add_argument("--verbose", "-v", action="store_true")
+    ap.add_argument("--ordered", action="store_true", help="pair list items by position, not by similarity")
     a = ap.parse_args(argv)
-    r = score_dirs(a.pred_dir, a.gt_dir, a.verbose)
+    r = score_dirs(a.pred_dir, a.gt_dir, a.verbose, a.ordered)
     print(f"\nF1 = {r['f1']:.4f}  {r['counts']}")
     print("per doc:", r["per_doc"])
     print("weakest fields:")

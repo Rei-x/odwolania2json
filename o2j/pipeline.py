@@ -8,6 +8,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
+from . import doc_order as DO
 from . import extract as E
 from . import pdf as P
 from . import tracing as T
@@ -292,6 +293,13 @@ class Pipeline:
                     result = new
                     evidence = E.ground(doc, result, derived)
                 rd.update(trace["router"])
+        # people lists in document order / under the principal that names them (YAML `order`, `owner`)
+        try:
+            trace["doc_order"] = DO.apply(spec, result, doc)
+        except Exception as e:  # noqa: BLE001  a post-processing bug must not cost the document
+            trace["doc_order"], trace["doc_order_error"] = [], repr(e)
+        if trace["doc_order"]:
+            evidence = E.ground(doc, result, derived)
         gd.update(self._ground_detail(evidence))
         trace.update(model=meta["model"], usage=meta["usage"], few_shot=len(examples),
                      raw_llm_output=raw, evidence=evidence,
@@ -359,6 +367,7 @@ class Pipeline:
                 result = E.postprocess(spec, raw)
                 trace["raw_output"] = raw
                 nd["normalized"] = self._norm_diff(raw, result)
+                trace["doc_order"] = nd["doc_order"] = DO.apply(spec, result, doc)
         with st.step("ground", "Dowody") as gd:
             evidence = E.ground(doc, result, E.derived_fields(spec))
             gd.update(self._ground_detail(evidence))

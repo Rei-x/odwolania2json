@@ -103,7 +103,7 @@ fields:
             wartosc: {type: number}
 ```
 
-Dostępne typy pól: `string`, `date`, `integer`, `number`, `enum` (wartości z etykietami), `object`, `array`. Normalizatory: `date`, `nip`, `krs`, `regon`, `pesel`, `iban`, `bzp`, `ted`, `amount`, `person`, `city`, `digits`, `strip`. Pole pochodne: `derive: {label_of: <pole enum>}`.
+Dostępne typy pól: `string`, `date`, `integer`, `number`, `enum` (wartości z etykietami), `object`, `array`. Normalizatory: `date`, `nip`, `krs`, `regon`, `pesel`, `iban`, `bzp`, `ted`, `amount`, `person`, `city`, `digits`, `strip`. Pole pochodne: `derive: {label_of: <pole enum>}`. Listy osób: `dedupe: person` (jedna osoba raz), `order: document` (kolejność pierwszego wystąpienia w tekście, jak w danych organizatora), `owner: mention` (lista osób wewnątrz listy podmiotów: osoba wymieniona przy danych jednego podmiotu, np. "reprezentowana przez", nie powtarza się u pozostałych); kod w `o2j/doc_order.py`.
 
 ## Model
 
