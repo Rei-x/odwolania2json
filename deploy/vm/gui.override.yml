@@ -1,0 +1,7 @@
+# Na serwerze oceny: GUI na porcie 8000, startuje samo po restarcie.
+#   docker compose -f docker-compose.yml -f deploy/vm/gui.override.yml --profile gui up -d gui
+services:
+  gui:
+    restart: unless-stopped
+    ports: !override
+      - "0.0.0.0:8000:8000"
