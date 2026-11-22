@@ -84,6 +84,7 @@ providers:
   qwen/qwen3.8-27b: {data_collection: deny}
   mistralai/ministral-8b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}  # Mistral AI (FR, EU)
   mistralai/ministral-3b-2512: {only: [mistral/eu], allow_fallbacks: false, data_collection: deny}
+  openai/gpt-oss-120b: {data_collection: deny}   # otwarte wagi (Apache 2.0), przez endpoint UE
 
 # Suwak dokładność / koszt: profile nadpisujące ustawienia (CLI: --profile, GUI: suwak).
 profile: auto                      # domyślnie: reguły + Ministral 3B -> 8B; skany i trudne dokumenty od razu 8B (najlepszy zmierzony wynik)

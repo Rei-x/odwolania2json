@@ -5,7 +5,7 @@
 Uruchomić z katalogu `/opt/solution` (bez interakcji, kończy się sama):
 
 ```bash
-docker compose run --rm wrobelek --force --profile auto
+docker compose run --rm wrobelek --force --profile auto --model openai/gpt-oss-120b
 ```
 
 - Przetwarza wszystkie pliki z `/opt/solution/input/<sprawa>/*.pdf` i zapisuje `/opt/solution/output/<sprawa>/<ta sama nazwa>.json`.
@@ -20,7 +20,7 @@ Czas: zmierzone na tym serwerze (2 vCPU, profil auto): 226 PDF (przykłady UZP +
 
 Klucz API jest w `/opt/solution/.env` (`O2J_LLM_API_KEY`, adres w `O2J_LLM_BASE_URL`).
 
-- **LLM:** otwarte modele Mistral AI **Ministral 8B i Ministral 3B** (profil `auto`: klasyfikacja reguły + Ministral 8B i 3B; skany, OCR i każdy dokument, przy którym reguły i model się nie zgadzają, od razu Ministral 8B; proste dokumenty cyfrowe Ministral 3B), przez API zgodne z OpenAI: OpenRouter, regionalny endpoint UE `https://eu.openrouter.ai/api/v1` (inferencja wyłącznie u dostawców w Unii Europejskiej, routing przypięty do Mistral AI, `data_collection: deny`, umowa powierzenia przetwarzania danych zaakceptowana).
+- **LLM (wyłącznie modele z otwartymi wagami):** ekstrakcja z dokumentów cyfrowych **gpt-oss-120b** (OpenAI, Apache 2.0); klasyfikacja reguły + **Ministral 8B i 3B** (Mistral AI); skany, OCR i dokumenty, przy których reguły i model się nie zgadzają: **Ministral 8B**, przez API zgodne z OpenAI: OpenRouter, regionalny endpoint UE `https://eu.openrouter.ai/api/v1` (inferencja wyłącznie u dostawców w Unii Europejskiej, modele Mistral przypięte do Mistral AI, gpt-oss u dostawców w UE, `data_collection: deny`, umowa powierzenia przetwarzania danych zaakceptowana).
 - **OCR skanów:** Ministral 8B (model wizyjny) przez to samo API; tekst z PDF-ów cyfrowych czytany lokalnie.
 - **Lokalnie (CPU, bez GPU):** pypdfium2 (warstwa tekstowa PDF), PP-LCNet ONNX (orientacja stron 0/90/180/270), reguły z plików YAML w `config/doctypes/`.
 
