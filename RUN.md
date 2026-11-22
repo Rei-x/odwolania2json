@@ -20,7 +20,7 @@ Czas: dokumenty cyfrowe ~2–5 s, skany ~20–40 s (przetwarzane równolegle, 8 
 
 Klucz API jest w `/opt/solution/.env` (`O2J_LLM_API_KEY`, adres w `O2J_LLM_BASE_URL`).
 
-- **LLM:** otwarte modele Mistral AI **Ministral 3B i Ministral 8B** (profil `auto`: reguły + Ministral 3B, trudne dokumenty i skany od razu Ministral 8B), przez API zgodne z OpenAI (OpenRouter z routingiem przypiętym do dostawcy Mistral w UE, `data_collection: deny`).
+- **LLM:** otwarte modele Mistral AI **Ministral 3B i Ministral 8B** (profil `auto`: reguły + Ministral 3B, trudne dokumenty i skany od razu Ministral 8B), przez API zgodne z OpenAI: OpenRouter, regionalny endpoint UE `https://eu.openrouter.ai/api/v1` (inferencja wyłącznie u dostawców w Unii Europejskiej, routing przypięty do Mistral AI, `data_collection: deny`, umowa powierzenia przetwarzania danych zaakceptowana).
 - **OCR skanów:** Ministral 8B (model wizyjny) przez to samo API; tekst z PDF-ów cyfrowych czytany lokalnie.
 - **Lokalnie (CPU, bez GPU):** pypdfium2 (warstwa tekstowa PDF), PP-LCNet ONNX (orientacja stron 0/90/180/270), reguły z plików YAML w `config/doctypes/`.
 
