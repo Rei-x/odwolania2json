@@ -1,36 +1,52 @@
 // Human labels for doctype names and schema keys, so users never see raw identifiers like
 // "informacja_z_otwarcia_ofert" or "ZAMAWIAJACY". Display only: JSON keys stay untouched.
+//
+// Spelling priority for a key: explicit KEY_LABEL -> words found in the field's YAML description (exact diacritics
+// from the author) -> the WORDS map below -> the key as written. WORDS lists only unambiguous words: e.g. "zadanie"
+// (task) vs "żądanie" (demand) are both plausible in procurement, so it is never "restored".
 
 import { useEffect, useState } from "react"
+import { fmtNum } from "./format"
 
-/** ASCII-folded word -> Polish spelling, for keys written without diacritics. */
+/** ASCII-folded word -> Polish spelling, for keys written without diacritics. Unambiguous words only. */
 const WORDS: Record<string, string> = {
-  odwolanie: "odwołanie", odwolania: "odwołania", odwolujacy: "odwołujący", odwolujacego: "odwołującego", odwolawczej: "odwoławczej",
+  // parties and documents
+  odwolanie: "odwołanie", odwolania: "odwołania", odwolaniu: "odwołaniu", odwolujacy: "odwołujący", odwolujacego: "odwołującego",
+  odwolawczej: "odwoławczej", odwolawcza: "odwoławcza",
   zamawiajacy: "zamawiający", zamawiajacego: "zamawiającego", zamawiajacych: "zamawiających",
   pelnomocnictwo: "pełnomocnictwo", pelnomocnictwa: "pełnomocnictwa", pelnomocnik: "pełnomocnik", pelnomocnika: "pełnomocnika",
   pelnomocnicy: "pełnomocnicy", pelnomocnikow: "pełnomocników",
   przystapienie: "przystąpienie", przystapienia: "przystąpienia", przystepujacy: "przystępujący", przystepujacego: "przystępującego",
-  podpisujacy: "podpisujący", wykonujacy: "wykonujący",
-  zamowienie: "zamówienie", zamowienia: "zamówienia", zamowien: "zamówień",
-  postepowanie: "postępowanie", postepowania: "postępowania", postepowan: "postępowań", prowadzacy: "prowadzący",
-  czynnosc: "czynność", czynnosci: "czynności", miejscowosc: "miejscowość", wartosc: "wartość", wartosci: "wartości",
-  tytul: "tytuł", tytulu: "tytułu", imie: "imię", nazwisko: "nazwisko",
+  podpisujacy: "podpisujący", wykonujacy: "wykonujący", skladajacy: "składający", wnoszacy: "wnoszący",
+  wykonawcow: "wykonawców", podwykonawcow: "podwykonawców", oferentow: "oferentów", czlonkow: "członków", czlonek: "członek",
+  // procurement
+  zamowienie: "zamówienie", zamowienia: "zamówienia", zamowien: "zamówień", zamowieniu: "zamówieniu",
+  postepowanie: "postępowanie", postepowania: "postępowania", postepowan: "postępowań", postepowaniu: "postępowaniu",
+  prowadzacy: "prowadzący", ogloszenie: "ogłoszenie", ogloszenia: "ogłoszenia", ogloszeniu: "ogłoszeniu",
+  zlozenia: "złożenia", zlozone: "złożone", zlozonych: "złożonych", zlozona: "złożona", zlozono: "złożono",
+  skladania: "składania", skladanie: "składanie", zlozenie: "złożenie", uslugi: "usługi", uslug: "usług", usluga: "usługa",
+  srodek: "środek", wlasnie: "właśnie", zrodla: "źródła", szczegolowy: "szczegółowy", szczegolowe: "szczegółowe",
+  czesc: "część", czesci: "części", sposob: "sposób", wysokosc: "wysokość", ilosc: "ilość", liczba: "liczba",
+  budzet: "budżet", budzetu: "budżetu", wartosc: "wartość", wartosci: "wartości", laczna: "łączna", laczny: "łączny",
+  laczne: "łączne", srednia: "średnia", sredni: "średni", najnizsza: "najniższa", najwyzsza: "najwyższa",
+  rekojmia: "rękojmia", rekojmi: "rękojmi", wadium: "wadium", zabezpieczenie: "zabezpieczenie",
+  miesiecy: "miesięcy", miesiace: "miesiące", miesiac: "miesiąc", dzien: "dzień", dni: "dni", tygodni: "tygodni",
+  oplata: "opłata", oplaty: "opłaty", wplata: "wpłata", wplaty: "wpłaty", platnosc: "płatność", platnosci: "płatności",
+  srodki: "środki", srodkow: "środków", zrodlo: "źródło", tresc: "treść", tytul: "tytuł", tytulu: "tytułu",
+  czynnosc: "czynność", czynnosci: "czynności", miejscowosc: "miejscowość", miejscowosci: "miejscowości",
+  wojewodztwo: "województwo", wojewodztwa: "województwa", panstwo: "państwo", kraj: "kraj",
   oswiadczenie: "oświadczenie", oswiadczenia: "oświadczenia", zalacznik: "załącznik", zalaczniki: "załączniki",
-  wplata: "wpłata", wplaty: "wpłaty", platnosc: "płatność", platnosci: "płatności", oplata: "opłata", oplaty: "opłaty",
-  srodki: "środki", srodkow: "środków", sad: "sąd", sadu: "sądu", zrodlo: "źródło", tresc: "treść", liczba: "liczba",
-  powod: "powód", dzien: "dzień", miesiac: "miesiąc", rok: "rok", godzina: "godzina",
-  odbiorca: "odbiorca", nadawca: "nadawca", wlasciciel: "właściciel", siedziba: "siedziba", ulica: "ulica",
-  uzasadnienie: "uzasadnienie", zadania: "żądania", zadanie: "żądanie", zarzuty: "zarzuty", wnioski: "wnioski",
-  ofert: "ofert", oferta: "oferta", oferty: "oferty", otwarcia: "otwarcia", cena: "cena", ceny: "ceny", kwota: "kwota",
-  potwierdzenie: "potwierdzenie", przelewu: "przelewu", przelew: "przelew", rachunek: "rachunek", rachunku: "rachunku",
-  wykonawca: "wykonawca", wykonawcy: "wykonawcy", wykonawcow: "wykonawców", umowa: "umowa", umowy: "umowy",
-  informacja: "informacja", decyzja: "decyzja", wyrok: "wyrok", postanowienie: "postanowienie", sygnatura: "sygnatura",
-  krajowej: "krajowej", izby: "izby", prezes: "prezes", mocodawca: "mocodawca", reprezentacja: "reprezentacja",
-  data: "data", numer: "numer", nazwa: "nazwa", typ: "typ", opis: "opis", adres: "adres", mail: "e-mail", email: "e-mail",
-  przez: "przez", czy: "czy", na: "na", z: "z", do: "do", od: "od", i: "i", w: "w", o: "o", nr: "nr",
+  wlasciciel: "właściciel", powod: "powód", uzasadnienie: "uzasadnienie", imie: "imię", nazwisko: "nazwisko",
+  wplynelo: "wpłynęło", wplywu: "wpływu", sad: "sąd", sadu: "sądu", glowny: "główny", glowna: "główna",
+  // already correct without diacritics (listed so they are not mistaken for unknown words)
+  kwota: "kwota", termin: "termin", oferta: "oferta", oferty: "oferty", ofert: "ofert", wykonawca: "wykonawca",
+  wykonawcy: "wykonawcy", przelew: "przelew", przelewu: "przelewu", odbiorca: "odbiorca", nadawca: "nadawca",
+  rachunek: "rachunek", rachunku: "rachunku", data: "data", cena: "cena", ceny: "ceny", brutto: "brutto", netto: "netto",
+  zadanie: "zadanie", zadania: "zadania", nazwa: "nazwa", numer: "numer", typ: "typ", opis: "opis", adres: "adres",
+  mail: "e-mail", email: "e-mail",
 }
 /** Acronyms written in capitals. */
-const UPPER = new Set(["nip", "krs", "regon", "pesel", "bzp", "ted", "kio", "uzp", "iban", "pzp", "vat", "id", "eu", "ue", "json", "pdf"])
+const UPPER = new Set(["nip", "krs", "regon", "pesel", "bzp", "ted", "kio", "uzp", "iban", "pzp", "vat", "id", "eu", "ue", "json", "pdf", "swz", "siwz"])
 
 /** Labels for specific keys whose humanised form is not good enough. */
 const KEY_LABEL: Record<string, string> = {
@@ -61,7 +77,14 @@ const DOCTYPE_LABEL: Record<string, string> = {
   error: "Błąd",
 }
 
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L").toLowerCase()
+/** Lowercase ASCII fold that keeps string length for NFC input (one character in, one character out). */
+const fold = (s: string) =>
+  s
+    .normalize("NFC")
+    .split("")
+    .map((c) => (c === "ł" || c === "Ł" ? "l" : c.normalize("NFD").replace(/[̀-ͯ]/g, "")))
+    .join("")
+    .toLowerCase()
 
 /** Split snake_case, kebab-case and CamelCase into lowercase words. */
 function words(key: string): string[] {
@@ -74,25 +97,41 @@ function words(key: string): string[] {
 
 const word = (w: string) => (UPPER.has(w) ? w.toUpperCase() : WORDS[w] ?? w)
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+/** Spell the key's words the way the field's own description writes them ("budzet_brutto" + "...budżet brutto..."). */
+function spell(ws: string[], hint?: string): string[] {
+  if (!hint) return ws.map(word)
+  const h = hint.normalize("NFC")
+  const f = fold(h)
+  const at = (needle: string) => {
+    const m = new RegExp(`(^|[^a-z0-9])${esc(needle)}(?=$|[^a-z0-9])`).exec(f)
+    return m ? h.slice(m.index + m[1].length, m.index + m[1].length + needle.length).toLowerCase() : null
+  }
+  const phrase = at(ws.join(" "))
+  if (phrase && phrase.split(" ").length === ws.length) return phrase.split(" ").map((w, i) => (UPPER.has(ws[i]) ? ws[i].toUpperCase() : w))
+  return ws.map((w) => (UPPER.has(w) ? w.toUpperCase() : (w.length > 2 && at(w)) || word(w)))
+}
 
 /** "imie_nazwisko" -> "imię i nazwisko", "Zamawiajacy" -> "zamawiający" (lowercase, for field rows). */
-export function fieldLabel(key: string): string {
-  return KEY_LABEL[key] ?? words(key).map(word).join(" ")
+export function fieldLabel(key: string, hint?: string): string {
+  return KEY_LABEL[key] ?? spell(words(key), hint).join(" ")
 }
 
 /** Object keys that read better as a section title than their humanised form. */
 const SECTION_LABEL: Record<string, string> = { data: "Dane", pelnomocnicy: "Pełnomocnik" }
 
 /** Section heading: "Zamawiajacy" -> "Zamawiający" (CSS may upper-case it to "ZAMAWIAJĄCY"). */
-export const sectionLabel = (key: string) => SECTION_LABEL[key] ?? cap(fieldLabel(key))
+export const sectionLabel = (key: string, hint?: string) => SECTION_LABEL[key] ?? cap(fieldLabel(key, hint))
 
 /** "Odwolujacy[0].pelnomocnik.imie_nazwisko" -> "Pełnomocnik · imię i nazwisko" (array indices and wrapper objects dropped). */
-export function pathLabel(path: string): string {
+export function pathLabel(path: string, meta?: DoctypeMeta): string {
   const parts = path.replace(/\[\d+\]/g, "").split(".").filter(Boolean)
   const leaf = parts[parts.length - 1] ?? path
   const parent = parts.length > 1 ? parts[parts.length - 2] : ""
   const wrapper = /^(OdwolanieKIO|ZamowieniePubliczne|przelew_bankowy|data)$/.test(parent)
-  return parent && !wrapper ? `${sectionLabel(parent)} · ${fieldLabel(leaf)}` : fieldLabel(leaf)
+  const h = meta?.hints
+  return parent && !wrapper ? `${sectionLabel(parent, h?.[parent])} · ${fieldLabel(leaf, h?.[leaf])}` : fieldLabel(leaf, h?.[leaf])
 }
 
 /* ------------------------------------------------------------------ doctype names */
@@ -144,63 +183,81 @@ export function useDoctypeLabels() {
   return doctypeLabel
 }
 
-/* ------------------------------------------------------------------ values */
+/* ------------------------------------------------------------------ per-doctype YAML hints */
 
 export type EnumLabels = Record<string, Record<string, string>>
+/** What the doctype YAML says about its fields: enum labels and descriptions, keyed by the field's leaf name. */
+export type DoctypeMeta = { enums: EnumLabels; hints: Record<string, string> }
+const EMPTY: DoctypeMeta = { enums: {}, hints: {} }
 
 /**
- * Enum labels from a doctype YAML without a YAML parser: for every key followed by `{value: X, label: "..."}` items
- * (block or inline list) collect value -> label. Keyed by the field's leaf name.
+ * Field descriptions and enum labels from a doctype YAML, without a YAML parser: every non-meta key opens a field;
+ * `description:` and `{value: X, label: "..."}` items that follow (inline or in its block) belong to it.
  */
-export function parseEnumLabels(yaml: string): EnumLabels {
-  const out: EnumLabels = {}
+export function parseDoctypeYaml(yaml: string): DoctypeMeta {
+  const enums: EnumLabels = {}
+  const hints: Record<string, string> = {}
   const meta = new Set(["values", "type", "description", "label", "value", "normalize", "pattern", "properties", "items", "dedupe", "required"])
   const item = /\{\s*value:\s*["']?([^,"'}]+?)["']?\s*,\s*label:\s*["']?([^"'}]+?)["']?\s*\}/g
+  const desc = /description:\s*(?:"([^"]*)"|'([^']*)'|([^,}\n]+))/
   let field: string | null = null
+  let inFields = false
   for (const line of yaml.split("\n")) {
+    if (/^fields:/.test(line)) inFields = true
+    else if (/^\S/.test(line)) inFields = false // top-level key: name, description, classify, deterministic, ...
+    if (!inFields) continue
     const km = /^\s*([\w-]+):/.exec(line)
     if (km && !meta.has(km[1])) field = km[1]
     if (!field) continue
-    for (const v of line.matchAll(item)) (out[field] ??= {})[v[1].trim()] ??= v[2].trim()
+    const d = desc.exec(line)
+    if (d) hints[field] ??= (d[1] ?? d[2] ?? d[3] ?? "").trim()
+    for (const v of line.matchAll(item)) (enums[field] ??= {})[v[1].trim()] ??= v[2].trim()
   }
-  return out
+  return { enums, hints }
 }
 
-const enumCache = new Map<string, EnumLabels>()
-const enumLoading = new Set<string>()
+const metaCache = new Map<string, DoctypeMeta>()
+const metaLoading = new Set<string>()
 
-/** Enum labels of a saved doctype (fetched once from /api/doctypes/<name>/yaml); re-renders when they arrive. */
-export function useEnumLabels(doctype?: string | null): EnumLabels {
+/** YAML hints of a saved doctype (fetched once from /api/doctypes/<name>/yaml); re-renders when they arrive. */
+export function useDoctypeMeta(doctype?: string | null): DoctypeMeta {
   const [, bump] = useState(0)
   useEffect(() => {
-    if (!doctype || enumCache.has(doctype) || enumLoading.has(doctype)) return
-    enumLoading.add(doctype)
+    if (!doctype || metaCache.has(doctype) || metaLoading.has(doctype)) return
+    metaLoading.add(doctype)
     fetch(`/api/doctypes/${encodeURIComponent(doctype)}/yaml`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { yaml?: string } | null) => {
-        enumCache.set(doctype, d?.yaml ? parseEnumLabels(d.yaml) : {})
+        metaCache.set(doctype, d?.yaml ? parseDoctypeYaml(d.yaml) : EMPTY)
         bump((n) => n + 1)
       })
-      .catch(() => enumCache.set(doctype, {}))
+      .catch(() => metaCache.set(doctype, EMPTY))
   }, [doctype])
-  return (doctype && enumCache.get(doctype)) || {}
+  return (doctype && metaCache.get(doctype)) || EMPTY
 }
 
+/* ------------------------------------------------------------------ values */
+
 const BOOL_KEY = /^(przez|czy|is|has|ma)[-_]/i
+const MONEY_KEY = /kwota|budzet|budżet|wartosc|wartość|cena|wadium/i
 const SNAKE_WORDS = /^[a-ząćęłńóśźż]+(_[a-ząćęłńóśźż]+)+$/
 
 /**
  * Display value of a leaf: yes/no for boolean-like fields ("przez-pelnomocnika": 1 -> "tak"), the YAML label for enum
- * values ("9 · Decyzja o unieważnieniu postępowania"), humanised snake-case enums ("osoba_prawna" -> "osoba prawna"),
- * "—" for empty. Display only; JSON and the edit box keep the raw value.
+ * values ("9 · Decyzja o unieważnieniu postępowania"), money in money-like fields ("11 000 000,00 zł"), humanised
+ * snake-case enums ("osoba_prawna" -> "osoba prawna"), "—" for empty. Display only; JSON and the edit box keep the raw value.
  */
-export function displayValue(key: string, v: unknown, enums?: EnumLabels): string {
+export function displayValue(key: string, v: unknown, meta?: DoctypeMeta): string {
   if (v === null || v === undefined || v === "") return "—"
   if (typeof v === "boolean") return v ? "tak" : "nie"
   if (BOOL_KEY.test(key) && (v === 0 || v === 1 || v === "0" || v === "1")) return Number(v) === 1 ? "tak" : "nie"
   if (typeof v === "object") return JSON.stringify(v)
-  const label = enums?.[key]?.[String(v)]
+  const label = meta?.enums[key]?.[String(v)]
   if (label) return typeof v === "number" ? `${v} · ${label}` : label
+  if (MONEY_KEY.test(key) && !/_id$|procent|proc$|liczba/i.test(key)) {
+    const n = typeof v === "number" ? v : /^\d+([.,]\d{1,2})?$/.test(String(v).trim()) ? Number(String(v).trim().replace(",", ".")) : NaN
+    if (isFinite(n)) return `${fmtNum(n, 2, 2)} zł`
+  }
   if (typeof v === "string" && SNAKE_WORDS.test(v)) return v.split("_").map(word).join(" ")
   return String(v)
 }

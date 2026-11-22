@@ -9,10 +9,10 @@ import { JsonView } from "./JsonView"
 import { typeColor, type Evidence, type TestResponse } from "./types"
 import type { Wizard } from "./useWizard"
 import { fmtSec, fmtUsd } from "@/lib/format"
-import { displayValue, doctypeLabel, type EnumLabels, fieldLabel, parseEnumLabels, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
+import { displayValue, type DoctypeMeta, doctypeLabel, fieldLabel, parseDoctypeYaml, pathLabel, prettyModel, sectionLabel, useDoctypeLabels } from "@/lib/labels"
 
-/** Enum labels of the draft being tested (parsed from the wizard YAML). */
-const EnumCtx = createContext<EnumLabels>({})
+/** Field descriptions and enum labels of the draft being tested (parsed from the wizard YAML). */
+const MetaCtx = createContext<DoctypeMeta>({ enums: {}, hints: {} })
 
 const METHOD_DOT: Record<string, string> = { located: "bg-success", inferred: "bg-wheat", derived: "bg-sage" }
 
@@ -109,7 +109,7 @@ function Busy({ name }: { name: string }) {
 }
 
 function Row({ k, v, e, on, onPick }: { k: string; v: unknown; e?: Evidence; on: boolean; onPick: () => void }) {
-  const enums = useContext(EnumCtx)
+  const meta = useContext(MetaCtx)
   const isNull = v === null || v === undefined
   let evt: ReactNode
   if (!e) evt = "Brak w dokumencie."
@@ -142,8 +142,8 @@ function Row({ k, v, e, on, onPick }: { k: string; v: unknown; e?: Evidence; on:
       className={cn("block w-full rounded-md px-3 py-1.5 text-left transition-colors hover:bg-secondary/70", on && "bg-accent hover:bg-accent")}
     >
       <span className="flex items-baseline gap-3">
-        <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">{k === "—" ? k : fieldLabel(k)}</span>
-        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{displayValue(k, v, enums)}</span>
+        <span className="w-36 shrink-0 truncate text-xs text-muted-foreground">{k === "—" ? k : fieldLabel(k, meta.hints[k])}</span>
+        <span className={cn("min-w-0 flex-1 text-sm break-words", isNull && "text-muted-foreground")}>{displayValue(k, v, meta)}</span>
         <span className={cn("size-2 shrink-0 self-center rounded-full", e ? METHOD_DOT[e.method] ?? "bg-muted-foreground" : "opacity-0")} />
       </span>
       {on && <span className="mt-1 block pl-0 text-xs text-muted-foreground sm:pl-39">{evt}</span>}
@@ -166,6 +166,7 @@ function Fields({
   picked: string | null
   onPick: (p: string) => void
 }): ReactNode {
+  const h = useContext(MetaCtx).hints
   const out: ReactNode[] = []
   const head = (key: string, label: string, sub = false) => (
     <div key={key} className={cn("px-3 pt-3 pb-1 font-medium", sub ? "text-xs text-muted-foreground" : "text-xs tracking-wide text-primary uppercase")}>
@@ -176,18 +177,18 @@ function Fields({
     const p = path ? `${path}.${k}` : k
     if (Array.isArray(v)) {
       if (!v.length) {
-        out.push(head(p + ":h", sectionLabel(k)), <Row key={p} k="—" v={null} on={false} onPick={() => {}} />)
+        out.push(head(p + ":h", sectionLabel(k, h[k])), <Row key={p} k="—" v={null} on={false} onPick={() => {}} />)
         continue
       }
       v.forEach((it, i) => {
         const ip = `${p}[${i}]`
-        out.push(head(ip + ":h", v.length > 1 ? `${sectionLabel(k)} ${i + 1}` : sectionLabel(k)))
+        out.push(head(ip + ":h", v.length > 1 ? `${sectionLabel(k, h[k])} ${i + 1}` : sectionLabel(k, h[k])))
         if (it && typeof it === "object")
           out.push(<Fields key={ip} obj={it as Record<string, unknown>} path={ip} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
         else out.push(<Row key={ip} k={k} v={it} e={ev[ip]} on={picked === ip} onPick={() => onPick(ip)} />)
       })
     } else if (v && typeof v === "object") {
-      out.push(head(p + ":h", depth > 0 ? fieldLabel(k) : sectionLabel(k), depth > 0), <Fields key={p} obj={v as Record<string, unknown>} path={p} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
+      out.push(head(p + ":h", depth > 0 ? fieldLabel(k, h[k]) : sectionLabel(k, h[k]), depth > 0), <Fields key={p} obj={v as Record<string, unknown>} path={p} depth={depth + 1} ev={ev} picked={picked} onPick={onPick} />)
     } else out.push(<Row key={p} k={k} v={v} e={ev[p]} on={picked === p} onPick={() => onPick(p)} />)
   }
   return <>{out}</>
@@ -195,6 +196,7 @@ function Fields({
 
 function Result({ d }: { d: TestResponse }) {
   useDoctypeLabels()
+  const issueMeta = useContext(MetaCtx)
   const t = d.trace
   const [view, setView] = useState<"dane" | "json">("dane")
   const [picked, setPicked] = useState<string | null>(null)
@@ -296,7 +298,7 @@ function Result({ d }: { d: TestResponse }) {
                   <div className="text-muted-foreground">Po zapisie poprawi je pętla naprawy.</div>
                   {issues.map((i, k) => (
                     <div key={k}>
-                      <span className="font-medium">{pathLabel(i.field)}</span>: {i.issue}
+                      <span className="font-medium">{pathLabel(i.field, issueMeta)}</span>: {i.issue}
                     </div>
                   ))}
                 </div>
@@ -315,11 +317,11 @@ function Result({ d }: { d: TestResponse }) {
 }
 
 function TestResult({ d, yaml }: { d: TestResponse; yaml: string }) {
-  const enums = useMemo(() => parseEnumLabels(yaml || ""), [yaml])
+  const meta = useMemo(() => parseDoctypeYaml(yaml || ""), [yaml])
   return (
-    <EnumCtx.Provider value={enums}>
+    <MetaCtx.Provider value={meta}>
       <Result d={d} />
-    </EnumCtx.Provider>
+    </MetaCtx.Provider>
   )
 }
 

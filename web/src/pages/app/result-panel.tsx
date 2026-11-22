@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { fmtSec } from "@/lib/format"
-import { displayValue, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels, useEnumLabels } from "@/lib/labels"
+import { displayValue, fieldLabel, pathLabel, prettyModel, sectionLabel, useDoctypeLabels, useDoctypeMeta } from "@/lib/labels"
 import { TraceView } from "./trace-view"
 import {
   api,
@@ -50,6 +50,7 @@ export function evMap(d: Doc | null): Record<string, Evidence> {
 export function ResultPanel(p: Props) {
   const { doc: d } = p
   const docLabel = useDoctypeLabels()
+  const meta = useDoctypeMeta(d.doctype)
   if (d.pending) return <PendingPanel />
   const t = d.trace || {}
   const fixes = (t.verification?.rounds || []).flatMap((r) => r.changes || [])
@@ -115,7 +116,7 @@ export function ResultPanel(p: Props) {
                 <b>Weryfikacja poprawiła:</b>
                 {fixes.map((f, i) => (
                   <div key={i} className="mt-0.5 break-words">
-                    {pathLabel(f.field)}: <s className="text-muted-foreground">{JSON.stringify(f.before)}</s> →{" "}
+                    {pathLabel(f.field, meta)}: <s className="text-muted-foreground">{JSON.stringify(f.before)}</s> →{" "}
                     {JSON.stringify(f.after)}
                   </div>
                 ))}
@@ -249,6 +250,7 @@ function SectionLabel({ children, sub }: { children: React.ReactNode; sub?: bool
 
 function Fields(fp: FieldsProps) {
   const { obj, path, depth = 0 } = fp
+  const h = useDoctypeMeta(fp.doc.doctype).hints
   return (
     <>
       {Object.entries(obj || {}).map(([k, v]) => {
@@ -257,7 +259,7 @@ function Fields(fp: FieldsProps) {
           if (!v.length)
             return (
               <Fragment key={p}>
-                <SectionLabel>{sectionLabel(k)}</SectionLabel>
+                <SectionLabel>{sectionLabel(k, h[k])}</SectionLabel>
                 <div className="grid grid-cols-[minmax(110px,38%)_1fr] gap-3 px-3 py-1.5 text-sm">
                   <span className="text-muted-foreground">—</span>
                   <span className="text-muted-foreground/60">brak</span>
@@ -269,7 +271,7 @@ function Fields(fp: FieldsProps) {
               {v.map((it, i) => (
                 <Fragment key={i}>
                   <SectionLabel>
-                    {sectionLabel(k)}
+                    {sectionLabel(k, h[k])}
                     {v.length > 1 ? ` ${i + 1}` : ""}
                   </SectionLabel>
                   {it && typeof it === "object" && !Array.isArray(it) ? (
@@ -285,7 +287,7 @@ function Fields(fp: FieldsProps) {
         if (v && typeof v === "object")
           return (
             <Fragment key={p}>
-              <SectionLabel sub={depth > 0}>{depth > 0 ? fieldLabel(k) : sectionLabel(k)}</SectionLabel>
+              <SectionLabel sub={depth > 0}>{depth > 0 ? fieldLabel(k, h[k]) : sectionLabel(k, h[k])}</SectionLabel>
               <Fields {...fp} obj={v} path={p} depth={depth + 1} />
             </Fragment>
           )
@@ -301,8 +303,8 @@ function Row({ doc, ev, selected, onSelect, onEdit, p, k, v }: FieldsProps & { p
   const [editing, setEditing] = useState(false)
   const edited =
     !!doc.edited && JSON.stringify(getP(doc.edited, p)) !== JSON.stringify(getP(doc.result, p))
-  const enums = useEnumLabels(doc.doctype)
-  const display = displayValue(k, v, enums)
+  const meta = useDoctypeMeta(doc.doctype)
+  const display = displayValue(k, v, meta)
   return (
     <div
       data-p={p}
@@ -323,7 +325,7 @@ function Row({ doc, ev, selected, onSelect, onEdit, p, k, v }: FieldsProps & { p
         on && "bg-accent hover:bg-accent",
       )}
     >
-      <span className="text-[13px] text-muted-foreground">{fieldLabel(k)}</span>
+      <span className="text-[13px] text-muted-foreground">{fieldLabel(k, meta.hints[k])}</span>
       {editing ? (
         <EditInput
           initial={v === null ? "" : String(v)}
